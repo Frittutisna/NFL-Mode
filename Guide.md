@@ -21,9 +21,7 @@ It handles the math; the team with the most points after 20 songs wins!
         <td>16 Watched Equal, 4 Random</td>
         <td><details>
             <summary>Click to view code</summary>
-            <code style="word-break: break-all">
-            e0g0k21111100120g000431110000000k11111111111100k051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1k903-11111--
-            </code>
+            <code style="word-break: break-all">e0g0k21111100120g000431110000000k11111111111100k051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1k903-11111--</code>
         </details></td>
     </tr>
     <tr>
@@ -32,9 +30,7 @@ It handles the math; the team with the most points after 20 songs wins!
         <td>5 Random</td>
         <td><details>
             <summary>Click to view code</summary>
-            <code style="word-break: break-all;">
-            e0g05211111001100000531110000000511111111111100k051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--
-            </code>
+            <code style="word-break: break-all;">e0g05211111001100000531110000000511111111111100k051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--</code>
         </details></td>
     </tr>
 </table>
@@ -156,4 +152,5 @@ The top two teams advance to the **Super Bowl**.\
 For 6 teams, play a single round-robin.\
 For 8 teams, play a 5-game Swiss league.\
 In both cases, the top four teams advance to the **Championship Games**, 
+
 then the two winners advance to the **Super Bowl**.
