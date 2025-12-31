@@ -152,5 +152,4 @@ The top two teams advance to the **Super Bowl**.\
 For 6 teams, play a single round-robin.\
 For 8 teams, play a 5-game Swiss league.\
 In both cases, the top four teams advance to the **Championship Games**, 
-
 then the two winners advance to the **Super Bowl**.
