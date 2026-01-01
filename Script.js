@@ -98,6 +98,9 @@
     };
 
     const endGame = (winnerSide) => {
+        let seriesWinner    = null;
+        let seriesFinished  = false;
+
         if (config.seriesLength > 1) {
             const finalScoreStr = `${match.scores.away}-${match.scores.home}`;
             config.seriesStats.history.push(finalScoreStr);
@@ -106,35 +109,44 @@
             else if (winnerSide === 'home') config.seriesStats.homeWins++;
             else                            config.seriesStats.draws++;
 
+            const awayPoints    = config.seriesStats.awayWins + (config.seriesStats.draws * 0.5);
+            const homePoints    = config.seriesStats.homeWins + (config.seriesStats.draws * 0.5);
+            const winThreshold  = config.seriesLength / 2;
+            
+            const aName = config.teamNames.away;
+            const hName = config.teamNames.home;
+
+            if (awayPoints > winThreshold)  seriesWinner    = aName;
+            if (homePoints > winThreshold)  seriesWinner    = hName;
+            if (seriesWinner)               seriesFinished  = true;
+
             let     seriesMsg       = "";
             const   scoresList      = `(${config.seriesStats.history.join(", ")})`;
-            const   aName           = config.teamNames.away;
-            const   hName           = config.teamNames.home;
-            const   aWins           = config.seriesStats.awayWins;
-            const   hWins           = config.seriesStats.homeWins;
-            const   winThreshold    = Math.ceil(config.seriesLength / 2);
-            
-            let seriesWinner = null;
-            if (aWins >= winThreshold) seriesWinner = aName;
-            if (hWins >= winThreshold) seriesWinner = hName;
+            const   fmt             = (n) => Number.isInteger(n) ? n : n.toFixed(1);
 
             if (seriesWinner) {
-                const loserWins = (seriesWinner === aName) ? hWins : aWins;
-                const verb      = (loserWins === 0) ? "swept" : "won the series";
-                const wCount    = Math.max(aWins, hWins);
-                const lCount    = Math.min(aWins, hWins);
-                seriesMsg       = `The ${seriesWinner} ${verb} ${wCount}-${lCount} ${scoresList}`;
+                const loserPoints   = (seriesWinner === aName) ? homePoints : awayPoints;
+                const winnerPoints  = (seriesWinner === aName) ? awayPoints : homePoints;
+                const verb          = (loserPoints === 0) ? "swept" : "won";
+                seriesMsg           = `The ${seriesWinner} ${verb} the series ${fmt(winnerPoints)}-${fmt(loserPoints)} ${scoresList}`;
             } else {
-                if (aWins === hWins) seriesMsg = `Series tied at ${aWins}-${hWins} ${scoresList}`;
+                if (awayPoints === homePoints) seriesMsg = `Series tied at ${fmt(awayPoints)}-${fmt(homePoints)} ${scoresList}`;
                 else {
-                    const leader    = aWins > hWins ? aName : hName;
-                    const wCount    = Math.max(aWins, hWins);
-                    const lCount    = Math.min(aWins, hWins);
-                    seriesMsg       = `The ${leader} leads the series ${wCount}-${lCount} ${scoresList}`;
+                    const leader    = awayPoints > homePoints ? aName       : hName;
+                    const wCount    = awayPoints > homePoints ? awayPoints  : homePoints;
+                    const lCount    = awayPoints > homePoints ? homePoints  : awayPoints;
+                    seriesMsg       = `The ${leader} leads the series ${fmt(wCount)}-${fmt(lCount)} ${scoresList}`;
                 }
             }
             
             setTimeout(() => chatMessage(seriesMsg), 2000);
+        }
+
+        if (match.period === 'OVERTIME' && config.seriesLength > 1 && !seriesFinished) {
+            setTimeout(() => {
+                systemMessage("Series continues after Overtime");
+                systemMessage(`Regulation: ${CODES.REGULATION}`);
+            }, 2500);
         }
 
         match.isActive = false;
@@ -148,25 +160,21 @@
     };
 
     const validateLobby = () => {
-        if (typeof lobby === 'undefined' || !lobby.inLobby) return {valid: false, msg: "Not in Lobby"};
+        if (typeof lobby === 'undefined' || !lobby.inLobby) return {valid: false, msg: "Error: Not in Lobby"};
         const players = Object.values(lobby.players);
-        if (players.length !== 8) return {valid: false, msg: `Error: Need exactly 8 players`};
+        if (players.length !== 8)                           return {valid: false, msg: `Error: Need exactly 8 players`};
         const notReady = players.filter(p => !p.ready);
-        if (notReady.length > 0) return {valid: false, msg: "Error: All players must be Ready"};
+        if (notReady.length > 0)                            return {valid: false, msg: "Error: All players must be Ready"};
         const teams     = players.map(p => p.teamNumber).sort((a, b) => a - b);
         const expected  = [1, 2, 3, 4, 5, 6, 7, 8];
         const isUnique  = teams.length === expected.length && teams.every((val, index) => val === expected[index]);
-        if (!isUnique) return {valid: false, msg: "Error: Exactly 1 player must be on Teams 1 to 8"};
+        if (!isUnique)                                      return {valid: false, msg: "Error: Exactly 1 player must be on Teams 1 to 8"};
         return {valid: true};
     };
 
     const startGame = () => {
         const check = validateLobby();
-        if (!check.valid) {
-            systemMessage(check.msg);
-            return;
-        }
-
+        if (!check.valid) {systemMessage(check.msg); return;}
         resetMatchData();
         match.isActive = true;
         systemMessage(`Game ${config.gameNumber}: ${getTeamName('away')} @ ${getTeamName('home')}`);
