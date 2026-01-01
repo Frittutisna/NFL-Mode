@@ -144,6 +144,15 @@
 
     const getArticle = (word) => {return /^[AEIOU]/.test(word) ? "an" : "a";};
 
+    const getMaxPossiblePoints = (songsLeft, startsWithBall) => {
+        if (songsLeft <= 0) return 0;
+        const pairs     = Math.floor(songsLeft / 2);
+        const remainder = songsLeft % 2;
+        let points      = pairs * 15;
+        if (remainder > 0) points += startsWithBall ? 8 : 7;
+        return points;
+    };
+
     const processRound = (payload) => {
         if (!state.isActive) return;
 
@@ -227,12 +236,13 @@
         if (result.swap)                    state.possession        = defSide;
 
         const scoreStr  = `${state.scores.away}-${state.scores.home}`;
-        
-        const mainMsg = `${awayStats.patternStr} ${homeStats.patternStr} ${result.name} ${scoreStr}`;
+        const mainMsg   = `${awayStats.patternStr} ${homeStats.patternStr} ${result.name} ${scoreStr}`;
         chatMessage(mainMsg);
 
         const songsRemaining        = 20 - state.songNumber;
-        const maxPointsRemaining    = songsRemaining * 8;
+        const isAwayLeading         = state.scores.away > state.scores.home;
+        const trailerPossessing     = (isAwayLeading && state.possession === 'home') || (!isAwayLeading && state.possession === 'away');
+        const maxPointsRemaining    = getMaxPossiblePoints(songsRemaining, trailerPossessing);
         const scoreDiff             = Math.abs(state.scores.away - state.scores.home);
 
         if (scoreDiff > maxPointsRemaining) {
@@ -245,17 +255,10 @@
                 }, 1000); 
             }, 1000);
         } 
-        else if (state.songNumber < 20) {
-            const nextSongTrigger = Math.floor(20 - (scoreDiff / 8)) + 1;
+        else if (state.songNumber < 20) {           
+            const nextRoundSong     = state.songNumber + 1;
+            const songsAfterNext    = 20 - nextRoundSong;
             
-            if (state.songNumber >= 10 && nextSongTrigger > state.songNumber && nextSongTrigger <= 20) {
-                setTimeout(() => {chatMessage(`Mercy Rule trigger warning after Song ${nextSongTrigger}`);}, 1000);
-            }
-
-            const nextRoundSong = state.songNumber + 1;
-            const nextRoundMax  = (20 - nextRoundSong) * 8;
-            
-            const isAwayLeading = state.scores.away > state.scores.home;
             const leaderName    = isAwayLeading ? getTeamName('away') : getTeamName('home');
             const trailerName   = isAwayLeading ? getTeamName('home') : getTeamName('away');
             const gap           = scoreDiff;
@@ -264,18 +267,29 @@
             const leaderIsPoss  = (isAwayLeading === isAwayPoss);
 
             const scenarios = outcomesList.map(o => {
-                let actorName = (o.swing > 0) 
+                let actorName       = (o.swing > 0) 
                     ? (isAwayPoss ? getTeamName('away') : getTeamName('home')) 
                     : (isAwayPoss ? getTeamName('home') : getTeamName('away'));
                 let leaderGapChange = leaderIsPoss ? o.swing : -o.swing;
-                return { name: o.name, change: leaderGapChange, actor: actorName };
+                
+                const outcomeSwap           = o.name !== "Onside Kick";
+                const leaderHasBallNext     = leaderIsPoss ? !outcomeSwap : outcomeSwap;
+                const trailerHasBallNext    = !leaderHasBallNext;
+                const maxChaseNext          = getMaxPossiblePoints(songsAfterNext, trailerHasBallNext);
+
+                return { 
+                    name        : o.name, 
+                    change      : leaderGapChange, 
+                    actor       : actorName,
+                    maxChase    : maxChaseNext
+                };
             });
 
             scenarios.sort((a, b) => a.change - b.change);
 
             let safeOutcome = null;
             for (let i = scenarios.length - 1; i >= 0; i--) {
-                if (gap + scenarios[i].change <= nextRoundMax) {
+                if (gap + scenarios[i].change <= scenarios[i].maxChase) {
                     safeOutcome = scenarios[i];
                     break;
                 }
@@ -283,10 +297,14 @@
 
             let killOutcome = null;
             for (let i = 0; i < scenarios.length; i++) {
-                if (gap + scenarios[i].change > nextRoundMax) {
+                if (gap + scenarios[i].change > scenarios[i].maxChase) {
                     killOutcome = scenarios[i];
                     break;
                 }
+            }
+            
+            if (killOutcome && state.songNumber >= 10) {
+                 setTimeout(() => {chatMessage(`Mercy Rule trigger warning after Song ${state.songNumber + 1}`);}, 1000);
             }
 
             if (killOutcome && safeOutcome) {
@@ -397,11 +415,17 @@
             let winnerName = "TBD";
             
             if (!isNaN(scoreAway) && !isNaN(scoreHome)) {
-                const songsRemaining     = 20 - row.song;
-                const maxPointsRemaining = songsRemaining * 8;
-                const diff               = Math.abs(scoreAway - scoreHome);
+                const songsRemaining        = 20 - row.song;                
+                let nextPossessionIsAway    = (row.poss === 'away');
+                const swapResults           = ["TD + 2PC", "Touchdown", "Field Goal", "Rouge", "Punt", "Safety", "Pick Six", "House Call"];
+                if (swapResults.includes(row.result)) nextPossessionIsAway = !nextPossessionIsAway;
 
-                if (diff > maxPointsRemaining || (row.song >= 20 && diff !== 0)) {
+                const diff                  = Math.abs(scoreAway - scoreHome);
+                const isAwayLeading         = scoreAway > scoreHome;
+                const trailerIsPossessing   = (isAwayLeading && !nextPossessionIsAway) || (!isAwayLeading && nextPossessionIsAway);
+                const maxPoints             = getMaxPossiblePoints(songsRemaining, trailerIsPossessing);
+
+                if (diff > maxPoints || (row.song >= 20 && diff !== 0)) {
                     if (scoreAway > scoreHome)      winnerName = awayNameRaw;
                     else if (scoreHome > scoreAway) winnerName = homeNameRaw;
                 }
