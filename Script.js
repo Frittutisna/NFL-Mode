@@ -272,7 +272,8 @@
             else if (state.songNumber === 20) {
                 if (scoreDiff === 0) {
                     setTimeout(() => {
-                        systemMessage("Tied after Regulation, continue to Overtime");
+                        chatMessage("Tied after Regulation, entering Overtime");
+                        systemMessage(`Overtime Code: ${CODES.OVERTIME}`);
                         state.period        = 'OVERTIME';
                         state.otRound       = 0;
                         state.possession    = 'away';
@@ -282,13 +283,14 @@
                 } else {
                     const winner = state.scores.away > state.scores.home ? getTeamName('away') : getTeamName('home');
                     setTimeout(() => {
-                        systemMessage(`Game Over. ${winner} wins!`);
+                        chatMessage(`Game Over. ${winner} wins!`);
+                        systemMessage("Game ended.");
                         state.isActive = false;
                     }, 1000);
                     isGameOver = true;
                 }
             }
-            else if (state.songNumber >= 10) {
+            else if (state.songNumber < 19 && state.songNumber >= 10) {
                  try {
                      const nextRoundSong    = state.songNumber + 1;
                      const songsAfterNext   = 20 - nextRoundSong;
@@ -370,6 +372,8 @@
                     isGameOver = true;
                 } 
                 else {
+                    setTimeout(() => {chatMessage("Whoever has more points after this wins Overtime")}, 1500);
+
                     try {
                         const otScoreDiff = state.scores.away - state.scores.home;
                         if (otScoreDiff !== 0) {
@@ -378,9 +382,9 @@
                             const trailerName   = isAwayLeading ? getTeamName('home') : getTeamName('away');
                             const gap           = Math.abs(otScoreDiff);
 
-                            const tieOutcomes   = outcomesList.filter(o => o.swing === gap && ["Touchdown","Field Goal","Rouge","TD + 2PC"].includes(o.name));
-                            const tieOutcome    = tieOutcomes.find(o => o.name === "Touchdown") || tieOutcomes[0];
-                            const winOutcomes   = outcomesList.filter(o => o.swing > gap && ["Touchdown","Field Goal","Rouge","TD + 2PC"].includes(o.name));
+                            const tieOutcomes   = outcomesList.filter   (o => o.swing   === gap && ["Touchdown", "Field Goal", "Rouge", "TD + 2PC"].includes(o.name));
+                            const tieOutcome    = tieOutcomes.find      (o => o.name    === "Touchdown") || tieOutcomes[0];
+                            const winOutcomes   = outcomesList.filter   (o => o.swing   >   gap && ["Touchdown", "Field Goal", "Rouge", "TD + 2PC"].includes(o.name));
                             winOutcomes.sort((a,b) => a.swing - b.swing);
                             const winOutcome = winOutcomes.find(o => o.name === "Touchdown") || winOutcomes[0];
 
@@ -397,7 +401,7 @@
                                     chatMessage(leaderMsg);
                                     setTimeout(() => chatMessage(trailerMsg), 1000);
                                 }
-                            }, 2000);
+                            }, 2500);
                         }
                     } catch(e) {}
                 }
@@ -426,7 +430,7 @@
                         }, 1000);
                     } else {
                         setTimeout(() => {
-                            systemMessage("Game ended in a Tie");
+                            chatMessage("Game ended in a Tie");
                             state.isActive = false;
                         }, 1000);
                     }
