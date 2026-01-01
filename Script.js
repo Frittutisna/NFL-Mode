@@ -47,17 +47,50 @@
         OVERTIME    : "e0g05211111101100000531110000000511111111111100k051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--"
     };
 
-    const systemMessage = (msg) => {if (typeof gameChat !== 'undefined') setTimeout(() => gameChat.systemMessage(msg), 100)};
+    const COMMAND_DESCRIPTIONS = {
+        "start"       : "Start the game tracker",
+        "end"         : "Stop the game tracker",
+        "setTeams"    : "Set team names (/nfl setTeams [Away] [Home])",
+        "setCaptains" : "Set team captains (/nfl setCaptains [1-4][5-8])",
+        "setGame"     : "Set the current game number",
+        "setSeries"   : "Set the series length",
+        "setKnockout" : "Enable/disable infinite overtime (/nfl setKnockout [true/false])",
+        "showCodes"   : "Show AMQ room setting codes for Regulation and Overtime",
+        "swap"        : "Swap Home/Away teams",
+        "export"      : "Download the scoresheet as HTML",
+        "howTo"       : "Show the step-by-step setup tutorial"
+    };
 
-    const chatMessage = (msg) => {
-        if (typeof socket !== 'undefined') {
-            socket.sendCommand({
-                type    : "lobby",
-                command : "game chat message",
-                data    : {msg, teamMessage: false}
-            });
+    const messageQueue = {
+        queue           : [],
+        isProcessing    : false,
+        add             : function(msg, isSystem = false) {this.queue.push({msg, isSystem}); this.process();},
+        process: function() {
+            if (this.isProcessing || this.queue.length === 0) return;
+            this.isProcessing   = true;
+            const item          = this.queue.shift();
+
+            if (item.isSystem) {
+                if (typeof gameChat !== 'undefined') gameChat.systemMessage(item.msg);
+            } else {
+                if (typeof socket !== 'undefined') {
+                    socket.sendCommand({
+                        type    : "lobby",
+                        command : "game chat message",
+                        data    : {msg: item.msg, teamMessage: false}
+                    });
+                }
+            }
+
+            setTimeout(() => {
+                this.isProcessing = false;
+                this.process();
+            }, 1000);
         }
     };
+
+    const systemMessage = (msg) => {messageQueue.add(msg, true)};
+    const chatMessage   = (msg) => {messageQueue.add(msg, false)};
 
     const toTitleCase = (str)   => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     const getTeamName = (side)  => config.teamNames[side];
@@ -65,11 +98,11 @@
     const getPlayerNameAtTeamId = (teamId) => {
         let name = "N/A";
         if (typeof quiz !== 'undefined' && quiz.inQuiz) {
-            const p = Object.values(quiz.players).find(player => player.teamNumber === teamId);
+            const p = Object.values(quiz    .players).find(player => player.teamNumber == teamId);
             if (p) name = p.name;
         } 
         else if (typeof lobby !== 'undefined' && lobby.inLobby) {
-            const p = Object.values(lobby.players).find(player => player.teamNumber === teamId);
+            const p = Object.values(lobby   .players).find(player => player.teamNumber == teamId);
             if (p) name = p.name;
         }
         return name;
@@ -137,36 +170,27 @@
                 }
             }
             
-            setTimeout(() => chatMessage(seriesMsg), 2000);
+            chatMessage(seriesMsg);
         }
 
         if (match.period === 'OVERTIME' && config.seriesLength > 1 && !seriesFinished) {
-            setTimeout(() => {
-                systemMessage("Series continues after Overtime");
-                systemMessage(`Regulation: ${CODES.REGULATION}`);
-            }, 2500);
+            systemMessage("Series continues after Overtime");
+            systemMessage(`Regulation: ${CODES.REGULATION}`);
         }
 
         match.isActive = false;
         config.gameNumber++;
         config.isSwapped = !config.isSwapped;
         
-        setTimeout(() => {
-            systemMessage("Game ended, tracker stopped");
-            systemMessage(`Ready for Game ${config.gameNumber}, auto-swapped teams for the return leg`);
-        }, 1500);
+        systemMessage("Game ended, tracker stopped");
+        systemMessage(`Ready for Game ${config.gameNumber}, auto-swapped teams for the return leg`);
     };
 
     const validateLobby = () => {
         if (typeof lobby === 'undefined' || !lobby.inLobby) return {valid: false, msg: "Error: Not in Lobby"};
         const players = Object.values(lobby.players);
-        // if (players.length !== 8)                           return {valid: false, msg: `Error: Need exactly 8 players`};
         const notReady = players.filter(p => !p.ready);
         if (notReady.length > 0)                            return {valid: false, msg: "Error: All players must be Ready"};
-        // const teams     = players.map(p => p.teamNumber).sort((a, b) => a - b);
-        // const expected  = [1, 2, 3, 4, 5, 6, 7, 8];
-        // const isUnique  = teams.length === expected.length && teams.every((val, index) => val === expected[index]);
-        // if (!isUnique)                                      return {valid: false, msg: "Error: Exactly 1 player must be on Teams 1 to 8"};
         return {valid: true};
     };
 
@@ -297,33 +321,25 @@
             if (scoreDiff > maxPointsRemaining) {
                 const winner    = match.scores.away > match.scores.home ? getTeamName('away')   : getTeamName('home');
                 winnerSide      = match.scores.away > match.scores.home ? 'away'                : 'home';
-                setTimeout(() => {
-                    chatMessage(`Mercy Rule triggered, ${winner} wins`);
-                    setTimeout(() => {
-                        systemMessage("Game ended due to Mercy Rule");
-                        endGame(winnerSide);
-                    }, 1000); 
-                }, 1000);
+                chatMessage(`Mercy Rule triggered, ${winner} wins`);
+                systemMessage("Game ended due to Mercy Rule");
+                endGame(winnerSide);
                 isGameOver = true;
             } 
             else if (match.songNumber === 20) {
                 if (scoreDiff === 0) {
-                    setTimeout(() => {
-                        chatMessage("Tied after Regulation, entering Overtime");
-                        systemMessage(`Overtime Code: ${CODES.OVERTIME}`);
-                        match.period        = 'OVERTIME';
-                        match.otRound       = 0;
-                        match.possession    = 'away';
-                        match.scoresAtReg   = JSON.parse(JSON.stringify(match.scores));
-                        match.historyAtReg  = JSON.parse(JSON.stringify(match.history));
-                    }, 1000);
+                    chatMessage("Tied after Regulation, entering Overtime");
+                    systemMessage(`Overtime Code: ${CODES.OVERTIME}`);
+                    match.period        = 'OVERTIME';
+                    match.otRound       = 0;
+                    match.possession    = 'away';
+                    match.scoresAtReg   = JSON.parse(JSON.stringify(match.scores));
+                    match.historyAtReg  = JSON.parse(JSON.stringify(match.history));
                 } else {
                     const winner    = match.scores.away > match.scores.home ? getTeamName('away')   : getTeamName('home');
                     winnerSide      = match.scores.away > match.scores.home ? 'away'                : 'home';
-                    setTimeout(() => {
-                        chatMessage(`Game Over: ${winner} wins!`);
-                        endGame(winnerSide);
-                    }, 1000);
+                    chatMessage(`Game Over: ${winner} wins!`);
+                    endGame(winnerSide);
                     isGameOver = true;
                 }
             }
@@ -358,31 +374,29 @@
                     for (let i = 0; i < scenarios.length; i++)      if (gap + scenarios[i].change >     scenarios[i].maxChase) {killOutcome = scenarios[i]; break;}
 
                     if (killOutcome && safeOutcome) {
-                        setTimeout(() => {chatMessage(`Mercy Rule trigger warning next Song!`);}, 1000);
-                        let delay = 2000;
+                        chatMessage(`Mercy Rule trigger warning next Song!`);
                         const artSafe = getArticle(safeOutcome.name);
                         if (safeOutcome.leaderIsActor) {
-                            setTimeout(() => {chatMessage(`The ${trailerName} needs to hold the ${leaderName} to ${artSafe} ${safeOutcome.name} next Song to avoid Mercy Rule`);}, delay);
+                            chatMessage(`The ${trailerName} needs to hold the ${leaderName} to ${artSafe} ${safeOutcome.name} next Song to avoid Mercy Rule`);
                         } else {
                             let txtSafe = `at least ${artSafe} ${safeOutcome.name}`;
                             if (safeOutcome.name === scenarios[0].name) txtSafe = `${artSafe} ${safeOutcome.name}`;
-                            setTimeout(() => {chatMessage(`The ${trailerName} needs ${txtSafe} next Song to avoid Mercy Rule`);}, delay);
+                            chatMessage(`The ${trailerName} needs ${txtSafe} next Song to avoid Mercy Rule`);
                         }
-                        delay           +=  1000;
-                        const artKill   =   getArticle(killOutcome.name);
+                        const artKill = getArticle(killOutcome.name);
                         if (killOutcome.change < 0) {
-                            setTimeout(() => {chatMessage(`The ${leaderName} can afford ${artKill} ${killOutcome.actor} ${killOutcome.name} next Song and still trigger Mercy Rule`);}, delay);
+                            chatMessage(`The ${leaderName} can afford ${artKill} ${killOutcome.actor} ${killOutcome.name} next Song and still trigger Mercy Rule`);
                         } else {
                             let txtKill = `only needs ${artKill} ${killOutcome.name}`;
                             if (Math.abs(killOutcome.change) >= 7) txtKill = `needs ${artKill} ${killOutcome.name}`;
-                            setTimeout(() => {chatMessage(`The ${leaderName} ${txtKill} next Song to trigger Mercy Rule`);}, delay);
+                            chatMessage(`The ${leaderName} ${txtKill} next Song to trigger Mercy Rule`);
                         }
                     } else {
                         for (let s = match.songNumber + 2; s <= 20; s++) {
                             const songsFromHereToS  = s - match.songNumber;
                             const futureMax         = getMaxPossiblePoints(20 - s, (songsFromHereToS % 2 !== 0 ? !trailerPossessing : trailerPossessing));
                             if (scoreDiff > futureMax) {
-                                setTimeout(() => {chatMessage(`Mercy Rule trigger warning after Song ${s}`);}, 1000);
+                                chatMessage(`Mercy Rule trigger warning after Song ${s}`);
                                 break;
                             }
                         }
@@ -394,24 +408,19 @@
         else if (match.period === 'OVERTIME') {
             if (match.otRound === 1) {
                 if (result.name === "Onside Kick") {
-                    setTimeout(() => {
-                        chatMessage(`${getTeamName('away')} wins via Onside Kick!`);
-                        systemMessage("Game ended in Overtime");
-                        endGame('away');
-                    }, 1000);
+                    chatMessage(`${getTeamName('away')} wins via Onside Kick!`);
+                    systemMessage("Game ended in Overtime");
+                    endGame('away');
                     isGameOver = true;
                 }
                 else if (result.team === "defense" && result.pts > 0) {
-                    setTimeout(() => {
-                        chatMessage(`${getTeamName('home')} wins via Defensive Score!`);
-                        systemMessage("Game ended in Overtime");
-                        endGame('home');
-                    }, 1000);
+                    chatMessage(`${getTeamName('home')} wins via Defensive Score!`);
+                    systemMessage("Game ended in Overtime");
+                    endGame('home');
                     isGameOver = true;
                 } 
                 else {
-                    setTimeout(() => {chatMessage("Whoever has more points after this wins Overtime")}, 1500);
-
+                    chatMessage("Whoever has more points after this wins Overtime");
                     try {
                         const otScoreDiff = match.scores.away - match.scores.home;
                         if (otScoreDiff !== 0) {
@@ -419,27 +428,23 @@
                             const leaderName    = isAwayLeading ? getTeamName('away') : getTeamName('home');
                             const trailerName   = isAwayLeading ? getTeamName('home') : getTeamName('away');
                             const gap           = Math.abs(otScoreDiff);
-
                             const tieOutcomes   = outcomesList.filter   (o => o.swing   === gap && ["Touchdown", "Field Goal", "Rouge", "TD + 2PC"].includes(o.name));
                             const tieOutcome    = tieOutcomes.find      (o => o.name    === "Touchdown") || tieOutcomes[0];
                             const winOutcomes   = outcomesList.filter   (o => o.swing   >   gap && ["Touchdown", "Field Goal", "Rouge", "TD + 2PC"].includes(o.name));
                             winOutcomes.sort((a,b) => a.swing - b.swing);
                             const winOutcome = winOutcomes.find(o => o.name === "Touchdown") || winOutcomes[0];
-
-                            setTimeout(() => {
-                                if (tieOutcome) {
-                                    const artTie    = getArticle(tieOutcome.name);
-                                    let leaderMsg   = `The ${leaderName} can afford a ${trailerName} ${tieOutcome.name} to continue Overtime`;
-                                    let trailerMsg  = `The ${trailerName} needs ${artTie} ${tieOutcome.name} to tie`;
-                                    if (winOutcome) {
-                                        const artWin    =   getArticle(winOutcome.name);
-                                        trailerMsg      +=  `, or ${artWin} ${winOutcome.name} to win outright`;
-                                        leaderMsg       +=  `; any better and they win outright`;
-                                    }
-                                    chatMessage(leaderMsg);
-                                    setTimeout(() => chatMessage(trailerMsg), 1000);
+                            if (tieOutcome) {
+                                const artTie    = getArticle(tieOutcome.name);
+                                let leaderMsg   = `The ${leaderName} can afford a ${trailerName} ${tieOutcome.name} to continue Overtime`;
+                                let trailerMsg  = `The ${trailerName} needs ${artTie} ${tieOutcome.name} to tie`;
+                                if (winOutcome) {
+                                    const artWin    =   getArticle(winOutcome.name);
+                                    trailerMsg      +=  `, or ${artWin} ${winOutcome.name} to win outright`;
+                                    leaderMsg       +=  `; any better and they win outright`;
                                 }
-                            }, 2500);
+                                chatMessage(leaderMsg);
+                                chatMessage(trailerMsg);
+                            }
                         }
                     } catch(e) {}
                 }
@@ -448,11 +453,9 @@
                 if (match.scores.away !== match.scores.home) {
                     const winner    = match.scores.away > match.scores.home ? getTeamName('away')   : getTeamName('home');
                     winnerSide      = match.scores.away > match.scores.home ? 'away'                : 'home';
-                    setTimeout(() => {
-                        chatMessage(`${winner} wins in Overtime!`);
-                        systemMessage("Game ended in Overtime");
-                        endGame(winnerSide);
-                    }, 1000);
+                    chatMessage(`${winner} wins in Overtime!`);
+                    systemMessage("Game ended in Overtime");
+                    endGame(winnerSide);
                     isGameOver = true;
                 }
             }
@@ -460,18 +463,14 @@
             if (!isGameOver && match.otRound === 5) {
                 if (match.scores.away === match.scores.home) {
                     if (config.knockout) {
-                        setTimeout(() => {
-                            systemMessage("Knockout Overtime ended in a tie, restarting Overtime");
-                            match.scores        = JSON.parse(JSON.stringify(match.scoresAtReg));
-                            match.history       = JSON.parse(JSON.stringify(match.historyAtReg));
-                            match.possession    = 'away';
-                            match.otRound       = 0;
-                        }, 1000);
+                        systemMessage("Knockout Overtime ended in a tie, restarting Overtime");
+                        match.scores        = JSON.parse(JSON.stringify(match.scoresAtReg));
+                        match.history       = JSON.parse(JSON.stringify(match.historyAtReg));
+                        match.possession    = 'away';
+                        match.otRound       = 0;
                     } else {
-                        setTimeout(() => {
-                            chatMessage("Game ended in a Tie");
-                            endGame('draw');
-                        }, 1000);
+                        chatMessage("Game ended in a Tie");
+                        endGame('draw');
                     }
                 }
             }
@@ -629,26 +628,36 @@
     };
 
     const printHelp = (topic = null) => {
-        if (topic) systemMessage(`/nfl ${topic}: Check specific command logic`);
-        else {
-            systemMessage("Usage Instructions:");
-            systemMessage("1. Use /nfl setTeams to input the team names");
-            systemMessage("2. Use /nfl setCaptains to set the right Captains in each team");
-            systemMessage("3. Use /nfl setGame to set the game number");
-            systemMessage("4. Use /nfl setKnockout to enable/disable endless Overtime in knockout games");
-            systemMessage("5. Use /nfl setSeries to set the series length");
-            systemMessage("6. Use /nfl start when you're ready");
+        if (topic) {
+            if (COMMAND_DESCRIPTIONS[topic]) {
+                systemMessage(`/nfl ${topic}: ${COMMAND_DESCRIPTIONS[topic]}`);
+            } else {
+                systemMessage("Unknown command, type /nfl help for a list");
+            }
+        } else {
+            const cmds = Object.keys(COMMAND_DESCRIPTIONS).join(", ");
+            systemMessage("Commands: " + cmds);
+            systemMessage("Type /nfl help [command] for more details or /nfl howTo for setup steps");
         }
+    };
+
+    const printHowTo = () => {
+        systemMessage("1. Use /nfl setTeams to input the team names");
+        systemMessage("2. Use /nfl setCaptains to set the right Captains for each team");
+        systemMessage("3. Use /nfl setGame to set the game number");
+        systemMessage("4. Use /nfl setKnockout to enable/disable endless Overtime for knockout games");
+        systemMessage("5. Use /nfl setSeries to set the series length");
+        systemMessage("6. Use /nfl start when you're ready");
     };
 
     const setup = () => {
         new Listener("game chat update", (payload) => {
             payload.messages.forEach(msg => {
                 if (msg.sender === selfName && msg.message.startsWith("/nfl")) {
-                    const parts = msg.message.split(" ");
-                    const cmd   = parts[1] ? parts[1].toLowerCase() : "help";
-                    const arg   = parts[2] ? parts[2].toLowerCase() : null;
-
+                    const parts     = msg.message.split(" ");
+                    const cmd       = parts[1] ? parts[1].toLowerCase() : "help";
+                    const arg       = parts[2] ? parts[2].toLowerCase() : null;
+                    const cmdKey    = Object.keys(COMMAND_DESCRIPTIONS).find(k => k.toLowerCase() === cmd);
                     if      (cmd === "start")           startGame();
                     else if (cmd === "end")             {match.isActive = false; systemMessage("Manually stopped"); }
                     else if (cmd === "setteams") { 
@@ -666,18 +675,23 @@
                     }
                     else if (cmd === "setgame") {
                         const num = parseInt(parts[2]);
-                        if (num >= 1 && num <= 7) {config.gameNumber = num; systemMessage(`Game: ${num}`);}
+                        if (num >= 1 && num <= 7) {
+                            config.gameNumber = num; 
+                            systemMessage(`Game Number: ${num}`);
+                        }
                         else systemMessage("Error: Use /nfl setGame [1-7]");
                     }
                     else if (cmd === "setseries") {
                         const num = parseInt(parts[2]);
-                        if (!isNaN(num) && num > 0) {config.seriesLength = num; systemMessage(`Series Length: ${num}`);}
+                        if (num === 1 || num === 2 || num === 7) {
+                            config.seriesLength = num; systemMessage(`Series Length: ${num}`)
+                        }
                         else systemMessage("Error: Use /nfl setSeries [1/2/7]");
                     }
                     else if (cmd === "setknockout") {
-                        if (arg === "true") { config.knockout = true; systemMessage("Knockout: True"); }
-                        else if (arg === "false") { config.knockout = false; systemMessage("Knockout: False"); }
-                        else systemMessage("Error: Use /nfl setKnockout [true/false]");
+                        if      (arg === "true")    {config.knockout = true;    systemMessage("Knockout Mode: True"); }
+                        else if (arg === "false")   {config.knockout = false;   systemMessage("Knockout Mode: False"); }
+                        else                                                    systemMessage("Error: Use /nfl setKnockout [true/false]");
                     }
                     else if (cmd === "showcodes") {
                         systemMessage(`Regulation: ${CODES.REGULATION}`);
@@ -688,7 +702,8 @@
                         systemMessage(`Swapped: ${config.teamNames.away} is now the Home team`);
                     }
                     else if (cmd === "export")  downloadScoresheet();
-                    else if (cmd === "help")    printHelp(arg);
+                    else if (cmd === "howto")   printHowTo();
+                    else if (cmd === "help")    printHelp(cmdKey ? null : arg);
                     else                        printHelp();
                 }
             });
