@@ -36,11 +36,6 @@
         posNames            : ["OP1", "OP2", "DP1", "DP2"]
     };
 
-    const CODES = {
-        REGULATION  : "e0g0k21111100120g000431110000000k11111111111100k051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1k903-11111--",
-        OVERTIME    : "e0g05211111001100000531110000000511111111111100k051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--"
-    };
-    
     const systemMessage = (msg) => {
         if (typeof gameChat !== 'undefined') {
             setTimeout(() => {
@@ -83,8 +78,6 @@
             const p = Object.values(quiz.players).find(player => player.teamNumber === teamId);
             if (p) name = p.name;
         } 
-
-
         else if (typeof lobby !== 'undefined' && lobby.inLobby) {
             const p = Object.values(lobby.players).find(player => getTeamNumber(player, 'lobby') === teamId);
             if (p) name = p.name;
@@ -96,7 +89,7 @@
     const getCaptainListString = () => {
         const names = state.captains.map(teamId => {
             const name = getPlayerNameAtTeamId(teamId);
-            return name !== "N/A" ? name : `(Team ${teamId})`;
+            return name !== "N/A" ? name : `Player ${teamId}`;
         });
 
         return names.join(", ");
@@ -124,6 +117,12 @@
         state.history       = [];
         
         systemMessage(`Game ${state.gameNumber}: ${getTeamName('away')} @ ${getTeamName('home')}`);
+    };
+
+    const endGame = () => {
+        resetGameData();
+        state.isActive = false;
+        systemMessage("NFL Mode ended, all data reset");
     };
 
     const processRound = (payload) => {
@@ -332,20 +331,41 @@
         a.click();
     };
 
+    const printHelp = (topic = null) => {
+        const descriptions = {
+            end         : "Ends NFL Mode and resets all tracked data",
+            export      : "Downloads current game's scoresheet",
+            help        : "Lists all commands or explains a specific command",
+            setcaptains : "Sets Captains for both teams, defaults to 15 (OP1s)",
+            setgame     : "Sets Game Number identifier",
+            setteams    : "Sets Away and Home team names",
+            start       : "Initializes game, resets scores to 0 - 0, and sets possession to Away",
+            swap        : "Swaps sides (Home <> Away) and adjusts slots accordingly"
+        };
+
+        if (topic && descriptions[topic]) {
+            systemMessage(`/nfl ${topic}: ${descriptions[topic]}`);
+        } else {
+            systemMessage("Commands: end, export, help [command], setCaptains <15>, setGame <1>, setTeams <Away> <Home>, start, swap");
+        }
+    };
+
     const setup = () => {
         new Listener("game chat update", (payload) => {
             payload.messages.forEach(msg => {
                 if (msg.sender === selfName && msg.message.startsWith("/nfl")) {
                     const parts = msg.message.split(" ");
                     const cmd   = parts[1] ? parts[1].toLowerCase() : "help";
+                    const arg   = parts[2] ? parts[2].toLowerCase() : null;
 
-                    if      (cmd === "start") startGame();
-                    else if (cmd === "setteamnames") {
-                        if (parts.length === 4) {
+                    if      (cmd === "start")           startGame();
+                    else if (cmd === "end")             endGame();
+                    else if (cmd === "setteams") {
+                        if (parts.length >= 4) {
                             state.teamNames.away = parts[2];
                             state.teamNames.home = parts.slice(3).join(" "); 
                             systemMessage(`Teams set: ${state.teamNames.away} @ ${state.teamNames.home}`);
-                        } else systemMessage("Usage: /nfl setTeamNames [Away] [Home]");
+                        } else systemMessage("Usage: /nfl setTeams [Away] [Home]");
                     } 
                     else if (cmd === "setcaptains") {
                         const pat = parts[2] || "15";
@@ -363,10 +383,9 @@
                         state.isSwapped = !state.isSwapped;
                         systemMessage(`Swapped sides. Team 1 is now ${state.isSwapped ? "Home" : "Away"}.`);
                     }
-                    else if (cmd === "export")              downloadScoresheet();
-                    else if (cmd === "printregulationcode") systemMessage(`Regulation: ${CODES.REGULATION}`);
-                    else if (cmd === "printovertimecode")   systemMessage(`Overtime: ${CODES.OVERTIME}`);
-                    else systemMessage("Commands: setTeamNames <Away> <Home>, setCaptains <15>, swap, start, export, setGame <0-7>");
+                    else if (cmd === "export")  downloadScoresheet();
+                    else if (cmd === "help")    printHelp(arg);
+                    else                        printHelp();
                 }
             });
         }).bindListener();
@@ -374,16 +393,6 @@
         new Listener("answer results", (payload) => {
             if (state.isActive) setTimeout(() => processRound(payload), 200);
         }).bindListener();
-
-        new Listener("quiz closed", () => {
-            if (state.isActive) {
-                downloadScoresheet(true); 
-                resetGameData();
-                systemMessage("Game saved and tracker reset.");
-            }
-        }).bindListener();
-
-        console.log("NFL Mode loaded");
     };
 
     function init() {
