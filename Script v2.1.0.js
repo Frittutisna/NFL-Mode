@@ -16,11 +16,11 @@
     const initialState = {
         isActive    : false,
         songNumber  : 0,
-        gameNumber  : 0, 
+        gameNumber  : 1,
         scores      : {away: 0, home: 0},
         possession  : 'away', 
         teamNames   : {away: "Away", home: "Home"},
-        captains    : [1, 5], 
+        captains    : [1, 5],
         history     : [], 
         isSwapped   : false
     };
@@ -52,6 +52,10 @@
                 data    : { msg, teamMessage: false }
             });
         }
+    };
+
+    const toTitleCase = (str) => {
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     };
 
     const getTeamName = (side) => state.teamNames[side];
@@ -336,10 +340,10 @@
             end         : "Ends NFL Mode and resets all data",
             export      : "Downloads current game's scoresheet",
             help        : "Lists all commands or explains a specific command",
-            setcaptains : "Sets Captains for both teams, defaults to 15 (OP1s)",
-            setgame     : "Sets Game Number identifier",
-            setteams    : "Sets Away and Home team names",
-            start       : "Initializes game, resets scores to 0 - 0, and sets possession to Away",
+            setcaptains : "Sets Captains for each team using XY (X = 1-4, Y = 5-8), defaults to 15",
+            setgame     : "Sets Game Number (1-7), defaults to 1",
+            setteams    : "Sets Away and Home team names, defaults to Away and Home",
+            start       : "Initializes NFL Mode, resets scores to 0-0, and sets possession to Away",
             swap        : "Swaps sides (Home <> Away) and adjusts slots accordingly"
         };
 
@@ -360,32 +364,44 @@
 
                     if      (cmd === "start")           startGame();
                     else if (cmd === "end")             endGame();
-                    else if (cmd === "setteams") {
-                        if (parts.length >= 4) {
-                            state.teamNames.away = parts[2];
-                            state.teamNames.home = parts.slice(3).join(" "); 
-                            systemMessage(`Teams set: ${state.teamNames.away} @ ${state.teamNames.home}`);
-                        } else systemMessage("Usage: /nfl setTeams [Away] [Home]");
+                    else if (cmd === "setteams") { 
+                        if (parts.length === 4) {
+                            const t1 = parts[2];
+                            const t2 = parts[3];
+
+                            if (t1.toLowerCase() === t2.toLowerCase()) systemMessage("Error: Team names must be different");
+                            else {
+                                state.teamNames.away = toTitleCase(t1);
+                                state.teamNames.home = toTitleCase(t2);
+                                systemMessage(`Teams set: ${state.teamNames.away} @ ${state.teamNames.home}`);
+                            }
+                        } else systemMessage("Error: Provide exactly two different team names");
                     } 
                     else if (cmd === "setcaptains") {
-                        const pat = parts[2] || "15";
-                        state.captains = pat.split('').map(Number).filter(n=>!isNaN(n));
-                        systemMessage(`Captains: ${getCaptainListString()}`);
+                        const pat = parts[2];
+                        if (pat && /^[1-4][5-8]$/.test(pat)) {
+                            state.captains = pat.split('').map(Number);
+                            systemMessage(`Captains: ${getCaptainListString()}`);
+                        } else {
+                            systemMessage("Error: Invalid format, use [1-4][5-8] (e.g., 15)");
+                        }
                     }
                     else if (cmd === "setgame") {
                         const num = parseInt(parts[2]);
-                        if (!isNaN(num)) {
+                        if (!isNaN(num) && num >= 1 && num <= 7) {
                             state.gameNumber = num;
                             systemMessage(`Game Number: ${state.gameNumber}`);
-                        } else systemMessage("Usage: /nfl setGame <number>");
+                        } else {
+                            systemMessage("Error: Game number must be between 1 and 7");
+                        }
                     }
                     else if (cmd === "swap") {
                         state.isSwapped = !state.isSwapped;
                         systemMessage(`Swapped sides. Team 1 is now ${state.isSwapped ? "Home" : "Away"}.`);
                     }
-                    else if (cmd === "export")  downloadScoresheet();
-                    else if (cmd === "help")    printHelp(arg);
-                    else                        printHelp();
+                    else if (cmd === "export")          downloadScoresheet();
+                    else if (cmd === "help")            printHelp(arg);
+                    else                                printHelp();
                 }
             });
         }).bindListener();
