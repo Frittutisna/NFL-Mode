@@ -16,22 +16,26 @@ It handles the math; the team with the most points after 20 songs wins!
         <th style="text-align:center"><strong>Code</strong></th>
     </tr>
     <tr>
-        <td>Regulation</td>
-        <td>0 - 40</td>
-        <td>16 Watched Equal, 4 Random</td>
-        <td><details>
-            <summary>Click to view code</summary>
-            <code style="word-break: break-all">e0g0k21111100120g000431110000000k11111111111100k051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1k903-11111--</code>
-        </details></td>
+        <td style="text-align:center">Regulation</td>
+        <td style="text-align:center">0 - 40</td>
+        <td style="text-align:center">16 Watched Equal, 4 Random</td>
+        <td style="text-align:center">
+            <details>
+                <summary>Click to view code</summary>
+                <code style="word-break: break-all">e0g0k21111100120g000431110000000k11111111111100k051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1k903-11111--</code>
+            </details>
+        </td>
     </tr>
     <tr>
-        <td>Overtime</td>
-        <td>0 - 100</td>
-        <td>5 Random</td>
-        <td><details>
-            <summary>Click to view code</summary>
-            <code style="word-break: break-all;">e0g05211111001100000531110000000511111111111100k051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--</code>
-        </details></td>
+        <td style="text-align:center">Overtime</td>
+        <td style="text-align:center">0 - 100</td>
+        <td style="text-align:center">5 Random</td>
+        <td style="text-align:center">
+            <details>
+                <summary>Click to view code</summary>
+                <code style="word-break: break-all;">e0g05211111001100000531110000000511111111111100k051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--</code>
+            </details>
+        </td>
     </tr>
 </table>
 
@@ -77,60 +81,60 @@ but an **Offensive** `Rouge` does not.
         <th style="text-align:center"><strong>Overtime Song 1</strong></th>
     </tr>
     <tr>
-        <td><code>Onside Kick</code></td>
-        <td>≥4</td>
-        <td>N/A</td>
-        <td>7</td>
-        <td rowspan="4">N/A</td>
-        <td>Keep</td>
-        <td>Offense Wins</td>
+        <td style="text-align:center"><code>Onside Kick</code></td>
+        <td style="text-align:center">≥4</td>
+        <td style="text-align:center">N/A</td>
+        <td style="text-align:center">7</td>
+        <td rowspan="4" style="text-align:center">N/A</td>
+        <td style="text-align:center">Keep</td>
+        <td style="text-align:center">Offense Wins</td>
     </tr>
     <tr>
-        <td><code>TD + 2PC</code></td>
-        <td rowspan="7">N/A</td>
-        <td>3</td>
-        <td>8</td>
-        <td rowspan="8">Swap</td>
-        <td rowspan="3">Continues</td>
+        <td style="text-align:center"><code>TD + 2PC</code></td>
+        <td rowspan="7" style="text-align:center">N/A</td>
+        <td style="text-align:center">3</td>
+        <td style="text-align:center">8</td>
+        <td rowspan="8" style="text-align:center">Swap</td>
+        <td rowspan="3" style="text-align:center">Continues</td>
     </tr>
     <tr>
-        <td><code>Touchdown</code></td>
-        <td>2</td>
-        <td>7</td>
+        <td style="text-align:center"><code>Touchdown</code></td>
+        <td style="text-align:center">2</td>
+        <td style="text-align:center">7</td>
     </tr>
     <tr>
-        <td><code>Field Goal</code></td>
-        <td>1</td>
-        <td>3</td>
+        <td style="text-align:center"><code>Field Goal</code></td>
+        <td style="text-align:center">1</td>
+        <td style="text-align:center">3</td>
     </tr>
     <tr>
-        <td><code>Rouge</code></td>
-        <td rowspan="2">0 or -1</td>
-        <td colspan="2">1</td>
-        <td>Offense Continues,<br>Defense Wins</td>
+        <td style="text-align:center"><code>Rouge</code></td>
+        <td rowspan="2" style="text-align:center">0 or -1</td>
+        <td colspan="2" style="text-align:center">1</td>
+        <td style="text-align:center">Offense Continues,<br>Defense Wins</td>
     </tr>
     <tr>
-        <td><code>Punt</code></td>
-        <td rowspan="4">N/A</td>
-        <td>N/A</td> 
-        <td>Continues</td>
+        <td style="text-align:center"><code>Punt</code></td>
+        <td rowspan="4" style="text-align:center">N/A</td>
+        <td style="text-align:center">N/A</td> 
+        <td style="text-align:center">Continues</td>
     </tr>
     <tr>
-        <td><code>Safety</code></td>
-        <td>-2</td>
-        <td>2</td>
-        <td rowspan="3">Defense Wins</td>
+        <td style="text-align:center"><code>Safety</code></td>
+        <td style="text-align:center">-2</td>
+        <td style="text-align:center">2</td>
+        <td rowspan="3" style="text-align:center">Defense Wins</td>
     </tr>
     <tr>
-        <td><code>Pick Six</code></td>
-        <td>-3</td>
-        <td>6</td>
+        <td style="text-align:center"><code>Pick Six</code></td>
+        <td style="text-align:center">-3</td>
+        <td style="text-align:center">6</td>
     </tr>
     <tr>
-        <td><code>House Call</code></td>
-        <td>≤-4</td>
-        <td>N/A</td>
-        <td>7</td>
+        <td style="text-align:center"><code>House Call</code></td>
+        <td style="text-align:center">≤-4</td>
+        <td style="text-align:center">N/A</td>
+        <td style="text-align:center">7</td>
     </tr>
 </table>
 
