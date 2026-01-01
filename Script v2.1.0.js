@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         NFL Mode for AMQ
 // @namespace    https://github.com/Frittutisna/NFL-Mode
-// @version      2.1.0
+// @version      2.2.6
 // @description  Script to help track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://animemusicquiz.com/*
@@ -292,8 +292,8 @@
                     const priority  = ["Touchdown", "Field Goal", "Punt", "Rouge", "Safety", "Pick Six", "House Call", "TD + 2PC", "Onside Kick"];
                     const idxA      = priority.indexOf(a.name);
                     const idxB      = priority.indexOf(b.name);
-                    const valA = idxA === -1 ? 99 : idxA;
-                    const valB = idxB === -1 ? 99 : idxB;
+                    const valA      = idxA === -1 ? 99 : idxA;
+                    const valB      = idxB === -1 ? 99 : idxB;
                     return valA - valB;
                 });
 
@@ -393,20 +393,31 @@
         const homeHeaderTitle = `${homeNameRaw} (${getCaptainPos(homeSlots)})`;
         const subHeaders      = gameConfig.posNames; 
 
+        const date      = new Date();
+        const y         = date.getFullYear().toString().slice(-2);
+        const m         = String(date.getMonth() + 1).padStart(2, '0');
+        const d         = String(date.getDate()).padStart(2, '0');
+        const dateStr   = `${y}${m}${d}`;
+        
+        const safeAway = awayNameRaw.replace(/[^a-z0-9]/gi, '_');
+        const safeHome = homeNameRaw.replace(/[^a-z0-9]/gi, '_');
+        const fileName = `${dateStr}-${state.gameNumber}-${safeAway}-${safeHome}.html`;
+
         let html = `
         <html>
         <head>
             <meta charset="utf-8">
             <title>${titleStr}</title>
+            <style>
+                body    {font-family: sans-serif; padding: 20px;}
+                table   {border-collapse: collapse; text-align: center; margin: 0 auto;}
+                th, td  {border: 1px solid black; padding: 8px;}
+            </style>
         </head>
         <body>
-            <table border="1" style="border-collapse: collapse; text-align: center; font-family: sans-serif;">
+            <table>
                 <thead>
-                    <tr>
-                        <th colspan="14" style="font-size: 1.5em; padding: 10px; font-weight: bold;">
-                            ${titleStr}
-                        </th>
-                    </tr>
+                    <tr><th colspan="14" style="font-size: 1.5em; font-weight: bold;">${titleStr}</th></tr>
                     <tr>
                         <th rowspan="2">Song</th>
                         <th rowspan="2">Possession</th>
@@ -423,7 +434,7 @@
                         <th>${homeNameRaw}</th>
                     </tr>
                     <tr>
-                        <td colspan="14" style="text-align: center; padding: 5px; font-weight: bold;">
+                        <td colspan="14" style="font-weight: bold;">
                             Regulation (0-40): 16 Watched Equal and 4 Random songs with Mercy Rule
                         </td>
                     </tr>
@@ -479,7 +490,7 @@
         const blob  = new Blob([html], {type: "text/html"});
         const a     = document.createElement('a');
         a.href      = URL.createObjectURL(blob);
-        a.download  = `NFL_Game${state.gameNumber}_Simple.html`;
+        a.download  = fileName;
         a.click();
     };
 
