@@ -231,7 +231,14 @@
         
         const awayName = getTeamName('away');
         const homeName = getTeamName('home');
-        const titleStr = `Game ${state.gameNumber} (${state.songNumber}): ${awayName} ${state.scores.away} - ${state.scores.home} ${homeName}`;
+        
+        const lastEntry = state.history[state.history.length - 1];
+        const lastSong  = lastEntry ? lastEntry.song : 0;
+        const lastScore = lastEntry ? lastEntry.score : "0-0";
+        const titleStr  = `Game ${state.gameNumber} (${lastSong}): ${awayName} ${lastScore} ${homeName}`;
+
+        const awayColor = "#0047AB";
+        const homeColor = "#D2691E";
 
         const getHeaders = (slots) => {
             return gameConfig.posNames.map((name, i) => {
@@ -246,44 +253,94 @@
         const awayHeaders = getHeaders(awaySlots);
         const homeHeaders = getHeaders(homeSlots);
 
+        const totalCols = 14;
+
         let html = `
         <html><head><style>
-            table { border-collapse: collapse; font-family: sans-serif; }
-            th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
-            .header-top { background: #333; color: white; }
-            .header-sub { background: #eee; font-size: 0.9em; }
-            .away-col { background-color: #f0f8ff; }
-            .home-col { background-color: #fff0f5; }
+            body    {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px;}
+            h2      {text-align: center; margin-bottom: 20px;}
+            table   {border-collapse: collapse; width: 100%; margin: 0 auto; font-size: 14px; table-layout: fixed;}
+            th, td  {border: 1px solid #000; padding: 6px; text-align: center; background-color: #ffffff; white-space: nowrap; overflow: hidden;}
+            
+            .header-top {background-color: #ffffff; font-weight: bold;}
+            .header-sub {background-color: #ffffff; font-weight: bold; font-size: 0.9em;}
+            
+            .text-away      {color: ${awayColor}; font-weight: bold;}
+            .text-home      {color: ${homeColor}; font-weight: bold;}
+            .text-neutral   {color: #000;}
+            
+            .banner-row td { 
+                text-align          : center; 
+                font-weight         : bold; 
+                background-color    : #ffffff; 
+                border-bottom       : 1px solid #000; /* Matched border weight */
+                padding: 8px;
+            }
+
+            .w-sm   {width: 45px;}
+            .w-md   {width: 60px;}
+            .w-lg   {width: 110px;}
+            .w-auto {width: auto;}
         </style></head><body>
         <h2>${titleStr}</h2>
         <table>
             <tr class="header-top">
-                <th rowspan="2">Song</th>
-                <th rowspan="2">Possession</th>
-                <th colspan="4">${awayName}</th>
-                <th colspan="4">${homeName}</th>
-                <th rowspan="2">Result</th>
-                <th rowspan="2">Score</th>
+                <th rowspan="2" class="w-auto">Song</th>
+                <th rowspan="2" class="w-lg">Possession</th>
+                <th colspan="4" class="text-away">${awayName}</th>
+                <th colspan="4" class="text-home">${homeName}</th>
+                <th rowspan="2" class="w-auto">Result</th>
+                <th colspan="2">Score</th>
+                <th rowspan="2" class="w-lg">Winner</th>
             </tr>
             <tr class="header-sub">
-                ${awayHeaders.map(h => `<th>${h}</th>`).join('')}
-                ${homeHeaders.map(h => `<th>${h}</th>`).join('')}
+                ${awayHeaders.map(h => `<th class="text-away w-sm">${h}</th>`).join('')}
+                ${homeHeaders.map(h => `<th class="text-home w-sm">${h}</th>`).join('')}
+                <th class="text-away w-md">${awayName}</th>
+                <th class="text-home w-md">${homeName}</th>
+            </tr>
+            <tr class="banner-row">
+                <td colspan="${totalCols}">
+                    Regulation (0-40): 16 Watched Equal, 4 Random songs. Mercy Rule triggered if Score Deficit > Remaining Songs × 8
+                </td>
             </tr>
         `;
         
         state.history.forEach(row => {
-            const possName = row.poss === 'away' ? awayName : homeName;
+            const possClass = row.poss === 'away' ? 'text-away' : 'text-home';
+            const possName  = row.poss === 'away' ? awayName    : homeName;
+
+            const [scoreAway, scoreHome] = row.score.split('-').map(Number);
+
+            let winnerName  = "TBD";
+            let winnerClass = "text-neutral";
             
-            const awayCells = row.awayArr.map(b => `<td class="away-col">${b}</td>`).join('');
-            const homeCells = row.homeArr.map(b => `<td class="home-col">${b}</td>`).join('');
+            const songsRemaining        = 20 - row.song;
+            const maxPointsRemaining    = songsRemaining * 8;
+            const diff                  = Math.abs(scoreAway - scoreHome);
+
+            if (diff > maxPointsRemaining || (row.song >= 20 && diff !== 0)) {
+                if (scoreAway > scoreHome) {
+                    winnerName  = awayName;
+                    winnerClass = "text-away";
+                } else if (scoreHome > scoreAway) {
+                    winnerName  = homeName;
+                    winnerClass = "text-home";
+                }
+            }
+
+            const awayCells = row.awayArr.map(b => `<td class="text-away">${b}</td>`).join('');
+            const homeCells = row.homeArr.map(b => `<td class="text-home">${b}</td>`).join('');
 
             html += `<tr>
                 <td>${row.song}</td>
-                <td>${possName}</td>
+                <td class="${possClass}">${possName}</td>
                 ${awayCells}
                 ${homeCells}
                 <td>${row.result}</td>
-                <td><strong>${row.score}</strong></td>
+                <td class="text-away">${scoreAway}</td>
+                <td class="text-home">${scoreHome}</td>
+                <td class="${winnerClass}">${winnerName}</td>
             </tr>`;
         });
         html += "</table></body></html>";
