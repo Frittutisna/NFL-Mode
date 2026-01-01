@@ -1,7 +1,7 @@
 # NFL Mode v3.alpha
 
 ## TLDR: Too Long, Didn't Read
-Just install the **Script**. It handles the math; the team with the most points after 20 songs wins!
+Just install the **Script**. It handles all the complicated stuff; the team with the most points after 20 songs wins!
 
 ## Script: Download and Install This
 [Link to the Script](https://github.com/Frittutisna/NFL-Mode/blob/main/Script.js)
@@ -17,7 +17,7 @@ Just install the **Script**. It handles the math; the team with the most points 
     <tr>
         <td style="text-align:center">Regulation</td>
         <td style="text-align:center">0 - 40</td>
-        <td style="text-align:center">20 Watched "Equal"</td>
+        <td style="text-align:center"><strong>20 Watched "Equal"</strong></td>
         <td style="text-align:center">
             <details>
                 <summary>Click to view code</summary>
@@ -49,7 +49,7 @@ Just install the **Script**. It handles the math; the team with the most points 
 
 ## Lineup: Away and Home, Captains, OPs, DPs
 **Captains** (highest-Elo player in each team) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
-Captain’s correct guesses count **double** (2 points) for (T)DIFF calculations. 
+Captain’s correct guesses count **double** (2 points) for the (T)DIFF calculations. 
 The team listed first (above) on Challonge is the **Away** team. 
 Line up as follows: **Away** (OP1, OP2, DP1, DP2), then **Home** (OP1, OP2, DP1, DP2).
 
@@ -131,9 +131,9 @@ Line up as follows: **Away** (OP1, OP2, DP1, DP2), then **Home** (OP1, OP2, DP1,
     </tr>
 </table>
 
-### Rouge: That Weird Canadian Thing
+### Rouge: The Canadian Single
 <details>
-    <summary><b>Click to know more about Rouges</b></summary>
+    <summary><b>Click to know more about Rouge</b></summary>
     <p>A <code>Rouge</code> (DIFF 0 or -1, 1 point) is awarded if 
     a play that would have resulted in a <code>Punt</code> 
     happened such that <b>≥1</b> player(s) from one team got the song right,
