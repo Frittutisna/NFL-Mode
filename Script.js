@@ -654,69 +654,72 @@
         new Listener("game chat update", (payload) => {
             payload.messages.forEach(msg => {
                 if (msg.sender === selfName && msg.message.startsWith("/nfl")) {
-                    const parts     = msg.message.split(" ");
-                    const cmd       = parts[1] ? parts[1].toLowerCase() : "help";
-                    const arg       = parts[2] ? parts[2].toLowerCase() : null;
-                    const cmdKey    = Object.keys(COMMAND_DESCRIPTIONS).find(k => k.toLowerCase() === cmd);
-                    if      (cmd === "start")           startGame();
-                    else if (cmd === "end")             {match.isActive = false; systemMessage("Manually stopped"); }
-                    else if (cmd === "setteams") { 
-                        if (parts.length === 4 && parts[2].toLowerCase() !== parts[3].toLowerCase()) {
-                            config.teamNames.away = toTitleCase(parts[2]);
-                            config.teamNames.home = toTitleCase(parts[3]);
-                            systemMessage(`Teams set: ${config.teamNames.away} @ ${config.teamNames.home}`);
-                        } else systemMessage("Error: Use /nfl setTeams [Away] [Home]");
-                    } 
-                    else if (cmd === "setcaptains") {
-                        if (parts[2] && /^[1-4][5-8]$/.test(parts[2])) {
-                            config.captains = parts[2].split('').map(Number);
-                            systemMessage(`Captains: ${getCaptainListString()}`);
-                        } else systemMessage("Error: Use /nfl setCaptains [1-4][5-8]");
-                    }
-                    else if (cmd === "setgame") {
-                        const num = parseInt(parts[2]);
-                        if (num >= 1 && num <= 7) {
-                            config.gameNumber = num; 
-                            systemMessage(`Game Number: ${num}`);
+                    setTimeout(() => {
+                        const parts     = msg.message.split(" ");
+                        const cmd       = parts[1] ? parts[1].toLowerCase() : "help";
+                        const arg       = parts[2] ? parts[2].toLowerCase() : null;
+                        const cmdKey    = Object.keys(COMMAND_DESCRIPTIONS).find(k => k.toLowerCase() === cmd);
+
+                        if      (cmd === "start")           startGame();
+                        else if (cmd === "end")             {match.isActive = false; systemMessage("Manually stopped"); }
+                        else if (cmd === "setteams") { 
+                            if (parts.length === 4 && parts[2].toLowerCase() !== parts[3].toLowerCase()) {
+                                config.teamNames.away = toTitleCase(parts[2]);
+                                config.teamNames.home = toTitleCase(parts[3]);
+                                systemMessage(`Teams set: ${config.teamNames.away} @ ${config.teamNames.home}`);
+                            } else systemMessage("Error: Use /nfl setTeams [Away] [Home]");
+                        } 
+                        else if (cmd === "setcaptains") {
+                            if (parts[2] && /^[1-4][5-8]$/.test(parts[2])) {
+                                config.captains = parts[2].split('').map(Number);
+                                systemMessage(`Captains: ${getCaptainListString()}`);
+                            } else systemMessage("Error: Use /nfl setCaptains [1-4][5-8]");
                         }
-                        else systemMessage("Error: Use /nfl setGame [1-7]");
-                    }
-                    else if (cmd === "setseries") {
-                        const num = parseInt(parts[2]);
-                        if (num === 1 || num === 2 || num === 7) {
-                            config.seriesLength = num; systemMessage(`Series Length: ${num}`)
+                        else if (cmd === "setgame") {
+                            const num = parseInt(parts[2]);
+                            if (num >= 1 && num <= 7) {
+                                config.gameNumber = num; 
+                                systemMessage(`Game Number: ${num}`);
+                            }
+                            else systemMessage("Error: Use /nfl setGame [1-7]");
                         }
-                        else systemMessage("Error: Use /nfl setSeries [1/2/7]");
-                    }
-                    else if (cmd === "setknockout") {
-                        if      (arg === "true")    {config.knockout = true;    systemMessage("Knockout Mode: True"); }
-                        else if (arg === "false")   {config.knockout = false;   systemMessage("Knockout Mode: False"); }
-                        else                                                    systemMessage("Error: Use /nfl setKnockout [true/false]");
-                    }
-                    else if (cmd === "showcodes") {
-                        systemMessage(`Regulation: ${CODES.REGULATION}`);
-                        systemMessage(`Overtime: ${CODES.OVERTIME}`);
-                    }
-                    else if (cmd === "swap") {
-                        config.isSwapped = !config.isSwapped;
-                        systemMessage(`Swapped: ${config.teamNames.away} is now the Home team`);
-                    }
-                    else if (cmd === "export")  downloadScoresheet();
-                    else if (cmd === "howto")   printHowTo();
-                    else if (cmd === "help")    printHelp(cmdKey ? null : arg);
-                    else                        printHelp();
+                        else if (cmd === "setseries") {
+                            const num = parseInt(parts[2]);
+                            if (num === 1 || num === 2 || num === 7) {
+                                config.seriesLength = num; systemMessage(`Series Length: ${num}`)
+                            }
+                            else systemMessage("Error: Use /nfl setSeries [1/2/7]");
+                        }
+                        else if (cmd === "setknockout") {
+                            if      (arg === "true")    {config.knockout = true;    systemMessage("Knockout Mode: True"); }
+                            else if (arg === "false")   {config.knockout = false;   systemMessage("Knockout Mode: False"); }
+                            else                                                    systemMessage("Error: Use /nfl setKnockout [true/false]");
+                        }
+                        else if (cmd === "showcodes") {
+                            systemMessage(`Regulation: ${CODES.REGULATION}`);
+                            systemMessage(`Overtime: ${CODES.OVERTIME}`);
+                        }
+                        else if (cmd === "swap") {
+                            config.isSwapped = !config.isSwapped;
+                            systemMessage(`Swapped: ${config.teamNames.away} is now the Home team`);
+                        }
+                        else if (cmd === "export")  downloadScoresheet();
+                        else if (cmd === "howto")   printHowTo();
+                        else if (cmd === "help")    printHelp(cmdKey ? null : arg);
+                        else                        printHelp();
+                    }, 1000);
                 }
             });
         }).bindListener();
 
         new Listener("answer results", (payload) => {
-            if (match.isActive) setTimeout(() => processRound(payload), 200);
+            if (match.isActive) setTimeout(() => processRound(payload), 1000);
         }).bindListener();
     };
 
     function init() {
         if (typeof quiz !== 'undefined' && typeof Listener !== 'undefined') setup();
-        else setTimeout(init, 500);
+        else setTimeout(init, 1000);
     }
 
     init();
