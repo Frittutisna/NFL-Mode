@@ -18,10 +18,10 @@
         songNumber  : 0,
         gameNumber  : 1,
         scores      : {away: 0, home: 0},
-        possession  : 'away', 
+        possession  : 'away',
         teamNames   : {away: "Away", home: "Home"},
         captains    : [1, 5],
-        history     : [], 
+        history     : [],
         isSwapped   : false
     };
 
@@ -212,7 +212,25 @@
         if (result.swap)                    state.possession        = defSide;
 
         const scoreStr  = `${state.scores.away}-${state.scores.home}`;
-        const outputMsg = `${awayStats.patternStr} ${homeStats.patternStr} ${result.name} ${scoreStr}`;
+        
+        const songsRemaining        = 20 - state.songNumber;
+        const maxPointsRemaining    = songsRemaining * 8;
+        const scoreDiff             = Math.abs(state.scores.away - state.scores.home);
+        let mercyMsg                = "";
+        let isGameOver              = false;
+
+        if (scoreDiff > maxPointsRemaining) {
+            const winner    = state.scores.away > state.scores.home ? getTeamName('away') : getTeamName('home');
+            mercyMsg        = ` - Mercy Rule triggered, ${winner} wins`;
+            isGameOver      = true;
+        } else if (state.songNumber < 20) {
+            const triggerSong = Math.floor(20 - (scoreDiff / 8)) + 1;
+            if (triggerSong > state.songNumber && triggerSong <= 20) {
+                mercyMsg = ` (Mercy Rule trigger warning after Song ${triggerSong})`;
+            }
+        }
+
+        const outputMsg = `${awayStats.patternStr} ${homeStats.patternStr} ${result.name} ${scoreStr}${mercyMsg}`;
         
         chatMessage(outputMsg);
 
@@ -224,6 +242,11 @@
             result  : result.name,
             score   : scoreStr
         });
+
+        if (isGameOver) {
+            state.isActive = false;
+            systemMessage("Game ended due to Mercy Rule");
+        }
     };
 
     const downloadScoresheet = (isAuto = false) => {
