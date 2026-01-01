@@ -229,29 +229,32 @@
             return;
         }
         
-        const awayName = getTeamName('away');
-        const homeName = getTeamName('home');
+        const awayNameRaw = getTeamName('away');
+        const homeNameRaw = getTeamName('home');
         
         const lastEntry = state.history[state.history.length - 1];
         const lastSong  = lastEntry ? lastEntry.song : 0;
         const lastScore = lastEntry ? lastEntry.score : "0-0";
-        const titleStr  = `Game ${state.gameNumber} (${lastSong}): ${awayName} ${lastScore} ${homeName}`;
+        const titleStr  = `Game ${state.gameNumber} (${lastSong}): ${awayNameRaw} ${lastScore} ${homeNameRaw}`;
 
         const awayColor = "#0047AB";
         const homeColor = "#D2691E";
 
-        const getHeaders = (slots) => {
-            return gameConfig.posNames.map((name, i) => {
-                const slotId = slots[i];
-                return state.captains.includes(slotId) ? `${name} (C)` : name;
-            });
-        };
-
         const awaySlots = state.isSwapped ? gameConfig.homeSlots : gameConfig.awaySlots;
         const homeSlots = state.isSwapped ? gameConfig.awaySlots : gameConfig.homeSlots;
 
-        const awayHeaders = getHeaders(awaySlots);
-        const homeHeaders = getHeaders(homeSlots);
+        const getCaptainPos = (slots) => {
+            const index = slots.findIndex(slot => state.captains.includes(slot));
+            return index !== -1 ? gameConfig.posNames[index] : "?";
+        };
+
+        const awayCapPos = getCaptainPos(awaySlots);
+        const homeCapPos = getCaptainPos(homeSlots);
+
+        const awayHeaderTitle = `${awayNameRaw} (${awayCapPos})`;
+        const homeHeaderTitle = `${homeNameRaw} (${homeCapPos})`;
+
+        const subHeaders = gameConfig.posNames; 
 
         const totalCols = 14;
 
@@ -283,19 +286,19 @@
         <h2>${titleStr}</h2>
         <table>
             <tr class="header-top">
-                <th rowspan="2" class="w-sm">Song</th>
+                <th rowspan="2" class="w-lg">Song</th>
                 <th rowspan="2" class="w-lg">Possession</th>
-                <th colspan="4" class="text-away" style="font-weight:bold">${awayName}</th>
-                <th colspan="4" class="text-home" style="font-weight:bold">${homeName}</th>
+                <th colspan="4" class="text-away" style="font-weight:bold">${awayHeaderTitle}</th>
+                <th colspan="4" class="text-home" style="font-weight:bold">${homeHeaderTitle}</th>
                 <th rowspan="2" class="w-lg">Result</th>
                 <th colspan="2" class="w-lg">Score</th>
                 <th rowspan="2" class="w-lg">Winner</th>
             </tr>
             <tr class="header-sub">
-                ${awayHeaders.map(h => `<th class="text-away w-sm" style="font-weight:bold">${h}</th>`).join('')}
-                ${homeHeaders.map(h => `<th class="text-home w-sm" style="font-weight:bold">${h}</th>`).join('')}
-                <th class="text-away w-lg" style="font-weight:bold">${awayName}</th>
-                <th class="text-home w-lg" style="font-weight:bold">${homeName}</th>
+                ${subHeaders.map(h => `<th class="text-away w-sm" style="font-weight:bold">${h}</th>`).join('')}
+                ${subHeaders.map(h => `<th class="text-home w-sm" style="font-weight:bold">${h}</th>`).join('')}
+                <th class="text-away w-lg" style="font-weight:bold">${awayNameRaw}</th>
+                <th class="text-home w-lg" style="font-weight:bold">${homeNameRaw}</th>
             </tr>
             <tr class="banner-row">
                 <td colspan="${totalCols}">
@@ -306,7 +309,7 @@
         
         state.history.forEach(row => {
             const possClass = row.poss === 'away' ? 'text-away' : 'text-home';
-            const possName  = row.poss === 'away' ? awayName    : homeName;
+            const possName  = row.poss === 'away' ? awayNameRaw : homeNameRaw;
 
             const [scoreAway, scoreHome] = row.score.split('-').map(Number);
 
@@ -319,10 +322,10 @@
 
             if (diff > maxPointsRemaining || (row.song >= 20 && diff !== 0)) {
                 if (scoreAway > scoreHome) {
-                    winnerName  = awayName;
+                    winnerName  = awayNameRaw;
                     winnerClass = "text-away";
                 } else if (scoreHome > scoreAway) {
-                    winnerName  = homeName;
+                    winnerName  = homeNameRaw;
                     winnerClass = "text-home";
                 }
             }
