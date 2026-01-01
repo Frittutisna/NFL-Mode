@@ -6,7 +6,6 @@
 // @author       Frittutisna
 // @match        https://animemusicquiz.com/*
 // @match        https://*.animemusicquiz.com/*
-// eslint-disable-next-line $rulename
 // ==/UserScript==
 
 (function() {
