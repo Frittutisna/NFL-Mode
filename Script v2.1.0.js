@@ -237,9 +237,6 @@
         const lastScore = lastEntry ? lastEntry.score : "0-0";
         const titleStr  = `Game ${state.gameNumber} (${lastSong}): ${awayNameRaw} ${lastScore} ${homeNameRaw}`;
 
-        const awayColor = "#0047AB";
-        const homeColor = "#D2691E";
-
         const awaySlots = state.isSwapped ? gameConfig.homeSlots : gameConfig.awaySlots;
         const homeSlots = state.isSwapped ? gameConfig.awaySlots : gameConfig.homeSlots;
 
@@ -247,109 +244,84 @@
             const index = slots.findIndex(slot => state.captains.includes(slot));
             return index !== -1 ? gameConfig.posNames[index] : "?";
         };
-
-        const awayCapPos = getCaptainPos(awaySlots);
-        const homeCapPos = getCaptainPos(homeSlots);
-
-        const awayHeaderTitle = `${awayNameRaw} (${awayCapPos})`;
-        const homeHeaderTitle = `${homeNameRaw} (${homeCapPos})`;
-
-        const subHeaders = gameConfig.posNames; 
-
-        const totalCols = 14;
+        const awayHeaderTitle = `${awayNameRaw} (${getCaptainPos(awaySlots)})`;
+        const homeHeaderTitle = `${homeNameRaw} (${getCaptainPos(homeSlots)})`;
+        const subHeaders      = gameConfig.posNames; 
 
         let html = `
-        <html><head><style>
-            body    {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px;}
-            h2      {text-align: center; margin-bottom: 20px;}
-            table   {border-collapse: collapse; width: 100%; margin: 0 auto; font-size: 14px; table-layout: fixed;}
-            th, td  {border: 1px solid #000; padding: 6px; text-align: center; background-color: #ffffff; white-space: nowrap; overflow: hidden;}
-            
-            .header-top {background-color: #ffffff; font-weight: bold;}
-            .header-sub {background-color: #ffffff; font-weight: bold; font-size: 0.9em;}
-            
-            .text-away      {color: ${awayColor};}
-            .text-home      {color: ${homeColor};}
-            .text-neutral   {color: #000;}
-            
-            .banner-row td { 
-                text-align          : center; 
-                font-weight         : bold; 
-                background-color    : #ffffff; 
-                border-bottom       : 1px solid #000;
-                padding: 8px;
-            }
-
-            .w-sm   {width: 75px;}
-            .w-lg   {width: 150px;}
-        </style></head><body>
-        <h2>${titleStr}</h2>
-        <table>
-            <tr class="header-top">
-                <th rowspan="2" class="w-lg">Song</th>
-                <th rowspan="2" class="w-lg">Possession</th>
-                <th colspan="4" class="text-away" style="font-weight:bold">${awayHeaderTitle}</th>
-                <th colspan="4" class="text-home" style="font-weight:bold">${homeHeaderTitle}</th>
-                <th rowspan="2" class="w-lg">Result</th>
-                <th colspan="2" class="w-lg">Score</th>
-                <th rowspan="2" class="w-lg">Winner</th>
-            </tr>
-            <tr class="header-sub">
-                ${subHeaders.map(h => `<th class="text-away w-sm" style="font-weight:bold">${h}</th>`).join('')}
-                ${subHeaders.map(h => `<th class="text-home w-sm" style="font-weight:bold">${h}</th>`).join('')}
-                <th class="text-away w-lg" style="font-weight:bold">${awayNameRaw}</th>
-                <th class="text-home w-lg" style="font-weight:bold">${homeNameRaw}</th>
-            </tr>
-            <tr class="banner-row">
-                <td colspan="${totalCols}">
-                    Regulation (0-40): 16 Watched Equal, 4 Random songs. Mercy Rule triggered if Score Deficit > Remaining Songs × 8
-                </td>
-            </tr>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>${titleStr}</title>
+        </head>
+        <body>
+            <h3>${titleStr}</h3>
+            <table border="1" style="border-collapse: collapse; text-align: center; font-family: sans-serif;">
+                <thead>
+                    <tr>
+                        <th rowspan="2">Song</th>
+                        <th rowspan="2">Possession</th>
+                        <th colspan="4">${awayHeaderTitle}</th>
+                        <th colspan="4">${homeHeaderTitle}</th>
+                        <th rowspan="2">Result</th>
+                        <th colspan="2">Score</th>
+                        <th rowspan="2">Winner</th>
+                    </tr>
+                    <tr>
+                        ${subHeaders.map(h => `<th>${h}</th>`).join('')}
+                        ${subHeaders.map(h => `<th>${h}</th>`).join('')}
+                        <th>${awayNameRaw}</th>
+                        <th>${homeNameRaw}</th>
+                    </tr>
+                    <tr>
+                        <td colspan="14" style="text-align: left; padding: 5px;">
+                            Regulation (0-40): 16 Watched Equal, 4 Random songs. Mercy Rule triggered if Score Deficit > Remaining Songs × 8
+                        </td>
+                    </tr>
+                </thead>
+                <tbody>
         `;
         
         state.history.forEach(row => {
-            const possClass = row.poss === 'away' ? 'text-away' : 'text-home';
-            const possName  = row.poss === 'away' ? awayNameRaw : homeNameRaw;
+            const possName                  = row.poss === 'away' ? awayNameRaw : homeNameRaw;
+            const [scoreAway, scoreHome]    = row.score.split(' - ').map(Number);
 
-            const [scoreAway, scoreHome] = row.score.split('-').map(Number);
-
-            let winnerName  = "TBD";
-            let winnerClass = "text-neutral";
-            
+            let winnerName              = "TBD";
             const songsRemaining        = 20 - row.song;
             const maxPointsRemaining    = songsRemaining * 8;
             const diff                  = Math.abs(scoreAway - scoreHome);
 
             if (diff > maxPointsRemaining || (row.song >= 20 && diff !== 0)) {
-                if (scoreAway > scoreHome) {
-                    winnerName  = awayNameRaw;
-                    winnerClass = "text-away";
-                } else if (scoreHome > scoreAway) {
-                    winnerName  = homeNameRaw;
-                    winnerClass = "text-home";
-                }
+                if (scoreAway > scoreHome)      winnerName = awayNameRaw;
+                else if (scoreHome > scoreAway) winnerName = homeNameRaw;
             }
 
-            const awayCells = row.awayArr.map(b => `<td class="text-away">${b === 0 ? '' : b}</td>`).join('');
-            const homeCells = row.homeArr.map(b => `<td class="text-home">${b === 0 ? '' : b}</td>`).join('');
+            const awayCells = row.awayArr.map(b => `<td>${b === 0 ? '' : b}</td>`).join('');
+            const homeCells = row.homeArr.map(b => `<td>${b === 0 ? '' : b}</td>`).join('');
 
-            html += `<tr>
-                <td>${row.song}</td>
-                <td class="${possClass}">${possName}</td>
-                ${awayCells}
-                ${homeCells}
-                <td>${row.result}</td>
-                <td class="text-away">${scoreAway}</td>
-                <td class="text-home">${scoreHome}</td>
-                <td class="${winnerClass}">${winnerName}</td>
-            </tr>`;
+            html += `
+                <tr>
+                    <td>${row.song}</td>
+                    <td>${possName}</td>
+                    ${awayCells}
+                    ${homeCells}
+                    <td>${row.result}</td>
+                    <td>${scoreAway}</td>
+                    <td>${scoreHome}</td>
+                    <td>${winnerName}</td>
+                </tr>`;
         });
-        html += "</table></body></html>";
+
+        html += `
+                </tbody>
+            </table>
+        </body>
+        </html>`;
         
         const blob  = new Blob([html], {type: "text/html"});
         const a     = document.createElement('a');
         a.href      = URL.createObjectURL(blob);
-        a.download  = `NFL_Game${state.gameNumber}_${Date.now()}.html`;
+        a.download  = `NFL_Game${state.gameNumber}_Simple.html`;
         a.click();
     };
 
