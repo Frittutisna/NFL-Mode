@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         NFL Mode for AMQ
 // @namespace    https://github.com/Frittutisna/NFL-Mode
-// @version      2.1.0
+// @version      2.2.4
 // @description  Script to help track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://animemusicquiz.com/*
@@ -239,113 +239,118 @@
         const mainMsg   = `${awayStats.patternStr} ${homeStats.patternStr} ${result.name} ${scoreStr}`;
         chatMessage(mainMsg);
 
-        const songsRemaining        = 20 - state.songNumber;
-        const isAwayLeading         = state.scores.away > state.scores.home;
-        const trailerPossessing     = (isAwayLeading && state.possession === 'home') || (!isAwayLeading && state.possession === 'away');
-        const maxPointsRemaining    = getMaxPossiblePoints(songsRemaining, trailerPossessing);
-        const scoreDiff             = Math.abs(state.scores.away - state.scores.home);
+        try {
+            const songsRemaining        = 20 - state.songNumber;
+            const isAwayLeading         = state.scores.away > state.scores.home;
+            const trailerPossessing     = (isAwayLeading && state.possession === 'home') || (!isAwayLeading && state.possession === 'away');
+            const maxPointsRemaining    = getMaxPossiblePoints(songsRemaining, trailerPossessing);
+            const scoreDiff             = Math.abs(state.scores.away - state.scores.home);
 
-        if (scoreDiff > maxPointsRemaining) {
-            const winner = state.scores.away > state.scores.home ? getTeamName('away') : getTeamName('home');
-            setTimeout(() => {
-                chatMessage(`Mercy Rule triggered, ${winner} wins`);
+            if (scoreDiff > maxPointsRemaining) {
+                const winner = state.scores.away > state.scores.home ? getTeamName('away') : getTeamName('home');
                 setTimeout(() => {
-                    systemMessage("Game ended due to Mercy Rule");
-                    state.isActive = false;
-                }, 1000); 
-            }, 1000);
-        } 
-        else if (state.songNumber < 20) {
-            if (state.songNumber >= 10) {
-                for (let s = state.songNumber + 1; s <= 20; s++) {                   
-                    const songsFromHereToS  = s - state.songNumber;                   
-                    const futureMax         = getMaxPossiblePoints(20 - s, (songsFromHereToS % 2 !== 0 ? !trailerPossessing : trailerPossessing));
+                    chatMessage(`Mercy Rule triggered, ${winner} wins`);
+                    setTimeout(() => {
+                        systemMessage("Game ended due to Mercy Rule");
+                        state.isActive = false;
+                    }, 1000); 
+                }, 1000);
+            } 
+            else if (state.songNumber < 20) {
+                const nextRoundSong     = state.songNumber + 1;
+                const songsAfterNext    = 20 - nextRoundSong;
+                
+                const leaderName    = isAwayLeading ? getTeamName('away') : getTeamName('home');
+                const trailerName   = isAwayLeading ? getTeamName('home') : getTeamName('away');
+                const gap           = scoreDiff;
+
+                const isAwayPoss    = state.possession === 'away';
+                const leaderIsPoss  = (isAwayLeading === isAwayPoss);
+
+                const scenarios = outcomesList.map(o => {
+                    let actorName       = (o.swing > 0) 
+                        ? (isAwayPoss ? getTeamName('away') : getTeamName('home')) 
+                        : (isAwayPoss ? getTeamName('home') : getTeamName('away'));
+                    let leaderGapChange = leaderIsPoss ? o.swing : -o.swing;
                     
-                    if (scoreDiff > futureMax) {
-                        setTimeout(() => {chatMessage(`Mercy Rule trigger warning after Song ${s}`);}, 1000);
-                        foundTrigger = true;
-                        break; 
+                    const outcomeSwap           = o.name !== "Onside Kick";
+                    const leaderHasBallNext     = leaderIsPoss ? !outcomeSwap : outcomeSwap;
+                    const trailerHasBallNext    = !leaderHasBallNext;
+                    const maxChaseNext          = getMaxPossiblePoints(songsAfterNext, trailerHasBallNext);
+
+                    return { 
+                        name            : o.name, 
+                        change          : leaderGapChange, 
+                        actor           : actorName,
+                        maxChase        : maxChaseNext,
+                        leaderIsActor   : (actorName === leaderName)
+                    };
+                });
+
+                scenarios.sort((a, b) => a.change - b.change);
+
+                let safeOutcome = null;
+                for (let i = scenarios.length - 1; i >= 0; i--) {
+                    if (gap + scenarios[i].change <= scenarios[i].maxChase) {
+                        safeOutcome = scenarios[i];
+                        break;
+                    }
+                }
+
+                let killOutcome = null;
+                for (let i = 0; i < scenarios.length; i++) {
+                    if (gap + scenarios[i].change > scenarios[i].maxChase) {
+                        killOutcome = scenarios[i];
+                        break;
+                    }
+                }
+                
+                if (killOutcome && safeOutcome) {
+                    setTimeout(() => {chatMessage(`Mercy Rule trigger warning next Song!`);}, 1000);
+                    let delay = 2000;
+                    
+                    const artSafe = getArticle(safeOutcome.name);
+                    if (safeOutcome.leaderIsActor) {
+                        setTimeout(() => {
+                            chatMessage(`The ${trailerName} needs to hold the ${leaderName} to ${artSafe} ${safeOutcome.name} next Song to avoid Mercy Rule`);
+                        }, delay);
+                    } else {
+                        let txtSafe = `at least ${artSafe} ${safeOutcome.name}`;
+                        const bestPossibleForTrailer = scenarios[0];
+                        if (safeOutcome.name === bestPossibleForTrailer.name) txtSafe = `${artSafe} ${safeOutcome.name}`;
+                        setTimeout(() => {chatMessage(`The ${trailerName} needs ${txtSafe} next Song to avoid Mercy Rule`)}, delay);
+                    }
+                    
+                    delay += 1000;
+
+                    const artKill = getArticle(killOutcome.name);
+                    if (killOutcome.change < 0) {
+                        setTimeout(() => {
+                            chatMessage(`The ${leaderName} can afford ${artKill} ${killOutcome.actor} ${killOutcome.name} next Song and still trigger Mercy Rule`);
+                        }, delay);
+                    } else {
+                        let txtKill = `only needs ${artKill} ${killOutcome.name}`;
+                        if (Math.abs(killOutcome.change) >= 7) txtKill = `needs ${artKill} ${killOutcome.name}`;
+                        setTimeout(() => {chatMessage(`The ${leaderName} ${txtKill} next Song to trigger Mercy Rule`)}, delay);
+                    }
+                } 
+                else if (state.songNumber >= 10) {
+                    let foundTrigger = false;
+
+                    for (let s = state.songNumber + 2; s <= 20; s++) {                   
+                        const songsFromHereToS  = s - state.songNumber;                   
+                        const futureMax         = getMaxPossiblePoints(20 - s, (songsFromHereToS % 2 !== 0 ? !trailerPossessing : trailerPossessing));
+                        
+                        if (scoreDiff > futureMax) {
+                            setTimeout(() => {chatMessage(`Mercy Rule trigger warning after Song ${s}`);}, 1000);
+                            foundTrigger = true;
+                            break; 
+                        }
                     }
                 }
             }
-
-            const nextRoundSong     = state.songNumber + 1;
-            const songsAfterNext    = 20 - nextRoundSong;
-            
-            const leaderName    = isAwayLeading ? getTeamName('away') : getTeamName('home');
-            const trailerName   = isAwayLeading ? getTeamName('home') : getTeamName('away');
-            const gap           = scoreDiff;
-
-            const isAwayPoss    = state.possession === 'away';
-            const leaderIsPoss  = (isAwayLeading === isAwayPoss);
-
-            const scenarios = outcomesList.map(o => {
-                let actorName       = (o.swing > 0) 
-                    ? (isAwayPoss ? getTeamName('away') : getTeamName('home')) 
-                    : (isAwayPoss ? getTeamName('home') : getTeamName('away'));
-                let leaderGapChange = leaderIsPoss ? o.swing : -o.swing;
-                
-                const outcomeSwap           = o.name !== "Onside Kick";
-                const leaderHasBallNext     = leaderIsPoss ? !outcomeSwap : outcomeSwap;
-                const trailerHasBallNext    = !leaderHasBallNext;
-                const maxChaseNext          = getMaxPossiblePoints(songsAfterNext, trailerHasBallNext);
-
-                return { 
-                    name            : o.name, 
-                    change          : leaderGapChange, 
-                    actor           : actorName,
-                    maxChase        : maxChaseNext,
-                    leaderIsActor   : (actorName === leaderName)
-                };
-            });
-
-            scenarios.sort((a, b) => a.change - b.change);
-
-            let safeOutcome = null;
-            for (let i = scenarios.length - 1; i >= 0; i--) {
-                if (gap + scenarios[i].change <= scenarios[i].maxChase) {
-                    safeOutcome = scenarios[i];
-                    break;
-                }
-            }
-
-            let killOutcome = null;
-            for (let i = 0; i < scenarios.length; i++) {
-                if (gap + scenarios[i].change > scenarios[i].maxChase) {
-                    killOutcome = scenarios[i];
-                    break;
-                }
-            }
-            
-            if (killOutcome && safeOutcome) {
-                let delay       = 2000;
-                const artSafe   = getArticle(safeOutcome.name);
-
-                if (safeOutcome.leaderIsActor) {
-                    setTimeout(() => {
-                        chatMessage(`The ${trailerName} needs to hold the ${leaderName} to ${artSafe} ${safeOutcome.name} next Song to avoid Mercy Rule`);
-                    }, delay);
-                } else {
-                    let txtSafe                     = `at least ${artSafe} ${safeOutcome.name}`;
-                    const bestPossibleForTrailer    = scenarios[0];
-                    if (safeOutcome.name === bestPossibleForTrailer.name) txtSafe = `${artSafe} ${safeOutcome.name}`;
-                    setTimeout(() => {chatMessage(`The ${trailerName} needs ${txtSafe} next Song to avoid Mercy Rule`)}, delay);
-                }
-                
-                delay           +=  1000;
-                const artKill   =   getArticle(killOutcome.name);
-                
-                if (killOutcome.change < 0) {
-                    setTimeout(() => {
-                        chatMessage(`The ${leaderName} can afford ${artKill} ${killOutcome.actor} ${killOutcome.name} next Song and still trigger Mercy Rule`);
-                    }, delay);
-                } 
-                else {
-                    let                                     txtKill = `only needs ${artKill} ${killOutcome.name}`;
-                    if (Math.abs(killOutcome.change) >= 7)  txtKill = `needs ${artKill} ${killOutcome.name}`;
-                    setTimeout(() => {chatMessage(`The ${leaderName} ${txtKill} next Song to trigger Mercy Rule`)}, delay);
-                }
-            }
+        } catch (e) {
+            console.error("Error:", e);
         }
 
         state.history.push({
@@ -413,8 +418,8 @@
                         <th>${homeNameRaw}</th>
                     </tr>
                     <tr>
-                        <td colspan="14" style="text-align: left; padding: 5px; font-weight: bold;">
-                            Regulation (0-40): 16 Watched Equal, 4 Random songs. Mercy Rule triggered if Score Deficit > Remaining Songs × 8
+                        <td colspan="14" style="text-align: center; padding: 5px; font-weight: bold;">
+                            Regulation (0-40): 16 Watched Equal and 4 Random songs with Mercy Rule
                         </td>
                     </tr>
                 </thead>
