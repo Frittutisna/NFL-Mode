@@ -163,10 +163,10 @@
         // if (players.length !== 8)                           return {valid: false, msg: `Error: Need exactly 8 players`};
         const notReady = players.filter(p => !p.ready);
         if (notReady.length > 0)                            return {valid: false, msg: "Error: All players must be Ready"};
-        const teams     = players.map(p => p.teamNumber).sort((a, b) => a - b);
-        const expected  = [1, 2, 3, 4, 5, 6, 7, 8];
-        const isUnique  = teams.length === expected.length && teams.every((val, index) => val === expected[index]);
-        if (!isUnique)                                      return {valid: false, msg: "Error: Exactly 1 player must be on Teams 1 to 8"};
+        // const teams     = players.map(p => p.teamNumber).sort((a, b) => a - b);
+        // const expected  = [1, 2, 3, 4, 5, 6, 7, 8];
+        // const isUnique  = teams.length === expected.length && teams.every((val, index) => val === expected[index]);
+        // if (!isUnique)                                      return {valid: false, msg: "Error: Exactly 1 player must be on Teams 1 to 8"};
         return {valid: true};
     };
 
