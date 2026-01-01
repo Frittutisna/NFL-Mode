@@ -213,26 +213,26 @@
 
         const scoreStr  = `${state.scores.away}-${state.scores.home}`;
         
+        const mainMsg = `${awayStats.patternStr} ${homeStats.patternStr} ${result.name} ${scoreStr}`;
+        chatMessage(mainMsg);
+
         const songsRemaining        = 20 - state.songNumber;
         const maxPointsRemaining    = songsRemaining * 8;
         const scoreDiff             = Math.abs(state.scores.away - state.scores.home);
-        let mercyMsg                = "";
         let isGameOver              = false;
 
         if (scoreDiff > maxPointsRemaining) {
-            const winner    = state.scores.away > state.scores.home ? getTeamName('away') : getTeamName('home');
-            mercyMsg        = ` - Mercy Rule triggered, ${winner} wins`;
-            isGameOver      = true;
-        } else if (state.songNumber < 20) {
+            const winner = state.scores.away > state.scores.home ? getTeamName('away') : getTeamName('home');
+            setTimeout(() => {chatMessage(`Mercy Rule triggered, ${winner} wins`)}, 100);
+            isGameOver = true;
+
+        } else if (state.songNumber >= 10 && state.songNumber < 20) {
             const triggerSong = Math.floor(20 - (scoreDiff / 8)) + 1;
+            
             if (triggerSong > state.songNumber && triggerSong <= 20) {
-                mercyMsg = ` (Mercy Rule trigger warning after Song ${triggerSong})`;
+                setTimeout(() => {chatMessage(`Mercy Rule trigger warning after Song ${triggerSong}`)}, 100);
             }
         }
-
-        const outputMsg = `${awayStats.patternStr} ${homeStats.patternStr} ${result.name} ${scoreStr}${mercyMsg}`;
-        
-        chatMessage(outputMsg);
 
         state.history.push({
             song    : state.songNumber,
