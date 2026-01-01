@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         NFL Mode for AMQ
+// @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna/NFL-Mode
 // @version      3.alpha
-// @description  Script to help track NFL Mode on AMQ (Regulation + Overtime)
+// @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://animemusicquiz.com/*
 // @match        https://*.animemusicquiz.com/*
@@ -376,11 +376,26 @@
                             const isAwayLeading = otScoreDiff > 0;
                             const leaderName    = isAwayLeading ? getTeamName('away') : getTeamName('home');
                             const trailerName   = isAwayLeading ? getTeamName('home') : getTeamName('away');
-                            
+                            const gap           = Math.abs(otScoreDiff);
+
+                            const tieOutcomes   = outcomesList.filter(o => o.swing === gap && ["Touchdown","Field Goal","Rouge","TD + 2PC"].includes(o.name));
+                            const tieOutcome    = tieOutcomes.find(o => o.name === "Touchdown") || tieOutcomes[0];
+                            const winOutcomes   = outcomesList.filter(o => o.swing > gap && ["Touchdown","Field Goal","Rouge","TD + 2PC"].includes(o.name));
+                            winOutcomes.sort((a,b) => a.swing - b.swing);
+                            const winOutcome = winOutcomes.find(o => o.name === "Touchdown") || winOutcomes[0];
+
                             setTimeout(() => {
-                                if (Math.abs(otScoreDiff) <= 8) {
-                                     chatMessage(`The ${leaderName} can afford a ${trailerName} Touchdown (or less) to continue Overtime; any better and they win outright`);
-                                     setTimeout(()=>chatMessage(`The ${trailerName} needs a Touchdown to tie, or any better to win outright.`), 1000);
+                                if (tieOutcome) {
+                                    const artTie    = getArticle(tieOutcome.name);
+                                    let leaderMsg   = `The ${leaderName} can afford a ${trailerName} ${tieOutcome.name} to continue Overtime`;
+                                    let trailerMsg  = `The ${trailerName} needs ${artTie} ${tieOutcome.name} to tie`;
+                                    if (winOutcome) {
+                                        const artWin    =   getArticle(winOutcome.name);
+                                        trailerMsg      +=  `, or ${artWin} ${winOutcome.name} to win outright`;
+                                        leaderMsg       +=  `; any better and they win outright`;
+                                    }
+                                    chatMessage(leaderMsg);
+                                    setTimeout(() => chatMessage(trailerMsg), 1000);
                                 }
                             }, 2000);
                         }
@@ -447,8 +462,16 @@
         const lastScore         = lastEntry.score;
         const titleStr          = `Game ${state.gameNumber} (${lastSongDisplay}): ${awayNameRaw} ${lastScore} ${homeNameRaw}`;
 
-        const awayHeaderTitle = `${awayNameRaw} (OP1)`;
-        const homeHeaderTitle = `${homeNameRaw} (OP1)`;
+        const awaySlots = state.isSwapped ? gameConfig.homeSlots : gameConfig.awaySlots;
+        const homeSlots = state.isSwapped ? gameConfig.awaySlots : gameConfig.homeSlots;
+
+        const getCaptainPos = (slots) => {
+            const index = slots.findIndex(slot => state.captains.includes(slot));
+            return index !== -1 ? gameConfig.posNames[index] : "?";
+        };
+        
+        const awayHeaderTitle = `${awayNameRaw} (${getCaptainPos(awaySlots)})`;
+        const homeHeaderTitle = `${homeNameRaw} (${getCaptainPos(homeSlots)})`;
         const subHeaders      = gameConfig.posNames; 
 
         const date      = new Date();
