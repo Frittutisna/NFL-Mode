@@ -255,9 +255,13 @@
             <title>${titleStr}</title>
         </head>
         <body>
-            <h3>${titleStr}</h3>
             <table border="1" style="border-collapse: collapse; text-align: center; font-family: sans-serif;">
                 <thead>
+                    <tr>
+                        <th colspan="14" style="font-size: 1.5em; padding: 10px; font-weight: bold;">
+                            ${titleStr}
+                        </th>
+                    </tr>
                     <tr>
                         <th rowspan="2">Song</th>
                         <th rowspan="2">Possession</th>
@@ -274,7 +278,7 @@
                         <th>${homeNameRaw}</th>
                     </tr>
                     <tr>
-                        <td colspan="14" style="text-align: left; padding: 5px;">
+                        <td colspan="14" style="text-align: left; padding: 5px; font-weight: bold;">
                             Regulation (0-40): 16 Watched Equal, 4 Random songs. Mercy Rule triggered if Score Deficit > Remaining Songs × 8
                         </td>
                     </tr>
@@ -284,16 +288,19 @@
         
         state.history.forEach(row => {
             const possName                  = row.poss === 'away' ? awayNameRaw : homeNameRaw;
-            const [scoreAway, scoreHome]    = row.score.split(' - ').map(Number);
+            const [scoreAway, scoreHome]    = row.score.split('-').map(Number);
 
-            let winnerName              = "TBD";
-            const songsRemaining        = 20 - row.song;
-            const maxPointsRemaining    = songsRemaining * 8;
-            const diff                  = Math.abs(scoreAway - scoreHome);
+            let winnerName = "TBD";
+            
+            if (!isNaN(scoreAway) && !isNaN(scoreHome)) {
+                const songsRemaining     = 20 - row.song;
+                const maxPointsRemaining = songsRemaining * 8;
+                const diff               = Math.abs(scoreAway - scoreHome);
 
-            if (diff > maxPointsRemaining || (row.song >= 20 && diff !== 0)) {
-                if (scoreAway > scoreHome)      winnerName = awayNameRaw;
-                else if (scoreHome > scoreAway) winnerName = homeNameRaw;
+                if (diff > maxPointsRemaining || (row.song >= 20 && diff !== 0)) {
+                    if (scoreAway > scoreHome)      winnerName = awayNameRaw;
+                    else if (scoreHome > scoreAway) winnerName = homeNameRaw;
+                }
             }
 
             const awayCells = row.awayArr.map(b => `<td>${b === 0 ? '' : b}</td>`).join('');
