@@ -255,7 +255,20 @@
                 }, 1000); 
             }, 1000);
         } 
-        else if (state.songNumber < 20) {           
+        else if (state.songNumber < 20) {
+            if (state.songNumber >= 10) {
+                for (let s = state.songNumber + 1; s <= 20; s++) {                   
+                    const songsFromHereToS  = s - state.songNumber;                   
+                    const futureMax         = getMaxPossiblePoints(20 - s, (songsFromHereToS % 2 !== 0 ? !trailerPossessing : trailerPossessing));
+                    
+                    if (scoreDiff > futureMax) {
+                        setTimeout(() => {chatMessage(`Mercy Rule trigger warning after Song ${s}`);}, 1000);
+                        foundTrigger = true;
+                        break; 
+                    }
+                }
+            }
+
             const nextRoundSong     = state.songNumber + 1;
             const songsAfterNext    = 20 - nextRoundSong;
             
@@ -278,10 +291,11 @@
                 const maxChaseNext          = getMaxPossiblePoints(songsAfterNext, trailerHasBallNext);
 
                 return { 
-                    name        : o.name, 
-                    change      : leaderGapChange, 
-                    actor       : actorName,
-                    maxChase    : maxChaseNext
+                    name            : o.name, 
+                    change          : leaderGapChange, 
+                    actor           : actorName,
+                    maxChase        : maxChaseNext,
+                    leaderIsActor   : (actorName === leaderName)
                 };
             });
 
@@ -303,23 +317,23 @@
                 }
             }
             
-            if (killOutcome && state.songNumber >= 10) {
-                 setTimeout(() => {chatMessage(`Mercy Rule trigger warning after Song ${state.songNumber + 1}`);}, 1000);
-            }
-
             if (killOutcome && safeOutcome) {
-                let delay = 2000;
-                
-                const artSafe = getArticle(safeOutcome.name);
-                let txtSafe   = `at least ${artSafe} ${safeOutcome.name}`;
-                
-                const bestPossibleForTrailer = scenarios[0];
-                if (safeOutcome.name === bestPossibleForTrailer.name) {txtSafe = `${artSafe} ${safeOutcome.name}`}
+                let delay       = 2000;
+                const artSafe   = getArticle(safeOutcome.name);
 
-                setTimeout(() => {chatMessage(`The ${trailerName} needs ${txtSafe} next Song to avoid Mercy Rule`)}, delay);
-                delay += 1000;
-
-                const artKill = getArticle(killOutcome.name);
+                if (safeOutcome.leaderIsActor) {
+                    setTimeout(() => {
+                        chatMessage(`The ${trailerName} needs to hold the ${leaderName} to ${artSafe} ${safeOutcome.name} next Song to avoid Mercy Rule`);
+                    }, delay);
+                } else {
+                    let txtSafe                     = `at least ${artSafe} ${safeOutcome.name}`;
+                    const bestPossibleForTrailer    = scenarios[0];
+                    if (safeOutcome.name === bestPossibleForTrailer.name) txtSafe = `${artSafe} ${safeOutcome.name}`;
+                    setTimeout(() => {chatMessage(`The ${trailerName} needs ${txtSafe} next Song to avoid Mercy Rule`)}, delay);
+                }
+                
+                delay           +=  1000;
+                const artKill   =   getArticle(killOutcome.name);
                 
                 if (killOutcome.change < 0) {
                     setTimeout(() => {
@@ -327,9 +341,8 @@
                     }, delay);
                 } 
                 else {
-                    let txtKill                 = `only needs ${artKill} ${killOutcome.name}`;
-                    const bestPossibleForLeader = scenarios[scenarios.length - 1];
-                    if (killOutcome.name === bestPossibleForLeader.name) txtKill = `needs ${artKill} ${killOutcome.name}`
+                    let                                     txtKill = `only needs ${artKill} ${killOutcome.name}`;
+                    if (Math.abs(killOutcome.change) >= 7)  txtKill = `needs ${artKill} ${killOutcome.name}`;
                     setTimeout(() => {chatMessage(`The ${leaderName} ${txtKill} next Song to trigger Mercy Rule`)}, delay);
                 }
             }
