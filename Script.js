@@ -6,8 +6,7 @@
 // @author       Frittutisna
 // @match        https://animemusicquiz.com/*
 // @match        https://*.animemusicquiz.com/*
-// @require      https://github.com/joske2865/AMQ-Scripts/raw/master/common/amqScriptInfo.js
-// @grant        none
+// eslint-disable-next-line $rulename
 // ==/UserScript==
 
 (function() {
