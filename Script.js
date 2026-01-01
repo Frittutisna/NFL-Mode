@@ -162,7 +162,7 @@
     const validateLobby = () => {
         if (typeof lobby === 'undefined' || !lobby.inLobby) return {valid: false, msg: "Error: Not in Lobby"};
         const players = Object.values(lobby.players);
-        if (players.length !== 8)                           return {valid: false, msg: `Error: Need exactly 8 players`};
+        // if (players.length !== 8)                           return {valid: false, msg: `Error: Need exactly 8 players`};
         const notReady = players.filter(p => !p.ready);
         if (notReady.length > 0)                            return {valid: false, msg: "Error: All players must be Ready"};
         const teams     = players.map(p => p.teamNumber).sort((a, b) => a - b);
