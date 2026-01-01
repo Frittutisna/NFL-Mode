@@ -13,24 +13,27 @@
 (function() {
     'use strict';
 
-    const initialState = {
-        isActive        : false,
-        songNumber      : 0,
+    const config = {
         gameNumber      : 1,
-        scores          : {away: 0, home: 0},
-        possession      : 'away',
         teamNames       : {away: "Away", home: "Home"},
         captains        : [1, 5],
-        history         : [],
         isSwapped       : false,
         knockout        : false,
+        seriesLength    : 1,
+        seriesStats     : {awayWins: 0, homeWins: 0, draws: 0, history: []}
+    };
+
+    const match = {
+        isActive        : false,
+        songNumber      : 0,
+        scores          : {away: 0, home: 0},
+        possession      : 'away', 
+        history         : [],
         period          : 'REGULATION',
         otRound         : 0,
         scoresAtReg     : {away: 0, home: 0},
         historyAtReg    : []
     };
-
-    let state = JSON.parse(JSON.stringify(initialState));
 
     const gameConfig = {
         captainMultiplier   : 2,
@@ -46,101 +49,127 @@
         OVERTIME    : "e0g05211111101100000531110000000511111111111100k051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--"
     };
 
-    const systemMessage = (msg) => {
-        if (typeof gameChat !== 'undefined') {
-            setTimeout(() => {
-                gameChat.systemMessage(msg);
-            }, 100);
-        }
-    };
+    const systemMessage = (msg) => {if (typeof gameChat !== 'undefined') setTimeout(() => gameChat.systemMessage(msg), 100)};
 
     const chatMessage = (msg) => {
         if (typeof socket !== 'undefined') {
             socket.sendCommand({
                 type    : "lobby",
                 command : "game chat message",
-                data    : { msg, teamMessage: false }
+                data    : {msg, teamMessage: false}
             });
         }
     };
 
-    const toTitleCase = (str) => {
-        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-    };
-
-    const getTeamName = (side) => state.teamNames[side];
-
-    const getTeamNumber = (player, context) => {
-        if (context === 'quiz') {
-            return player.teamNumber;
-        } else if (context === 'lobby') {
-            try {
-                if (player.lobbySlot && player.lobbySlot.$TEAM_DISPLAY_TEXT) {
-                    return parseInt(player.lobbySlot.$TEAM_DISPLAY_TEXT.text().trim(), 10);
-                }
-            } catch (e) {
-                return null;
-            }
-        }
-        return null;
-    };
+    const toTitleCase = (str)   => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    const getTeamName = (side)  => config.teamNames[side];
 
     const getPlayerNameAtTeamId = (teamId) => {
         let name = "N/A";
-        
         if (typeof quiz !== 'undefined' && quiz.inQuiz) {
             const p = Object.values(quiz.players).find(player => player.teamNumber === teamId);
             if (p) name = p.name;
         } 
         else if (typeof lobby !== 'undefined' && lobby.inLobby) {
-            const p = Object.values(lobby.players).find(player => getTeamNumber(player, 'lobby') === teamId);
+            const p = Object.values(lobby.players).find(player => player.teamNumber === teamId);
             if (p) name = p.name;
         }
-
         return name;
     };
 
     const getCaptainListString = () => {
-        const names = state.captains.map(teamId => {
+        const names = config.captains.map(teamId => {
             const name = getPlayerNameAtTeamId(teamId);
             return name !== "N/A" ? name : `Player ${teamId}`;
         });
-
         return names.join(", ");
     };
 
-    const resetGameData = () => {
-        const savedGameNum  = state.gameNumber;
-        const savedTeams    = state.teamNames;
-        const savedCaps     = state.captains;
-        const savedSwap     = state.isSwapped;
-        const savedKnockout = state.knockout;
+    const resetMatchData = () => {
+        match.isActive      = false;
+        match.songNumber    = 0;
+        match.scores        = {away: 0, home: 0};
+        match.possession    = 'away';
+        match.history       = [];
+        match.period        = 'REGULATION';
+        match.otRound       = 0;
+        match.scoresAtReg   = {away: 0, home: 0};
+        match.historyAtReg  = [];
+    };
+
+    const endGame = (winnerSide) => {
+        if (config.seriesLength > 1) {
+            const finalScoreStr = `${match.scores.away}-${match.scores.home}`;
+            config.seriesStats.history.push(finalScoreStr);
+            
+            if      (winnerSide === 'away') config.seriesStats.awayWins++;
+            else if (winnerSide === 'home') config.seriesStats.homeWins++;
+            else                            config.seriesStats.draws++;
+
+            let     seriesMsg       = "";
+            const   scoresList      = `(${config.seriesStats.history.join(", ")})`;
+            const   aName           = config.teamNames.away;
+            const   hName           = config.teamNames.home;
+            const   aWins           = config.seriesStats.awayWins;
+            const   hWins           = config.seriesStats.homeWins;
+            const   winThreshold    = Math.ceil(config.seriesLength / 2);
+            
+            let seriesWinner = null;
+            if (aWins >= winThreshold) seriesWinner = aName;
+            if (hWins >= winThreshold) seriesWinner = hName;
+
+            if (seriesWinner) {
+                const loserWins = (seriesWinner === aName) ? hWins : aWins;
+                const verb      = (loserWins === 0) ? "swept" : "won the series";
+                const wCount    = Math.max(aWins, hWins);
+                const lCount    = Math.min(aWins, hWins);
+                seriesMsg       = `The ${seriesWinner} ${verb} ${wCount}-${lCount} ${scoresList}`;
+            } else {
+                if (aWins === hWins) seriesMsg = `Series tied at ${aWins}-${hWins} ${scoresList}`;
+                else {
+                    const leader    = aWins > hWins ? aName : hName;
+                    const wCount    = Math.max(aWins, hWins);
+                    const lCount    = Math.min(aWins, hWins);
+                    seriesMsg       = `The ${leader} leads the series ${wCount}-${lCount} ${scoresList}`;
+                }
+            }
+            
+            setTimeout(() => chatMessage(seriesMsg), 2000);
+        }
+
+        match.isActive = false;
+        config.gameNumber++;
+        config.isSwapped = !config.isSwapped;
         
-        state = JSON.parse(JSON.stringify(initialState));
-        
-        state.gameNumber    = savedGameNum;
-        state.teamNames     = savedTeams;
-        state.captains      = savedCaps;
-        state.isSwapped     = savedSwap;
-        state.knockout      = savedKnockout;
+        setTimeout(() => {
+            systemMessage("Game ended, tracker stopped");
+            systemMessage(`Ready for Game ${config.gameNumber}, auto-swapped teams for the return leg`);
+        }, 1500);
+    };
+
+    const validateLobby = () => {
+        if (typeof lobby === 'undefined' || !lobby.inLobby) return {valid: false, msg: "Not in Lobby"};
+        const players = Object.values(lobby.players);
+        if (players.length !== 8) return {valid: false, msg: `Error: Need exactly 8 players`};
+        const notReady = players.filter(p => !p.ready);
+        if (notReady.length > 0) return {valid: false, msg: "Error: All players must be Ready"};
+        const teams     = players.map(p => p.teamNumber).sort((a, b) => a - b);
+        const expected  = [1, 2, 3, 4, 5, 6, 7, 8];
+        const isUnique  = teams.length === expected.length && teams.every((val, index) => val === expected[index]);
+        if (!isUnique) return {valid: false, msg: "Error: Exactly 1 player must be on Teams 1 to 8"};
+        return {valid: true};
     };
 
     const startGame = () => {
-        state.isActive      = true;
-        state.songNumber    = 0;
-        state.scores        = {away: 0, home: 0};
-        state.possession    = 'away'; 
-        state.history       = [];
-        state.period        = 'REGULATION';
-        state.otRound       = 0;
-        
-        systemMessage(`Game ${state.gameNumber}: ${getTeamName('away')} @ ${getTeamName('home')}`);
-    };
+        const check = validateLobby();
+        if (!check.valid) {
+            systemMessage(check.msg);
+            return;
+        }
 
-    const endGame = () => {
-        resetGameData();
-        state.isActive = false;
-        setTimeout(() => {systemMessage("NFL Mode ended, all data reset")}, 1000);
+        resetMatchData();
+        match.isActive = true;
+        systemMessage(`Game ${config.gameNumber}: ${getTeamName('away')} @ ${getTeamName('home')}`);
     };
 
     const outcomesList = [
@@ -168,9 +197,9 @@
     };
 
     const processRound = (payload) => {
-        if (!state.isActive) return;
-        state.songNumber++;
-        if (state.period === 'OVERTIME') state.otRound++;
+        if (!match.isActive) return;
+        match.songNumber++;
+        if (match.period === 'OVERTIME') match.otRound++;
 
         const players       = payload.players;
         const resultsMap    = {};
@@ -193,7 +222,7 @@
 
             slots.forEach((slotId, index) => {
                 const isCorrect = checkSlot(slotId);
-                const isCaptain = state.captains.includes(slotId);
+                const isCaptain = config.captains.includes(slotId);
                 const points    = isCorrect ? (isCaptain ? gameConfig.captainMultiplier : 1) : 0;
                 patternArr.push(isCorrect ? 1 : 0);
                 patternStr += (isCorrect ? 1 : 0);
@@ -207,14 +236,14 @@
             return {patternStr, patternArr, totalScore, opScore, dpScore, correctCount};
         };
 
-        const awaySlots = state.isSwapped ? gameConfig.homeSlots : gameConfig.awaySlots;
-        const homeSlots = state.isSwapped ? gameConfig.awaySlots : gameConfig.homeSlots;
+        const awaySlots = config.isSwapped ? gameConfig.homeSlots : gameConfig.awaySlots;
+        const homeSlots = config.isSwapped ? gameConfig.awaySlots : gameConfig.homeSlots;
         const awayStats = calcTeamStats(awaySlots);
         const homeStats = calcTeamStats(homeSlots);
 
-        const currentPossessionSide = state.possession; 
-        const attSide               = state.possession;
-        const defSide               = state.possession === 'away' ? 'home' : 'away';
+        const currentPossessionSide = match.possession; 
+        const attSide               = match.possession;
+        const defSide               = match.possession === 'away' ? 'home' : 'away';
         
         const attStats = attSide === 'away' ? awayStats : homeStats;
         const defStats = attSide === 'away' ? homeStats : awayStats;
@@ -241,65 +270,68 @@
             else if (diff <= -3)            result = {name: "Pick Six",     pts: 6, swap: true,     team: "defense" };
         }
 
-        if      (result.team === "offense") state.scores[attSide]   += result.pts;
-        else if (result.team === "defense") state.scores[defSide]   += result.pts;
-        if (result.swap)                    state.possession        = defSide;
+        if      (result.team === "offense") match.scores[attSide]   += result.pts;
+        else if (result.team === "defense") match.scores[defSide]   += result.pts;
+        if (result.swap)                    match.possession        = defSide;
 
-        const scoreStr  = `${state.scores.away}-${state.scores.home}`;
+        const scoreStr  = `${match.scores.away}-${match.scores.home}`;
         const mainMsg   = `${awayStats.patternStr} ${homeStats.patternStr} ${result.name} ${scoreStr}`;
         chatMessage(mainMsg);
 
         let isGameOver = false;
+        let winnerSide = null;
 
-        if (state.period === 'REGULATION') {
-            const songsRemaining        = 20 - state.songNumber;
-            const isAwayLeading         = state.scores.away > state.scores.home;
-            const trailerPossessing     = (isAwayLeading && state.possession === 'home') || (!isAwayLeading && state.possession === 'away');
+        if (match.period === 'REGULATION') {
+            const songsRemaining        = 20 - match.songNumber;
+            const isAwayLeading         = match.scores.away > match.scores.home;
+            const trailerPossessing     = (isAwayLeading && match.possession === 'home') || (!isAwayLeading && match.possession === 'away');
             const maxPointsRemaining    = getMaxPossiblePoints(songsRemaining, trailerPossessing);
-            const scoreDiff             = Math.abs(state.scores.away - state.scores.home);
+            const scoreDiff             = Math.abs(match.scores.away - match.scores.home);
 
             if (scoreDiff > maxPointsRemaining) {
-                const winner = state.scores.away > state.scores.home ? getTeamName('away') : getTeamName('home');
+                const winner    = match.scores.away > match.scores.home ? getTeamName('away')   : getTeamName('home');
+                winnerSide      = match.scores.away > match.scores.home ? 'away'                : 'home';
                 setTimeout(() => {
                     chatMessage(`Mercy Rule triggered, ${winner} wins`);
                     setTimeout(() => {
                         systemMessage("Game ended due to Mercy Rule");
-                        state.isActive = false;
+                        endGame(winnerSide);
                     }, 1000); 
                 }, 1000);
                 isGameOver = true;
             } 
-            else if (state.songNumber === 20) {
+            else if (match.songNumber === 20) {
                 if (scoreDiff === 0) {
                     setTimeout(() => {
                         chatMessage("Tied after Regulation, entering Overtime");
                         systemMessage(`Overtime Code: ${CODES.OVERTIME}`);
-                        state.period        = 'OVERTIME';
-                        state.otRound       = 0;
-                        state.possession    = 'away';
-                        state.scoresAtReg   = JSON.parse(JSON.stringify(state.scores));
-                        state.historyAtReg  = JSON.parse(JSON.stringify(state.history));
+                        match.period        = 'OVERTIME';
+                        match.otRound       = 0;
+                        match.possession    = 'away';
+                        match.scoresAtReg   = JSON.parse(JSON.stringify(match.scores));
+                        match.historyAtReg  = JSON.parse(JSON.stringify(match.history));
                     }, 1000);
                 } else {
-                    const winner = state.scores.away > state.scores.home ? getTeamName('away') : getTeamName('home');
+                    const winner    = match.scores.away > match.scores.home ? getTeamName('away')   : getTeamName('home');
+                    winnerSide      = match.scores.away > match.scores.home ? 'away'                : 'home';
                     setTimeout(() => {
-                        chatMessage(`Game Over. ${winner} wins!`);
-                        systemMessage("Game ended.");
-                        state.isActive = false;
+                        chatMessage(`Game Over: ${winner} wins!`);
+                        endGame(winnerSide);
                     }, 1000);
                     isGameOver = true;
                 }
             }
-            else if (state.songNumber < 19 && state.songNumber >= 10) {
+            else if (match.songNumber < 19 && match.songNumber >= 10) {
                  try {
-                     const nextRoundSong    = state.songNumber + 1;
-                     const songsAfterNext   = 20 - nextRoundSong;
-                     const leaderName       = isAwayLeading ? getTeamName('away') : getTeamName('home');
-                     const trailerName      = isAwayLeading ? getTeamName('home') : getTeamName('away');
-                     const gap              = scoreDiff;
-                     const isAwayPoss       = state.possession === 'away';
-                     const leaderIsPoss     = (isAwayLeading === isAwayPoss);
-                     const scenarios        = outcomesList.map(o => {
+                    const nextRoundSong     = match.songNumber + 1;
+                    const songsAfterNext    = 20 - nextRoundSong;
+                    const leaderName        = isAwayLeading ? getTeamName('away') : getTeamName('home');
+                    const trailerName       = isAwayLeading ? getTeamName('home') : getTeamName('away');
+                    const gap               = scoreDiff;
+                    const isAwayPoss        = match.possession === 'away';
+                    const leaderIsPoss      = (isAwayLeading === isAwayPoss);
+
+                    const scenarios = outcomesList.map(o => {
                         let     actorName           = (o.swing > 0) ? (isAwayPoss ? getTeamName('away') : getTeamName('home')) : (isAwayPoss ? getTeamName('home') : getTeamName('away'));
                         let     leaderGapChange     = leaderIsPoss ? o.swing : -o.swing;
                         const   outcomeSwap         = o.name !== "Onside Kick";
@@ -320,28 +352,28 @@
                     for (let i = 0; i < scenarios.length; i++)      if (gap + scenarios[i].change >     scenarios[i].maxChase) {killOutcome = scenarios[i]; break;}
 
                     if (killOutcome && safeOutcome) {
-                         setTimeout(() => {chatMessage(`Mercy Rule trigger warning next Song!`);}, 1000);
-                         let delay = 2000;
-                         const artSafe = getArticle(safeOutcome.name);
-                         if (safeOutcome.leaderIsActor) {
+                        setTimeout(() => {chatMessage(`Mercy Rule trigger warning next Song!`);}, 1000);
+                        let delay = 2000;
+                        const artSafe = getArticle(safeOutcome.name);
+                        if (safeOutcome.leaderIsActor) {
                             setTimeout(() => {chatMessage(`The ${trailerName} needs to hold the ${leaderName} to ${artSafe} ${safeOutcome.name} next Song to avoid Mercy Rule`);}, delay);
-                         } else {
+                        } else {
                             let txtSafe = `at least ${artSafe} ${safeOutcome.name}`;
                             if (safeOutcome.name === scenarios[0].name) txtSafe = `${artSafe} ${safeOutcome.name}`;
                             setTimeout(() => {chatMessage(`The ${trailerName} needs ${txtSafe} next Song to avoid Mercy Rule`);}, delay);
-                         }
-                         delay          +=  1000;
-                         const artKill  =   getArticle(killOutcome.name);
-                         if (killOutcome.change < 0) {
+                        }
+                        delay           +=  1000;
+                        const artKill   =   getArticle(killOutcome.name);
+                        if (killOutcome.change < 0) {
                             setTimeout(() => {chatMessage(`The ${leaderName} can afford ${artKill} ${killOutcome.actor} ${killOutcome.name} next Song and still trigger Mercy Rule`);}, delay);
-                         } else {
+                        } else {
                             let txtKill = `only needs ${artKill} ${killOutcome.name}`;
                             if (Math.abs(killOutcome.change) >= 7) txtKill = `needs ${artKill} ${killOutcome.name}`;
                             setTimeout(() => {chatMessage(`The ${leaderName} ${txtKill} next Song to trigger Mercy Rule`);}, delay);
-                         }
+                        }
                     } else {
-                        for (let s = state.songNumber + 2; s <= 20; s++) {
-                            const songsFromHereToS  = s - state.songNumber;
+                        for (let s = match.songNumber + 2; s <= 20; s++) {
+                            const songsFromHereToS  = s - match.songNumber;
                             const futureMax         = getMaxPossiblePoints(20 - s, (songsFromHereToS % 2 !== 0 ? !trailerPossessing : trailerPossessing));
                             if (scoreDiff > futureMax) {
                                 setTimeout(() => {chatMessage(`Mercy Rule trigger warning after Song ${s}`);}, 1000);
@@ -353,13 +385,13 @@
             }
         }
 
-        else if (state.period === 'OVERTIME') {
-            if (state.otRound === 1) {
+        else if (match.period === 'OVERTIME') {
+            if (match.otRound === 1) {
                 if (result.name === "Onside Kick") {
                     setTimeout(() => {
                         chatMessage(`${getTeamName('away')} wins via Onside Kick!`);
                         systemMessage("Game ended in Overtime");
-                        state.isActive = false;
+                        endGame('away');
                     }, 1000);
                     isGameOver = true;
                 }
@@ -367,7 +399,7 @@
                     setTimeout(() => {
                         chatMessage(`${getTeamName('home')} wins via Defensive Score!`);
                         systemMessage("Game ended in Overtime");
-                        state.isActive = false;
+                        endGame('home');
                     }, 1000);
                     isGameOver = true;
                 } 
@@ -375,7 +407,7 @@
                     setTimeout(() => {chatMessage("Whoever has more points after this wins Overtime")}, 1500);
 
                     try {
-                        const otScoreDiff = state.scores.away - state.scores.home;
+                        const otScoreDiff = match.scores.away - match.scores.home;
                         if (otScoreDiff !== 0) {
                             const isAwayLeading = otScoreDiff > 0;
                             const leaderName    = isAwayLeading ? getTeamName('away') : getTeamName('home');
@@ -407,53 +439,54 @@
                 }
             } 
             else {
-                if (state.scores.away !== state.scores.home) {
-                    const winner = state.scores.away > state.scores.home ? getTeamName('away') : getTeamName('home');
+                if (match.scores.away !== match.scores.home) {
+                    const winner    = match.scores.away > match.scores.home ? getTeamName('away')   : getTeamName('home');
+                    winnerSide      = match.scores.away > match.scores.home ? 'away'                : 'home';
                     setTimeout(() => {
                         chatMessage(`${winner} wins in Overtime!`);
                         systemMessage("Game ended in Overtime");
-                        state.isActive = false;
+                        endGame(winnerSide);
                     }, 1000);
                     isGameOver = true;
                 }
             }
 
-            if (!isGameOver && state.otRound === 5) {
-                if (state.scores.away === state.scores.home) {
-                    if (state.knockout) {
+            if (!isGameOver && match.otRound === 5) {
+                if (match.scores.away === match.scores.home) {
+                    if (config.knockout) {
                         setTimeout(() => {
                             systemMessage("Knockout Overtime ended in a tie, restarting Overtime");
-                            state.scores        = JSON.parse(JSON.stringify(state.scoresAtReg));
-                            state.history       = JSON.parse(JSON.stringify(state.historyAtReg));
-                            state.possession    = 'away';
-                            state.otRound       = 0;
+                            match.scores        = JSON.parse(JSON.stringify(match.scoresAtReg));
+                            match.history       = JSON.parse(JSON.stringify(match.historyAtReg));
+                            match.possession    = 'away';
+                            match.otRound       = 0;
                         }, 1000);
                     } else {
                         setTimeout(() => {
                             chatMessage("Game ended in a Tie");
-                            state.isActive = false;
+                            endGame('draw');
                         }, 1000);
                     }
                 }
             }
         }
 
-        if (state.isActive || isGameOver) {
-             state.history.push({
-                song    : state.songNumber,
+        if (match.isActive || isGameOver) {
+             match.history.push({
+                song    : match.songNumber,
                 poss    : currentPossessionSide,
                 awayArr : awayStats.patternArr,
                 homeArr : homeStats.patternArr,
                 result  : result.name,
                 score   : scoreStr,
-                period  : state.period,
-                otRound : state.otRound
+                period  : match.period,
+                otRound : match.otRound
             });
         }
     };
 
     const downloadScoresheet = (isAuto = false) => {
-        if (!state.history.length) {
+        if (!match.history.length) {
             if (!isAuto) systemMessage("Error: No data to export");
             return;
         }
@@ -461,16 +494,16 @@
         const awayNameRaw = getTeamName('away');
         const homeNameRaw = getTeamName('home');
         
-        const lastEntry         = state.history[state.history.length - 1];
+        const lastEntry         = match.history[match.history.length - 1];
         const lastSongDisplay   = lastEntry.song; 
         const lastScore         = lastEntry.score;
-        const titleStr          = `Game ${state.gameNumber} (${lastSongDisplay}): ${awayNameRaw} ${lastScore} ${homeNameRaw}`;
+        const titleStr          = `Game ${config.gameNumber} (${lastSongDisplay}): ${awayNameRaw} ${lastScore} ${homeNameRaw}`;
 
-        const awaySlots = state.isSwapped ? gameConfig.homeSlots : gameConfig.awaySlots;
-        const homeSlots = state.isSwapped ? gameConfig.awaySlots : gameConfig.homeSlots;
+        const awaySlots = config.isSwapped ? gameConfig.homeSlots : gameConfig.awaySlots;
+        const homeSlots = config.isSwapped ? gameConfig.awaySlots : gameConfig.homeSlots;
 
         const getCaptainPos = (slots) => {
-            const index = slots.findIndex(slot => state.captains.includes(slot));
+            const index = slots.findIndex(slot => config.captains.includes(slot));
             return index !== -1 ? gameConfig.posNames[index] : "?";
         };
         
@@ -484,7 +517,7 @@
         const d         = String(date.getDate()).padStart(2, '0');
         const safeAway  = awayNameRaw.replace(/[^a-z0-9]/gi, '_');
         const safeHome  = homeNameRaw.replace(/[^a-z0-9]/gi, '_');
-        const fileName  = `${y}${m}${d}-${state.gameNumber}-${safeAway}-${safeHome}.html`;
+        const fileName  = `${y}${m}${d}-${config.gameNumber}-${safeAway}-${safeHome}.html`;
 
         let html = `
         <html>
@@ -527,7 +560,7 @@
         
         let otBannerAdded = false;
 
-        state.history.forEach(row => {
+        match.history.forEach(row => {
             if (row.period === 'OVERTIME' && !otBannerAdded) {
                 html += `
                 <tr>
@@ -590,20 +623,16 @@
     };
 
     const printHelp = (topic = null) => {
-        const descriptions = {
-            end         : "Ends NFL Mode and resets all data",
-            export      : "Downloads current game's scoresheet",
-            help        : "Lists all commands",
-            setcaptains : "Sets Captains",
-            setgame     : "Sets Game Number",
-            setknockout : "Sets Knockout to repeat Overtime",
-            setteams    : "Sets Team Names",
-            showcodes   : "Shows Regulation and Overtime codes",
-            start       : "Starts NFL Mode",
-            swap        : "Swaps Away and Home teams"
-        };
-        if (topic && descriptions[topic]) systemMessage(`/nfl ${topic}: ${descriptions[topic]}`);
-        else systemMessage("Commands: end, export, help, setCaptains, setGame, setKnockout, setTeams, showCodes, start, swap");
+        if (topic) systemMessage(`/nfl ${topic}: Check specific command logic`);
+        else {
+            systemMessage("Usage Instructions:");
+            systemMessage("1. Use /nfl setTeams to input the team names");
+            systemMessage("2. Use /nfl setCaptains to set the right Captains in each team");
+            systemMessage("3. Use /nfl setGame to set the game number");
+            systemMessage("4. Use /nfl setKnockout to enable/disable endless Overtime in knockout games");
+            systemMessage("5. Use /nfl setSeries to set the series length");
+            systemMessage("6. Use /nfl start when you're ready");
+        }
     };
 
     const setup = () => {
@@ -615,47 +644,52 @@
                     const arg   = parts[2] ? parts[2].toLowerCase() : null;
 
                     if      (cmd === "start")           startGame();
-                    else if (cmd === "end")             endGame();
+                    else if (cmd === "end")             {match.isActive = false; systemMessage("Manually stopped"); }
                     else if (cmd === "setteams") { 
                         if (parts.length === 4 && parts[2].toLowerCase() !== parts[3].toLowerCase()) {
-                            state.teamNames.away = toTitleCase(parts[2]);
-                            state.teamNames.home = toTitleCase(parts[3]);
-                            systemMessage(`Teams set: ${state.teamNames.away} @ ${state.teamNames.home}`);
-                        } else systemMessage("Error: Usage /nfl setTeams [Away] [Home]");
+                            config.teamNames.away = toTitleCase(parts[2]);
+                            config.teamNames.home = toTitleCase(parts[3]);
+                            systemMessage(`Teams set: ${config.teamNames.away} @ ${config.teamNames.home}`);
+                        } else systemMessage("Error: Use /nfl setTeams [Away] [Home]");
                     } 
                     else if (cmd === "setcaptains") {
                         if (parts[2] && /^[1-4][5-8]$/.test(parts[2])) {
-                            state.captains = parts[2].split('').map(Number);
+                            config.captains = parts[2].split('').map(Number);
                             systemMessage(`Captains: ${getCaptainListString()}`);
-                        } else systemMessage("Error: Invalid format (e.g. 15)");
+                        } else systemMessage("Error: Use /nfl setCaptains [1-4][5-8]");
                     }
                     else if (cmd === "setgame") {
                         const num = parseInt(parts[2]);
-                        if (num >= 1 && num <= 7) { state.gameNumber = num; systemMessage(`Game: ${num}`); }
-                        else systemMessage("Error: 1-7 only");
+                        if (num >= 1 && num <= 7) {config.gameNumber = num; systemMessage(`Game: ${num}`);}
+                        else systemMessage("Error: Use /nfl setGame [1-7]");
+                    }
+                    else if (cmd === "setseries") {
+                        const num = parseInt(parts[2]);
+                        if (!isNaN(num) && num > 0) {config.seriesLength = num; systemMessage(`Series Length: ${num}`);}
+                        else systemMessage("Error: Use /nfl setSeries [1/2/7]");
                     }
                     else if (cmd === "setknockout") {
-                        if (arg === "true") { state.knockout = true; systemMessage("Knockout: On"); }
-                        else if (arg === "false") { state.knockout = false; systemMessage("Knockout: Off"); }
-                        else systemMessage("Usage: /nfl setKnockout [true/false]");
+                        if (arg === "true") { config.knockout = true; systemMessage("Knockout: True"); }
+                        else if (arg === "false") { config.knockout = false; systemMessage("Knockout: False"); }
+                        else systemMessage("Error: Use /nfl setKnockout [true/false]");
                     }
                     else if (cmd === "showcodes") {
                         systemMessage(`Regulation: ${CODES.REGULATION}`);
                         systemMessage(`Overtime: ${CODES.OVERTIME}`);
                     }
                     else if (cmd === "swap") {
-                        state.isSwapped = !state.isSwapped;
-                        systemMessage(`Swapped. Team 1 is ${state.isSwapped ? "Home" : "Away"}`);
+                        config.isSwapped = !config.isSwapped;
+                        systemMessage(`Swapped: ${config.teamNames.away} is now the Home team`);
                     }
-                    else if (cmd === "export")          downloadScoresheet();
-                    else if (cmd === "help")            printHelp(arg);
-                    else                                printHelp();
+                    else if (cmd === "export")  downloadScoresheet();
+                    else if (cmd === "help")    printHelp(arg);
+                    else                        printHelp();
                 }
             });
         }).bindListener();
 
         new Listener("answer results", (payload) => {
-            if (state.isActive) setTimeout(() => processRound(payload), 200);
+            if (match.isActive) setTimeout(() => processRound(payload), 200);
         }).bindListener();
     };
 
