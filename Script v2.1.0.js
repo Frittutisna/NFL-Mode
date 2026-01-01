@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         NFL Mode for AMQ
 // @namespace    https://github.com/Frittutisna/NFL-Mode
-// @version      2.2.4
+// @version      2.1.0
 // @description  Script to help track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://animemusicquiz.com/*
@@ -287,7 +287,15 @@
                     };
                 });
 
-                scenarios.sort((a, b) => a.change - b.change);
+                scenarios.sort((a, b) => {
+                    if (a.change !== b.change) return a.change - b.change;
+                    const priority  = ["Touchdown", "Field Goal", "Punt", "Rouge", "Safety", "Pick Six", "House Call", "TD + 2PC", "Onside Kick"];
+                    const idxA      = priority.indexOf(a.name);
+                    const idxB      = priority.indexOf(b.name);
+                    const valA = idxA === -1 ? 99 : idxA;
+                    const valB = idxB === -1 ? 99 : idxB;
+                    return valA - valB;
+                });
 
                 let safeOutcome = null;
                 for (let i = scenarios.length - 1; i >= 0; i--) {
@@ -335,15 +343,12 @@
                     }
                 } 
                 else if (state.songNumber >= 10) {
-                    let foundTrigger = false;
-
                     for (let s = state.songNumber + 2; s <= 20; s++) {                   
                         const songsFromHereToS  = s - state.songNumber;                   
                         const futureMax         = getMaxPossiblePoints(20 - s, (songsFromHereToS % 2 !== 0 ? !trailerPossessing : trailerPossessing));
                         
                         if (scoreDiff > futureMax) {
                             setTimeout(() => {chatMessage(`Mercy Rule trigger warning after Song ${s}`);}, 1000);
-                            foundTrigger = true;
                             break; 
                         }
                     }
