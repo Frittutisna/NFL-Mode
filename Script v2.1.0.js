@@ -265,39 +265,37 @@
             .header-top {background-color: #ffffff; font-weight: bold;}
             .header-sub {background-color: #ffffff; font-weight: bold; font-size: 0.9em;}
             
-            .text-away      {color: ${awayColor}; font-weight: bold;}
-            .text-home      {color: ${homeColor}; font-weight: bold;}
+            .text-away      {color: ${awayColor};}
+            .text-home      {color: ${homeColor};}
             .text-neutral   {color: #000;}
             
             .banner-row td { 
                 text-align          : center; 
                 font-weight         : bold; 
                 background-color    : #ffffff; 
-                border-bottom       : 1px solid #000; /* Matched border weight */
+                border-bottom       : 1px solid #000;
                 padding: 8px;
             }
 
-            .w-sm   {width: 45px;}
-            .w-md   {width: 60px;}
-            .w-lg   {width: 110px;}
-            .w-auto {width: auto;}
+            .w-sm   {width: 75px;}
+            .w-lg   {width: 150px;}
         </style></head><body>
         <h2>${titleStr}</h2>
         <table>
             <tr class="header-top">
-                <th rowspan="2" class="w-auto">Song</th>
+                <th rowspan="2" class="w-sm">Song</th>
                 <th rowspan="2" class="w-lg">Possession</th>
-                <th colspan="4" class="text-away">${awayName}</th>
-                <th colspan="4" class="text-home">${homeName}</th>
-                <th rowspan="2" class="w-auto">Result</th>
-                <th colspan="2">Score</th>
+                <th colspan="4" class="text-away" style="font-weight:bold">${awayName}</th>
+                <th colspan="4" class="text-home" style="font-weight:bold">${homeName}</th>
+                <th rowspan="2" class="w-lg">Result</th>
+                <th colspan="2" class="w-lg">Score</th>
                 <th rowspan="2" class="w-lg">Winner</th>
             </tr>
             <tr class="header-sub">
-                ${awayHeaders.map(h => `<th class="text-away w-sm">${h}</th>`).join('')}
-                ${homeHeaders.map(h => `<th class="text-home w-sm">${h}</th>`).join('')}
-                <th class="text-away w-md">${awayName}</th>
-                <th class="text-home w-md">${homeName}</th>
+                ${awayHeaders.map(h => `<th class="text-away w-sm" style="font-weight:bold">${h}</th>`).join('')}
+                ${homeHeaders.map(h => `<th class="text-home w-sm" style="font-weight:bold">${h}</th>`).join('')}
+                <th class="text-away w-lg" style="font-weight:bold">${awayName}</th>
+                <th class="text-home w-lg" style="font-weight:bold">${homeName}</th>
             </tr>
             <tr class="banner-row">
                 <td colspan="${totalCols}">
@@ -329,8 +327,8 @@
                 }
             }
 
-            const awayCells = row.awayArr.map(b => `<td class="text-away">${b}</td>`).join('');
-            const homeCells = row.homeArr.map(b => `<td class="text-home">${b}</td>`).join('');
+            const awayCells = row.awayArr.map(b => `<td class="text-away">${b === 0 ? '' : b}</td>`).join('');
+            const homeCells = row.homeArr.map(b => `<td class="text-home">${b === 0 ? '' : b}</td>`).join('');
 
             html += `<tr>
                 <td>${row.song}</td>
