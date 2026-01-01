@@ -126,8 +126,23 @@
     const endGame = () => {
         resetGameData();
         state.isActive = false;
-        systemMessage("NFL Mode ended, all data reset");
+        setTimeout(() => {systemMessage("NFL Mode ended, all data reset")}, 1000);
     };
+
+    const outcomesList = [
+        {name: "TD + 2PC",      swing: 8},
+        {name: "Onside Kick",   swing: 7},
+        {name: "Touchdown",     swing: 7},
+        {name: "Field Goal",    swing: 3},
+        {name: "Rouge",         swing: 1},
+        {name: "Punt",          swing: 0},
+        {name: "Rouge",         swing: -1},
+        {name: "Safety",        swing: -2},
+        {name: "Pick Six",      swing: -6},
+        {name: "House Call",    swing: -7}
+    ];
+
+    const getArticle = (word) => {return /^[AEIOU]/.test(word) ? "an" : "a";};
 
     const processRound = (payload) => {
         if (!state.isActive) return;
@@ -219,18 +234,81 @@
         const songsRemaining        = 20 - state.songNumber;
         const maxPointsRemaining    = songsRemaining * 8;
         const scoreDiff             = Math.abs(state.scores.away - state.scores.home);
-        let isGameOver              = false;
 
         if (scoreDiff > maxPointsRemaining) {
             const winner = state.scores.away > state.scores.home ? getTeamName('away') : getTeamName('home');
-            setTimeout(() => {chatMessage(`Mercy Rule triggered, ${winner} wins`)}, 100);
-            isGameOver = true;
-
-        } else if (state.songNumber >= 10 && state.songNumber < 20) {
-            const triggerSong = Math.floor(20 - (scoreDiff / 8)) + 1;
+            setTimeout(() => {
+                chatMessage(`Mercy Rule triggered, ${winner} wins`);
+                setTimeout(() => {
+                    systemMessage("Game ended due to Mercy Rule");
+                    state.isActive = false;
+                }, 1000); 
+            }, 1000);
+        } 
+        else if (state.songNumber < 20) {
+            const nextSongTrigger = Math.floor(20 - (scoreDiff / 8)) + 1;
             
-            if (triggerSong > state.songNumber && triggerSong <= 20) {
-                setTimeout(() => {chatMessage(`Mercy Rule trigger warning after Song ${triggerSong}`)}, 100);
+            if (state.songNumber >= 10 && nextSongTrigger > state.songNumber && nextSongTrigger <= 20) {
+                setTimeout(() => {chatMessage(`Mercy Rule trigger warning after Song ${nextSongTrigger}`);}, 1000);
+            }
+
+            const nextRoundSong = state.songNumber + 1;
+            const nextRoundMax  = (20 - nextRoundSong) * 8;
+            
+            const isAwayLeading = state.scores.away > state.scores.home;
+            const leaderName    = isAwayLeading ? getTeamName('away') : getTeamName('home');
+            const trailerName   = isAwayLeading ? getTeamName('home') : getTeamName('away');
+            const gap           = scoreDiff;
+
+            const isAwayPoss    = state.possession === 'away';
+
+            let safeOutcome = null;
+            let killOutcome = null;
+            
+            const scenarios = outcomesList.map(o => {               
+                let netPointsForAway = isAwayPoss ? o.swing : -o.swing;
+                let netGapChange     = isAwayLeading ? netPointsForAway : -netPointsForAway;
+                return {name: o.name, change: netGapChange};
+            });
+
+            scenarios.sort((a, b) => a.change - b.change);
+
+            for (let i = scenarios.length - 1; i >= 0; i--) {
+                if (gap + scenarios[i].change <= nextRoundMax) {
+                    safeOutcome = scenarios[i];
+                    break;
+                }
+            }
+
+            for (let i = 0; i < scenarios.length; i++) {
+                if (gap + scenarios[i].change > nextRoundMax) {
+                    killOutcome = scenarios[i];
+                    break;
+                }
+            }
+
+            if (killOutcome && safeOutcome) {
+                let delay = 2000;
+                
+                const artSafe = getArticle(safeOutcome.name);
+                let txtSafe   = `at least ${artSafe} ${safeOutcome.name}`;
+                
+                const bestPossibleForTrailer = scenarios[0];
+                if (safeOutcome.name === bestPossibleForTrailer.name) {txtSafe = `${artSafe} ${safeOutcome.name}`}
+
+                setTimeout(() => {
+                    chatMessage(`The ${trailerName} needs ${txtSafe} next Song to avoid Mercy Rule`);
+                }, delay);
+                
+                delay += 1000;
+
+                const artKill = getArticle(killOutcome.name);
+                let txtKill   = `only needs ${artKill} ${killOutcome.name}`;
+                
+                const bestPossibleForLeader = scenarios[scenarios.length - 1];
+                if (killOutcome.name === bestPossibleForLeader.name) {txtKill = `needs ${artKill} ${killOutcome.name}`}
+
+                setTimeout(() => {chatMessage(`The ${leaderName} ${txtKill} next Song to trigger Mercy Rule`)}, delay);
             }
         }
 
@@ -242,11 +320,6 @@
             result  : result.name,
             score   : scoreStr
         });
-
-        if (isGameOver) {
-            state.isActive = false;
-            systemMessage("Game ended due to Mercy Rule");
-        }
     };
 
     const downloadScoresheet = (isAuto = false) => {
