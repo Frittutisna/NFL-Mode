@@ -1,8 +1,7 @@
 # NFL Mode v3.alpha
 
 ## TLDR: Too Long, Didn't Read
-Just install the **Script**.\
-It handles the math; the team with the most points after 20 songs wins!
+Just install the **Script**. It handles the math; the team with the most points after 20 songs wins!
 
 ## Script: Download and Install This
 [Link to the Script](https://github.com/Frittutisna/NFL-Mode/blob/main/Script.js)
@@ -44,15 +43,15 @@ It handles the math; the team with the most points after 20 songs wins!
     - Replaced 4 Random songs from Regulation with 4 more Watched "Equal" songs
     - Added Rebroadcast Songs to both Regulation and Overtime
     - Improved Mercy Rule calculation to ignore impossible consecutive `TD + 2PCs`
-    - Removed the need to swap between consecutive rounds since the script handles this automatically
+    - Removed the need to swap between consecutive rounds since the script now handles this automatically
 - Scoresheet/Script changes:
     - **Moved from Google Sheets to JavaScript for immense speed improvement**
 
 ## Lineup: Away and Home, Captains, OPs, DPs
-**Captains** (highest-Elo player in each team) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players.\
-Captain’s correct guesses count **double** (2 points) for (T)DIFF calculations.\
-The team listed first (above) on Challonge is the **Away** team.\
-Line up as follows: **Away** (OP1, OP2, DP1, DP2), then **Home** (OP1, OP2, DP1, DP2).\
+**Captains** (highest-Elo player in each team) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
+Captain’s correct guesses count **double** (2 points) for (T)DIFF calculations. 
+The team listed first (above) on Challonge is the **Away** team. 
+Line up as follows: **Away** (OP1, OP2, DP1, DP2), then **Home** (OP1, OP2, DP1, DP2).
 
 ## Score: Check the (T)DIFF
 <details>
@@ -62,19 +61,6 @@ Line up as follows: **Away** (OP1, OP2, DP1, DP2), then **Home** (OP1, OP2, DP1,
     To calculate points, subtract the Defending team’s score from the Attacking team’s score.
     <b>TDIFF</b> counts <b>everyone</b> and is looked at first, 
     while <b>DIFF</b> <b>only</b> counts Attacking team’s OPs and Defending team’s DPs.</p>
-</details>
-
-### Rouge: That Weird Canadian Thing
-<details>
-    <summary><b>Click to know more about Rouges</b></summary>
-    <p>A <code>Rouge</code> (DIFF 0 or -1, 1 point) is awarded if 
-    a play that would have resulted in a <code>Punt</code> happened 
-    such that <b>≥1</b> player(s) from one team got the song right,
-    but the other team missed it completely.
-    This applies to both <b>Offense</b> and <b>Defense</b> to reward <i>erigs</i> and covers,
-    even if the DIFF calculations would have stalled out with a <code>Punt</code>.
-    A <b>Defensive</b> <code>Rouge</code> on Song 1 ends Overtime,
-    but an <b>Offensive</b> <code>Rouge</code> does not.</p>
 </details>
 
 <table style="text-align:center">
@@ -145,22 +131,32 @@ Line up as follows: **Away** (OP1, OP2, DP1, DP2), then **Home** (OP1, OP2, DP1,
     </tr>
 </table>
 
+### Rouge: That Weird Canadian Thing
+<details>
+    <summary><b>Click to know more about Rouges</b></summary>
+    <p>A <code>Rouge</code> (DIFF 0 or -1, 1 point) is awarded if 
+    a play that would have resulted in a <code>Punt</code> 
+    happened such that <b>≥1</b> player(s) from one team got the song right,
+    but the other team missed it completely.
+    This applies to both <b>Offense</b> and <b>Defense</b> to reward <i>erigs</i> and covers,
+    even if DIFF calculations would have stalled out with a <code>Punt</code>.
+    A <b>Defensive</b> <code>Rouge</code> on Song 1 ends Overtime,
+    but an <b>Offensive</b> <code>Rouge</code> does not.</p>
+</details>
+
 ## Ending: Mercy, Overtime, Tie
-Mercy Rule triggers if the trailing team can't catch with the songs left.\
-If both teams are still tied after Regulation, continue to **Overtime**.\
-**Away** team has first possession again.\
-An `Onside Kick` or any Defensive Point(s) ends Overtime here.\
-Otherwise, after both teams have **≥1** possession(s), whoever has more points wins.\
-If Overtime doesn’t resolve the tie, the game is called a **Tie**,\
-unless it's the **Championship Games** or the **Super Bowl**,\
-in which case Overtime **repeats** until a winner is found.\
+Mercy Rule triggers if the trailing team can't catch with the songs left. 
+If both teams are still tied after Regulation, continue to **Overtime**. 
+The **Away** team again has first possession. 
+An `Onside Kick` or any Defensive Point(s) ends Overtime here. 
+Otherwise, after both teams have **≥1** possession(s), whoever has more points wins. 
+If Overtime doesn’t resolve the tie, the game is called a **Tie**, 
+unless it's a **Knockout** game (**Championship Games** or the **Super Bowl**), 
+in which case Overtime **repeats** until a winner is found. 
 **Clear** the Overtime tally and repeat as necessary.
 
 ## Format: Best-of-7, Round Robin, Swiss, Knockouts
-For 2 teams, play a best-of-7, swapping Away and Home between games.\
-For 4 teams, play a double round-robin, swapping Away and Home between repeat games.\
-The top two teams advance to the **Super Bowl**.\
-For 6 teams, play a single round-robin.\
-For 8 teams, play a 5-game Swiss league.\
-In both cases, the top four teams advance to the **Championship Games**,\
-then the two winners advance to the **Super Bowl**.
+- For 2 teams, play a best-of-7, automatically swapping Away and Home between games
+- For 4 teams, play a double round-robin, automatically swapping Away and Home between repeat games. 
+The top two teams advance to the **Super Bowl**
+- For 6/8+ teams, play a single round-robin/5-game Swiss league. The top four teams advance to the  **Championship Games**, then the two winners advance to the **Super Bowl**.
