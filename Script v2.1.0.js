@@ -224,7 +224,7 @@
 
     const downloadScoresheet = (isAuto = false) => {
         if (!state.history.length) {
-            if (!isAuto) systemMessage("No data to export");
+            if (!isAuto) systemMessage("Error: No data to export");
             return;
         }
         
@@ -333,7 +333,7 @@
 
     const printHelp = (topic = null) => {
         const descriptions = {
-            end         : "Ends NFL Mode and resets all tracked data",
+            end         : "Ends NFL Mode and resets all data",
             export      : "Downloads current game's scoresheet",
             help        : "Lists all commands or explains a specific command",
             setcaptains : "Sets Captains for both teams, defaults to 15 (OP1s)",
@@ -346,7 +346,7 @@
         if (topic && descriptions[topic]) {
             systemMessage(`/nfl ${topic}: ${descriptions[topic]}`);
         } else {
-            systemMessage("Commands: end, export, help [command], setCaptains <15>, setGame <1>, setTeams <Away> <Home>, start, swap");
+            systemMessage("Commands: end, export, help [command], setCaptains [15], setGame [1], setTeams [Away] [Home], start, swap");
         }
     };
 
