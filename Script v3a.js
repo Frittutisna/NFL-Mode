@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         NFL Mode for AMQ
 // @namespace    https://github.com/Frittutisna/NFL-Mode
-// @version      2.1.0
+// @version      3.alpha
 // @description  Script to help track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://animemusicquiz.com/*
@@ -435,7 +435,7 @@
                     </tr>
                     <tr>
                         <td colspan="14" style="font-weight: bold;">
-                            Regulation (0-40): 16 Watched Equal and 4 Random songs with Mercy Rule
+                            Regulation (0-40): 20 Watched Equal songs with Mercy Rule
                         </td>
                     </tr>
                 </thead>

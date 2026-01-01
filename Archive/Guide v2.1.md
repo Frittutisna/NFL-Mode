@@ -1,4 +1,4 @@
-# NFL Mode v2.1.0
+# NFL Mode v2.1
 
 ## TLDR: Too Long, Didn't Read
 Just track who gets each song right in your copy of the **Scoresheet**.\
