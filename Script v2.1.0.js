@@ -261,18 +261,19 @@
             const gap           = scoreDiff;
 
             const isAwayPoss    = state.possession === 'away';
+            const leaderIsPoss  = (isAwayLeading === isAwayPoss);
 
-            let safeOutcome = null;
-            let killOutcome = null;
-            
-            const scenarios = outcomesList.map(o => {               
-                let netPointsForAway = isAwayPoss ? o.swing : -o.swing;
-                let netGapChange     = isAwayLeading ? netPointsForAway : -netPointsForAway;
-                return {name: o.name, change: netGapChange};
+            const scenarios = outcomesList.map(o => {
+                let actorName = (o.swing > 0) 
+                    ? (isAwayPoss ? getTeamName('away') : getTeamName('home')) 
+                    : (isAwayPoss ? getTeamName('home') : getTeamName('away'));
+                let leaderGapChange = leaderIsPoss ? o.swing : -o.swing;
+                return { name: o.name, change: leaderGapChange, actor: actorName };
             });
 
             scenarios.sort((a, b) => a.change - b.change);
 
+            let safeOutcome = null;
             for (let i = scenarios.length - 1; i >= 0; i--) {
                 if (gap + scenarios[i].change <= nextRoundMax) {
                     safeOutcome = scenarios[i];
@@ -280,6 +281,7 @@
                 }
             }
 
+            let killOutcome = null;
             for (let i = 0; i < scenarios.length; i++) {
                 if (gap + scenarios[i].change > nextRoundMax) {
                     killOutcome = scenarios[i];
@@ -296,19 +298,22 @@
                 const bestPossibleForTrailer = scenarios[0];
                 if (safeOutcome.name === bestPossibleForTrailer.name) {txtSafe = `${artSafe} ${safeOutcome.name}`}
 
-                setTimeout(() => {
-                    chatMessage(`The ${trailerName} needs ${txtSafe} next Song to avoid Mercy Rule`);
-                }, delay);
-                
+                setTimeout(() => {chatMessage(`The ${trailerName} needs ${txtSafe} next Song to avoid Mercy Rule`)}, delay);
                 delay += 1000;
 
                 const artKill = getArticle(killOutcome.name);
-                let txtKill   = `only needs ${artKill} ${killOutcome.name}`;
                 
-                const bestPossibleForLeader = scenarios[scenarios.length - 1];
-                if (killOutcome.name === bestPossibleForLeader.name) {txtKill = `needs ${artKill} ${killOutcome.name}`}
-
-                setTimeout(() => {chatMessage(`The ${leaderName} ${txtKill} next Song to trigger Mercy Rule`)}, delay);
+                if (killOutcome.change < 0) {
+                    setTimeout(() => {
+                        chatMessage(`The ${leaderName} can afford ${artKill} ${killOutcome.actor} ${killOutcome.name} next Song and still trigger Mercy Rule`);
+                    }, delay);
+                } 
+                else {
+                    let txtKill                 = `only needs ${artKill} ${killOutcome.name}`;
+                    const bestPossibleForLeader = scenarios[scenarios.length - 1];
+                    if (killOutcome.name === bestPossibleForLeader.name) txtKill = `needs ${artKill} ${killOutcome.name}`
+                    setTimeout(() => {chatMessage(`The ${leaderName} ${txtKill} next Song to trigger Mercy Rule`)}, delay);
+                }
             }
         }
 
