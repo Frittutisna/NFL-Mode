@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         NFL Mode for AMQ
 // @namespace    https://github.com/Frittutisna/NFL-Mode
-// @version      2.2.6
+// @version      2.1.0
 // @description  Script to help track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://animemusicquiz.com/*
