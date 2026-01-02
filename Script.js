@@ -518,6 +518,7 @@
                     } else {
                         chatMessage("Game ended in a Tie");
                         endGame('draw');
+                        isGameOver = true;
                     }
                 }
             }
