@@ -666,11 +666,9 @@
 
     const printHelp = (topic = null) => {
         if (topic) {
-            if (COMMAND_DESCRIPTIONS[topic]) {
-                systemMessage(`/nfl ${topic}: ${COMMAND_DESCRIPTIONS[topic]}`);
-            } else {
-                systemMessage("Unknown command, type /nfl help for a list");
-            }
+            const actualKey = Object.keys(COMMAND_DESCRIPTIONS).find(key => key.toLowerCase() === topic);
+            if      (actualKey) systemMessage(`/nfl ${actualKey}: ${COMMAND_DESCRIPTIONS[actualKey]}`); 
+            else                systemMessage("Unknown command, type /nfl help for a list");
         } else {
             const cmds = Object.keys(COMMAND_DESCRIPTIONS).join(", ");
             systemMessage("Commands: " + cmds);
