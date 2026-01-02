@@ -1,10 +1,9 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
-// @namespace    https://github.com/Frittutisna/NFL-Mode
-// @version      3.alpha
+// @namespace    https://github.com/Frittutisna
+// @version      3.beta
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
-// @match        https://animemusicquiz.com/*
 // @match        https://*.animemusicquiz.com/*
 // ==/UserScript==
 
@@ -150,7 +149,10 @@
         let seriesFinished  = false;
 
         if (config.seriesLength > 1) {
-            const finalScoreStr = `${match.scores.away}-${match.scores.home}`;
+            const finalScoreStr = config.isSwapped ? 
+                                  `${match.scores.home}-${match.scores.away}` : 
+                                  `${match.scores.away}-${match.scores.home}`;
+                                  
             config.seriesStats.history.push(finalScoreStr);
             
             let actualWinnerSide = winnerSide;
@@ -633,8 +635,8 @@
                      winnerName = scoreAway > scoreHome ? awayNameRaw : homeNameRaw;
                 }
             }
-
-            const displaySong   = row.period === 'OVERTIME' ? row.otRound : row.song;
+            
+            const displaySong   = row.period === 'OVERTIME' ? (row.otRound + 1) : row.song;
             const awayCells     = row.awayArr.map(b => `<td>${b === 0 ? '' : b}</td>`).join('');
             const homeCells     = row.homeArr.map(b => `<td>${b === 0 ? '' : b}</td>`).join('');
 
