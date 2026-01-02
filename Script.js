@@ -51,6 +51,7 @@
     const COMMAND_DESCRIPTIONS = {
         "end"           : "Stop the game tracker",
         "export"        : "Download the scoresheet as HTML",
+        "guide"         : "Show link to the official NFL Mode guide",
         "howTo"         : "Show the step-by-step setup tutorial",
         "resetGame"     : "Wipe current Game progress and stop tracker",
         "resetOvertime" : "Wipe current Overtime progress and reset to the start of Overtime",
@@ -177,7 +178,10 @@
 
             if (awayPoints > winThreshold)  seriesWinner    = aName;
             if (homePoints > winThreshold)  seriesWinner    = hName;
-            if (seriesWinner)               seriesFinished  = true;
+            
+            if (seriesWinner || config.seriesStats.history.length >= config.seriesLength) {
+                seriesFinished = true;
+            }
 
             let     seriesMsg       = "";
             const   scoresList      = `(${config.seriesStats.history.join(", ")})`;
@@ -199,9 +203,9 @@
             }
             
             chatMessage(seriesMsg);
-        }
+        } else seriesFinished = true;
 
-        if (match.period === 'OVERTIME' && config.seriesLength > 1 && !seriesFinished) {
+        if (match.period === 'OVERTIME' && !seriesFinished) {
             systemMessage("Series continues after Overtime");
             systemMessage(`Regulation: ${CODES.REGULATION}`);
         }
@@ -209,23 +213,24 @@
         match.isActive      = false;
         match.period        = 'REGULATION';
         match.historyAtReg  = [];
-        
-        config.gameNumber++;
-        config.isSwapped = !config.isSwapped;
-
-        if (config.seriesLength === 7 && config.gameNumber === 7) {
-            const sStats    = config.seriesStats;
-            const aPts      = sStats.awayWins + (sStats.draws * 0.5);
-            const hPts      = sStats.homeWins + (sStats.draws * 0.5);
-            
-            if (aPts === hPts) {
-                config.knockout = true;
-                chatMessage("Game 7 decider detected, Knockout Mode forced to True");
-            }
-        }
-        
         systemMessage("Game ended, tracker stopped");
-        systemMessage(`Ready for Game ${config.gameNumber}, auto-swapped teams for the return leg`);
+
+        if (!seriesFinished) {
+            config.gameNumber++;
+            config.isSwapped = !config.isSwapped;
+
+            if (config.seriesLength === 7 && config.gameNumber === 7) {
+                const sStats    = config.seriesStats;
+                const aPts      = sStats.awayWins + (sStats.draws * 0.5);
+                const hPts      = sStats.homeWins + (sStats.draws * 0.5);
+                
+                if (aPts === hPts) {
+                    config.knockout = true;
+                    chatMessage("Game 7 decider detected, Knockout Mode forced to True");
+                }
+            }
+            systemMessage(`Ready for Game ${config.gameNumber}, auto-swapped teams for the return leg`);
+        } else systemMessage("Series finished");
     };
 
     const validateLobby = () => {
@@ -442,7 +447,7 @@
                             chatMessage(`The ${leaderName} ${txtKill} next Song to trigger Mercy Rule`);
                         }
                     } else {
-                        for (let s = match.songNumber + 2; s <= 20; s++) {
+                        for (let s = match.songNumber + 2; s < 20; s++) {
                             const songsFromHereToS  = s - match.songNumber;
                             const futureMax         = getMaxPossiblePoints(20 - s, (songsFromHereToS % 2 !== 0 ? !trailerPossessing : trailerPossessing));
                             if (scoreDiff > futureMax) {
@@ -729,6 +734,7 @@
 
                         if      (cmd === "start")           startGame();
                         else if (cmd === "end")             {match.isActive = false; systemMessage("Manually stopped"); }
+                        else if (cmd === "guide")           chatMessage("Guide: https://github.com/Frittutisna/NFL-Mode/blob/main/Guide.md");
                         else if (cmd === "setteams") { 
                             if (parts.length === 4 && parts[2].toLowerCase() !== parts[3].toLowerCase()) {
                                 config.teamNames.away = toTitleCase(parts[2]);
@@ -772,12 +778,12 @@
                             systemMessage(`Swapped: ${config.teamNames.away} is now the Home team`);
                         }
                         else if (cmd === "resetgame") {
-                            if (match.isActive) {
+                            if (match.isActive || match.history.length > 0) {
                                 match.isActive = false;
                                 resetMatchData();
                                 systemMessage(`Game ${config.gameNumber} reset, tracker stopped and data wiped`);
                             } else {
-                                systemMessage("Error: No active game to reset");
+                                systemMessage("Error: No active game or data to reset");
                             }
                         }
                         else if (cmd === "resetovertime") {
@@ -797,7 +803,7 @@
                         else if (cmd === "resetseries") {
                             const hasHistory = config.seriesStats.history.length > 0;
                             const isActive   = match.isActive;
-                            if (!hasHistory && !isActive) systemMessage("Error: Cannot reset series; no active game or completed series found");
+                            if (!hasHistory && !isActive && match.history.length === 0) systemMessage("Error: Cannot reset series; no active game or completed series found");
                             else {
                                 match.isActive = false;
                                 resetMatchData();
