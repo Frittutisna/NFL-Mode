@@ -206,7 +206,10 @@
             systemMessage(`Regulation: ${CODES.REGULATION}`);
         }
 
-        match.isActive = false;
+        match.isActive      = false;
+        match.period        = 'REGULATION';
+        match.historyAtReg  = [];
+        
         config.gameNumber++;
         config.isSwapped = !config.isSwapped;
 
