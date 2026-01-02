@@ -373,7 +373,7 @@
             const maxPointsRemaining    = getMaxPossiblePoints(songsRemaining, trailerPossessing);
             const scoreDiff             = Math.abs(match.scores.away - match.scores.home);
 
-            if (scoreDiff > maxPointsRemaining) {
+            if (scoreDiff > maxPointsRemaining && match.songNumber < 20) {
                 const winner    = match.scores.away > match.scores.home ? getTeamName('away')   : getTeamName('home');
                 winnerSide      = match.scores.away > match.scores.home ? 'away'                : 'home';
                 chatMessage(`Mercy Rule triggered, ${winner} wins`);
@@ -391,9 +391,11 @@
                     match.scoresAtReg   = JSON.parse(JSON.stringify(match.scores));
                     match.historyAtReg  = JSON.parse(JSON.stringify(match.history));
                 } else {
-                    const winner    = match.scores.away > match.scores.home ? getTeamName('away')   : getTeamName('home');
-                    winnerSide      = match.scores.away > match.scores.home ? 'away'                : 'home';
-                    chatMessage(`Game Over: ${winner} wins!`);
+                    const winner        = match.scores.away > match.scores.home ? getTeamName('away')   : getTeamName('home');
+                    winnerSide          = match.scores.away > match.scores.home ? 'away'                : 'home';
+                    const winnerScore   = match.scores.away > match.scores.home ? match.scores.away     : match.scores.home;
+                    const loserScore    = match.scores.away > match.scores.home ? match.scores.home     : match.scores.away;
+                    chatMessage(`The ${winner} won Game ${config.gameNumber} ${winnerScore}-${loserScore}`);
                     endGame(winnerSide);
                     isGameOver = true;
                 }
@@ -447,7 +449,7 @@
                             chatMessage(`The ${leaderName} ${txtKill} next Song to trigger Mercy Rule`);
                         }
                     } else {
-                        for (let s = match.songNumber + 2; s < 20; s++) {
+                        for (let s = match.songNumber + 2; s < 20 && s <= match.songNumber + 3; s++) {
                             const songsFromHereToS  = s - match.songNumber;
                             const futureMax         = getMaxPossiblePoints(20 - s, (songsFromHereToS % 2 !== 0 ? !trailerPossessing : trailerPossessing));
                             if (scoreDiff > futureMax) {
