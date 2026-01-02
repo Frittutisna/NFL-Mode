@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3.beta
+// @version      3.beta.1
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -52,6 +52,8 @@
         "end"         : "Stop the game tracker",
         "export"      : "Download the scoresheet as HTML",
         "howTo"       : "Show the step-by-step setup tutorial",
+        "resetGame"   : "Wipe current active game data and stop tracker",
+        "resetSeries" : "Wipe all series history and reset to Game 1",
         "setCaptains" : "Set team captains (/nfl setCaptains [1-4][5-8])",
         "setGame"     : "Set the current game number",
         "setKnockout" : "Enable/disable infinite overtime (/nfl setKnockout [true/false])",
@@ -746,6 +748,27 @@
                         else if (cmd === "swap") {
                             config.isSwapped = !config.isSwapped;
                             systemMessage(`Swapped: ${config.teamNames.away} is now the Home team`);
+                        }
+                        else if (cmd === "resetgame") {
+                            if (match.isActive) {
+                                match.isActive = false;
+                                resetMatchData();
+                                systemMessage(`Game ${config.gameNumber} reset, tracker stopped and data wiped`);
+                            } else {
+                                systemMessage("Error: No active game to reset");
+                            }
+                        }
+                        else if (cmd === "resetseries") {
+                            if (config.seriesStats.history.length > 0) {
+                                match.isActive = false;
+                                resetMatchData();
+                                config.gameNumber = 1;
+                                config.isSwapped = false;
+                                config.seriesStats = {awayWins: 0, homeWins: 0, draws: 0, history: []};
+                                systemMessage("Series reset, all history wiped, ready for Game 1");
+                            } else {
+                                systemMessage("Error: Cannot reset series before a game is completed");
+                            }
                         }
                         else if (cmd === "export")  downloadScoresheet();
                         else if (cmd === "howto")   printHowTo();
