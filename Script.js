@@ -557,8 +557,14 @@
         let effGameNum = config.gameNumber;
         let effSwapped = config.isSwapped;
 
-        if (!match.isActive) {effGameNum--; effSwapped = !effSwapped;}
+        if (!match.isActive) {
+            const seriesJustFinished = config.seriesStats.history.length === config.gameNumber;
+            if (!seriesJustFinished) {effGameNum--; effSwapped = !effSwapped;
+            }
+        }
         
+        if (effGameNum < 1) effGameNum = 1;
+
         const getEffTeamName = (side) => {
             if (effSwapped) return side === 'away' ? config.teamNames.home : config.teamNames.away;
             return config.teamNames[side];
