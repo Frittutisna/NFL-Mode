@@ -208,6 +208,17 @@
         match.isActive = false;
         config.gameNumber++;
         config.isSwapped = !config.isSwapped;
+
+        if (config.seriesLength === 7 && config.gameNumber === 7) {
+            const sStats    = config.seriesStats;
+            const aPts      = sStats.awayWins + (sStats.draws * 0.5);
+            const hPts      = sStats.homeWins + (sStats.draws * 0.5);
+            
+            if (aPts === hPts) {
+                config.knockout = true;
+                chatMessage("Game 7 decider detected, Knockout Mode forced to True");
+            }
+        }
         
         systemMessage("Game ended, tracker stopped");
         systemMessage(`Ready for Game ${config.gameNumber}, auto-swapped teams for the return leg`);
