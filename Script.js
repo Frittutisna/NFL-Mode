@@ -87,7 +87,7 @@
             setTimeout(() => {
                 this.isProcessing = false;
                 this.process();
-            }, 1000);
+            }, 500);
         }
     };
 
@@ -749,19 +749,19 @@
                         else if (cmd === "howto")   printHowTo();
                         else if (cmd === "help")    printHelp(cmdKey ? null : arg);
                         else                        printHelp();
-                    }, 1000);
+                    }, 500);
                 }
             });
         }).bindListener();
 
         new Listener("answer results", (payload) => {
-            if (match.isActive) setTimeout(() => processRound(payload), 1000);
+            if (match.isActive) setTimeout(() => processRound(payload), 500);
         }).bindListener();
     };
 
     function init() {
         if (typeof quiz !== 'undefined' && typeof Listener !== 'undefined') setup();
-        else setTimeout(init, 1000);
+        else setTimeout(init, 500);
     }
 
     init();
