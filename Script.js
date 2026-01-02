@@ -97,13 +97,22 @@
     const toTitleCase = (str)   => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     const getTeamName = (side)  => config.teamNames[side];
 
+    const getTeamNumber = (player) => {
+        try {
+            if (player.lobbySlot && player.lobbySlot.$TEAM_DISPLAY_TEXT) {
+                return parseInt(player.lobbySlot.$TEAM_DISPLAY_TEXT.text().trim(), 10);
+            }
+        } catch (e) {return null}
+        return player.teamNumber;
+    };
+
     const getPlayerNameAtTeamId = (teamId) => {
         if (typeof quiz !== 'undefined' && quiz.inQuiz) {
             const p = Object.values(quiz.players).find(player => player.teamNumber == teamId);
             if (p) return p.name;
         } 
         else if (typeof lobby !== 'undefined' && lobby.inLobby) {
-            const p = Object.values(lobby.players).find(player => player.teamNumber == teamId);
+            const p = Object.values(lobby.players).find(player => getTeamNumber(player) == teamId);
             if (p) return p.name;
         }
         if (playersCache.length > 0) {
@@ -683,6 +692,7 @@
                             } else systemMessage("Error: Use /nfl setTeams [Away] [Home]");
                         } 
                         else if (cmd === "setcaptains") {
+                            if (typeof lobby !== 'undefined' && lobby.inLobby) playersCache = Object.values(lobby.players);
                             if (parts[2] && /^[1-4][5-8]$/.test(parts[2])) {
                                 config.captains = parts[2].split('').map(Number);
                                 systemMessage(`Captains: ${getCaptainListString()}`);
