@@ -679,12 +679,12 @@
     };
 
     const printHowTo = () => {
-        systemMessage("1. Use /nfl setTeams to input the team names");
+        systemMessage("1. Use /nfl setTeams to set the Away and Home team names");
         systemMessage("2. Use /nfl setCaptains to set the right Captains for each team");
         systemMessage("3. Use /nfl setSeries to set the series length");
         systemMessage("4. Use /nfl setGame to set the game number");
         systemMessage("5. Use /nfl setKnockout to enable/disable endless Overtime for knockout games");
-        systemMessage("6. Use /nfl start when you're ready");
+        systemMessage("6. Use /nfl start when you're ready to start a new Game");
     };
 
     const setup = () => {
