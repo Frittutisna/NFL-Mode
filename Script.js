@@ -274,6 +274,7 @@
 
     const processRound = (payload) => {
         if (!match.isActive) return;
+        const currentPeriod = match.period; 
         match.songNumber++;
         if (match.period === 'OVERTIME') match.otRound++;
 
@@ -530,7 +531,7 @@
                 homeArr : homeStats.patternArr,
                 result  : result.name,
                 score   : scoreStr,
-                period  : match.period,
+                period  : currentPeriod,
                 otRound : match.otRound
             });
         }
@@ -657,7 +658,7 @@
                 }
             }
             
-            const displaySong   = row.period === 'OVERTIME' ? (row.otRound + 1) : row.song;
+            const displaySong   = row.period === 'OVERTIME' ? row.otRound : row.song;
             const awayCells     = row.awayArr.map(b => `<td>${b === 0 ? '' : b}</td>`).join('');
             const homeCells     = row.homeArr.map(b => `<td>${b === 0 ? '' : b}</td>`).join('');
 
@@ -782,7 +783,7 @@
                                 match.history       = JSON.parse(JSON.stringify(match.historyAtReg));
                                 match.otRound       = 0;
                                 match.songNumber    = 20;
-                                match.possession    = 'away';
+                                match.period        = 'OVERTIME';
                                 systemMessage("Overtime reset, tracker stopped and reverted to the end of Regulation");
                                 systemMessage("Type /nfl start to restart Overtime")
                             } else {
