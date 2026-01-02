@@ -49,19 +49,20 @@
     };
 
     const COMMAND_DESCRIPTIONS = {
-        "end"         : "Stop the game tracker",
-        "export"      : "Download the scoresheet as HTML",
-        "howTo"       : "Show the step-by-step setup tutorial",
-        "resetGame"   : "Wipe current active game data and stop tracker",
-        "resetSeries" : "Wipe all series history and reset to Game 1",
-        "setCaptains" : "Set team captains (/nfl setCaptains [1-4][5-8])",
-        "setGame"     : "Set the current game number",
-        "setKnockout" : "Enable/disable infinite overtime (/nfl setKnockout [true/false])",
-        "setSeries"   : "Set the series length",
-        "setTeams"    : "Set team names (/nfl setTeams [Away] [Home])",
-        "showCodes"   : "Show AMQ room setting codes for Regulation and Overtime",
-        "start"       : "Start the game tracker",
-        "swap"        : "Swap Home/Away teams"
+        "end"           : "Stop the game tracker",
+        "export"        : "Download the scoresheet as HTML",
+        "howTo"         : "Show the step-by-step setup tutorial",
+        "resetGame"     : "Wipe current Game progress and stop tracker",
+        "resetOvertime" : "Wipe current Overtime progress and reset to the start of Overtime",
+        "resetSeries"   : "Wipe all series history and reset to Game 1",
+        "setCaptains"   : "Set team captains (/nfl setCaptains [1-4][5-8])",
+        "setGame"       : "Set the current game number",
+        "setKnockout"   : "Enable/disable infinite overtime (/nfl setKnockout [true/false])",
+        "setSeries"     : "Set the series length",
+        "setTeams"      : "Set team names (/nfl setTeams [Away] [Home])",
+        "showCodes"     : "Show AMQ room setting codes for Regulation and Overtime",
+        "start"         : "Start the game tracker",
+        "swap"          : "Swap Home/Away teams"
     };
 
     const messageQueue = {
@@ -235,6 +236,13 @@
     const startGame = () => {
         const check = validateLobby();
         if (!check.valid) {systemMessage(check.msg); return;}
+
+        if (match.period === 'OVERTIME' && match.historyAtReg.length > 0 && !match.isActive) {
+            match.isActive = true;
+            systemMessage(`Restarted Overtime for Game ${config.gameNumber}`);
+            return;
+        }
+
         resetMatchData();
         match.isActive = true;
         systemMessage(`Game ${config.gameNumber}: ${getTeamName('away')} @ ${getTeamName('home')}`);
@@ -692,7 +700,7 @@
         systemMessage("2. Use /nfl setCaptains to set the right Captains for each team");
         systemMessage("3. Use /nfl setSeries to set the series length");
         systemMessage("4. Use /nfl setGame to set the game number");
-        systemMessage("5. Use /nfl setKnockout to enable/disable endless Overtime for knockout games");
+        systemMessage("5. Use /nfl setKnockout to enable/disable infinite Overtime for Knockout games");
         systemMessage("6. Use /nfl start when you're ready to start a new Game");
     };
 
@@ -767,16 +775,31 @@
                                 systemMessage("Error: No active game to reset");
                             }
                         }
+                        else if (cmd === "resetovertime") {
+                            if (match.period === 'OVERTIME') {
+                                match.isActive      = false;
+                                match.scores        = JSON.parse(JSON.stringify(match.scoresAtReg));
+                                match.history       = JSON.parse(JSON.stringify(match.historyAtReg));
+                                match.otRound       = 0;
+                                match.songNumber    = 20;
+                                match.possession    = 'away';
+                                systemMessage("Overtime reset, tracker stopped and reverted to the end of Regulation");
+                                systemMessage("Type /nfl start to restart Overtime")
+                            } else {
+                                systemMessage("Error: Can only reset Overtime while in Overtime");
+                            }
+                        }
                         else if (cmd === "resetseries") {
-                            if (config.seriesStats.history.length > 0) {
+                            const hasHistory = config.seriesStats.history.length > 0;
+                            const isActive   = match.isActive;
+                            if (!hasHistory && !isActive) systemMessage("Error: Cannot reset series; no active game or completed series found");
+                            else {
                                 match.isActive = false;
                                 resetMatchData();
                                 config.gameNumber = 1;
                                 config.isSwapped = false;
                                 config.seriesStats = {awayWins: 0, homeWins: 0, draws: 0, history: []};
                                 systemMessage("Series reset, all history wiped, ready for Game 1");
-                            } else {
-                                systemMessage("Error: Cannot reset series before a game is completed");
                             }
                         }
                         else if (cmd === "export")  downloadScoresheet();
