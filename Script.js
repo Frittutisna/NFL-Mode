@@ -11,6 +11,8 @@
 (function() {
     'use strict';
 
+    let playersCache = [];
+
     const config = {
         gameNumber      : 1,
         teamNames       : {away: "Away", home: "Home"},
@@ -44,7 +46,7 @@
 
     const CODES = {
         REGULATION  : "e0g0k21111110130k000031110000000k11111111111100k051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1k903-11111--",
-        OVERTIME    : "e0g05211111101100000531110000000511111111111100k051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--"
+        OVERTIME    : "e0g05211111101100000531110000005111111111111100k051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--"
     };
 
     const COMMAND_DESCRIPTIONS = {
@@ -97,12 +99,16 @@
 
     const getPlayerNameAtTeamId = (teamId) => {
         let name = "N/A";
+        if (playersCache.length > 0) {
+            const p = playersCache.find(player => player.teamNumber == teamId);
+            if (p) return p.name;
+        }
         if (typeof quiz !== 'undefined' && quiz.inQuiz) {
-            const p = Object.values(quiz    .players).find(player => player.teamNumber == teamId);
+            const p = Object.values(quiz.players).find(player => player.teamNumber == teamId);
             if (p) name = p.name;
         } 
         else if (typeof lobby !== 'undefined' && lobby.inLobby) {
-            const p = Object.values(lobby   .players).find(player => player.teamNumber == teamId);
+            const p = Object.values(lobby.players).find(player => player.teamNumber == teamId);
             if (p) name = p.name;
         }
         return name;
@@ -651,6 +657,14 @@
     };
 
     const setup = () => {
+        new Listener("Host Game",                   (payload) => {playersCache = payload.players})                                                                              .bindListener();
+        new Listener("Join Game",                   (payload) => {playersCache = payload.quizState.players})                                                                    .bindListener();
+        new Listener("Game Starting",               (payload) => {playersCache = payload.players})                                                                              .bindListener();
+        new Listener("New Player",                  (payload) => {playersCache.push(payload)})                                                                                  .bindListener();
+        new Listener("Player Left",                 (payload) => {playersCache = playersCache.filter(p => p.gamePlayerId !== payload.gamePlayerId)})                            .bindListener();
+        new Listener("Player Changed Team",         (payload) => {playersCache.forEach(p => {if (p.gamePlayerId === payload.gamePlayerId) p.teamNumber = payload.newTeam})})    .bindListener();
+        new Listener("Spectator Change To Player",  (payload) => {playersCache.push(payload)})                                                                                  .bindListener();
+
         new Listener("game chat update", (payload) => {
             payload.messages.forEach(msg => {
                 if (msg.sender === selfName && msg.message.startsWith("/nfl")) {
