@@ -50,17 +50,17 @@
     };
 
     const COMMAND_DESCRIPTIONS = {
-        "start"       : "Start the game tracker",
         "end"         : "Stop the game tracker",
-        "setTeams"    : "Set team names (/nfl setTeams [Away] [Home])",
+        "export"      : "Download the scoresheet as HTML",
+        "howTo"       : "Show the step-by-step setup tutorial",
         "setCaptains" : "Set team captains (/nfl setCaptains [1-4][5-8])",
         "setGame"     : "Set the current game number",
-        "setSeries"   : "Set the series length",
         "setKnockout" : "Enable/disable infinite overtime (/nfl setKnockout [true/false])",
+        "setSeries"   : "Set the series length",
+        "setTeams"    : "Set team names (/nfl setTeams [Away] [Home])",
         "showCodes"   : "Show AMQ room setting codes for Regulation and Overtime",
-        "swap"        : "Swap Home/Away teams",
-        "export"      : "Download the scoresheet as HTML",
-        "howTo"       : "Show the step-by-step setup tutorial"
+        "start"       : "Start the game tracker",
+        "swap"        : "Swap Home/Away teams"
     };
 
     const messageQueue = {
@@ -95,7 +95,10 @@
     const chatMessage   = (msg) => {messageQueue.add(msg, false)};
 
     const toTitleCase = (str)   => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-    const getTeamName = (side)  => config.teamNames[side];
+    const getTeamName = (side)  => {
+        if (config.isSwapped) {return side === 'away' ? config.teamNames.home : config.teamNames.away }
+        return config.teamNames[side];
+    };
 
     const getTeamNumber = (player) => {
         try {
@@ -150,9 +153,15 @@
             const finalScoreStr = `${match.scores.away}-${match.scores.home}`;
             config.seriesStats.history.push(finalScoreStr);
             
-            if      (winnerSide === 'away') config.seriesStats.awayWins++;
-            else if (winnerSide === 'home') config.seriesStats.homeWins++;
-            else                            config.seriesStats.draws++;
+            let actualWinnerSide = winnerSide;
+            if (config.isSwapped) {
+                 if (winnerSide === 'away')      actualWinnerSide = 'home';
+                 else if (winnerSide === 'home') actualWinnerSide = 'away';
+            }
+
+            if      (actualWinnerSide === 'away') config.seriesStats.awayWins++;
+            else if (actualWinnerSide === 'home') config.seriesStats.homeWins++;
+            else                                  config.seriesStats.draws++;
 
             const awayPoints    = config.seriesStats.awayWins + (config.seriesStats.draws * 0.5);
             const homePoints    = config.seriesStats.homeWins + (config.seriesStats.draws * 0.5);
@@ -509,17 +518,27 @@
             if (!isAuto) systemMessage("Error: No data to export");
             return;
         }
+
+        let effGameNum = config.gameNumber;
+        let effSwapped = config.isSwapped;
+
+        if (!match.isActive) {effGameNum--; effSwapped = !effSwapped;}
         
-        const awayNameRaw = getTeamName('away');
-        const homeNameRaw = getTeamName('home');
+        const getEffTeamName = (side) => {
+            if (effSwapped) return side === 'away' ? config.teamNames.home : config.teamNames.away;
+            return config.teamNames[side];
+        };
+
+        const awayNameRaw = getEffTeamName('away');
+        const homeNameRaw = getEffTeamName('home');
         
         const lastEntry         = match.history[match.history.length - 1];
         const lastSongDisplay   = lastEntry.song; 
         const lastScore         = lastEntry.score;
-        const titleStr          = `Game ${config.gameNumber} (${lastSongDisplay}): ${awayNameRaw} ${lastScore} ${homeNameRaw}`;
+        const titleStr          = `Game ${effGameNum} (${lastSongDisplay}): ${awayNameRaw} ${lastScore} ${homeNameRaw}`;
 
-        const awaySlots = config.isSwapped ? gameConfig.homeSlots : gameConfig.awaySlots;
-        const homeSlots = config.isSwapped ? gameConfig.awaySlots : gameConfig.homeSlots;
+        const awaySlots = effSwapped ? gameConfig.homeSlots : gameConfig.awaySlots;
+        const homeSlots = effSwapped ? gameConfig.awaySlots : gameConfig.homeSlots;
 
         const getCaptainPos = (slots) => {
             const index = slots.findIndex(slot => config.captains.includes(slot));
@@ -536,7 +555,7 @@
         const d         = String(date.getDate()).padStart(2, '0');
         const safeAway  = awayNameRaw.replace(/[^a-z0-9]/gi, '_');
         const safeHome  = homeNameRaw.replace(/[^a-z0-9]/gi, '_');
-        const fileName  = `${y}${m}${d}-${config.gameNumber}-${safeAway}-${safeHome}.html`;
+        const fileName  = `${y}${m}${d}-${effGameNum}-${safeAway}-${safeHome}.html`;
 
         let html = `
         <html>
@@ -658,9 +677,9 @@
     const printHowTo = () => {
         systemMessage("1. Use /nfl setTeams to input the team names");
         systemMessage("2. Use /nfl setCaptains to set the right Captains for each team");
-        systemMessage("3. Use /nfl setGame to set the game number");
-        systemMessage("4. Use /nfl setKnockout to enable/disable endless Overtime for knockout games");
-        systemMessage("5. Use /nfl setSeries to set the series length");
+        systemMessage("3. Use /nfl setSeries to set the series length");
+        systemMessage("4. Use /nfl setGame to set the game number");
+        systemMessage("5. Use /nfl setKnockout to enable/disable endless Overtime for knockout games");
         systemMessage("6. Use /nfl start when you're ready");
     };
 
