@@ -98,20 +98,19 @@
     const getTeamName = (side)  => config.teamNames[side];
 
     const getPlayerNameAtTeamId = (teamId) => {
-        let name = "N/A";
+        if (typeof quiz !== 'undefined' && quiz.inQuiz) {
+            const p = Object.values(quiz.players).find(player => player.teamNumber == teamId);
+            if (p) return p.name;
+        } 
+        else if (typeof lobby !== 'undefined' && lobby.inLobby) {
+            const p = Object.values(lobby.players).find(player => player.teamNumber == teamId);
+            if (p) return p.name;
+        }
         if (playersCache.length > 0) {
             const p = playersCache.find(player => player.teamNumber == teamId);
             if (p) return p.name;
         }
-        if (typeof quiz !== 'undefined' && quiz.inQuiz) {
-            const p = Object.values(quiz.players).find(player => player.teamNumber == teamId);
-            if (p) name = p.name;
-        } 
-        else if (typeof lobby !== 'undefined' && lobby.inLobby) {
-            const p = Object.values(lobby.players).find(player => player.teamNumber == teamId);
-            if (p) name = p.name;
-        }
-        return name;
+        return "N/A";
     };
 
     const getCaptainListString = () => {
