@@ -108,7 +108,22 @@
     const messageQueue = {
         queue           : [],
         isProcessing    : false,
-        add             : function(msg, isSystem = false) {this.queue.push({msg, isSystem}); this.process();},
+        add             : function(msg, isSystem = false) {
+            const LIMIT = 150; 
+
+            if (msg.length <= LIMIT) this.queue.push({msg, isSystem});
+            else {
+                let remaining = msg;
+                while (remaining.length > 0) {
+                    if (remaining.length <= LIMIT) {this.queue.push({msg: remaining, isSystem}); break;}
+                    let splitIndex = remaining.lastIndexOf(' ', LIMIT);
+                    if (splitIndex === -1) splitIndex = LIMIT;
+                    this.queue.push({msg: remaining.substring(0, splitIndex), isSystem});
+                    remaining = remaining.substring(splitIndex + 1);
+                }
+            }
+            this.process();
+        },
         process: function() {
             if (this.isProcessing || this.queue.length === 0) return;
             this.isProcessing   = true;
