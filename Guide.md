@@ -1,10 +1,26 @@
-# NFL Mode v3.beta
+# NFL Mode v3.beta.1
 
-## TLDR: Too Long, Didn't Read
-Just install the **Script**. It handles all the complicated stuff; the team with the most points after 20 songs wins!
+## Table of Contents
+- [TLDR: What Do I Do?](#tldr-what-do-i-do)
+- [Links: Balancer, Flowchart, Script](#links-balancer-flowchart-script)
+- [Overview: Those Long Setting Codes](#overview-those-long-setting-codes)
+- [Changelog: What Changed From v3.beta?](#changelog-what-changed-from-v3beta)
+- [Lineup: Away and Home, Captains, OPs, DPs](#lineup-away-and-home-captains-ops-dps)
+- [Score: Check the (T)DIFF](#score-check-the-tdiff)
+- [Ending: Mercy, Overtime, Tie](#ending-mercy-overtime-tie)
+- [Format: Best-of-7, Round Robin, Swiss, Knockouts](#format-best-of-7-round-robin-swiss-knockouts)
+- [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do)
 
-## Script: Download and Install This
-[Link to the Script](https://github.com/Frittutisna/NFL-Mode/blob/main/Script.js)
+## TLDR: What Do I Do?
+- If you're **just playing**: Join the right lobby, line up correctly, and click Ready.
+- If you're **just watching**: Grab a bowl of popcorn before spectating the lobby of your choice.
+- **In either case, feel more than welcome to stop reading this guide here.**
+- If you're **hosting the tour**, **hosting a lobby** for your team, or the **Captain** (you have the highest **Watched Elo**) of your team, see [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do).
+
+## Links: Balancer, Flowchart, Script
+- [Link to the Balancer](https://docs.google.com/spreadsheets/d/1AM1pWeTWCijGKjbmJ9Vu_4hZYb1PQ1S0fNbfT9BtWxQ/copy)
+- [Link to the Flowchart](https://github.com/Frittutisna/NFL-Mode/blob/main/Flowchart/Flowchart.pdf)
+- [Link to the Script](https://github.com/Frittutisna/NFL-Mode/blob/main/Script.js)
 
 ## Overview: Those Long Setting Codes
 <table style="text-align:center">
@@ -21,7 +37,7 @@ Just install the **Script**. It handles all the complicated stuff; the team with
         <td style="text-align:center">
             <details>
                 <summary>Click to view code</summary>
-                <code style="word-break: break-all">e0g0k21111110130k000031110000000k11111111111100k051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1k903-11111--</code>
+                <code style="word-break: break-all">e0g0k21111100130k000031110000000k11111111111100k051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1k903-11111--</code>
             </details>
         </td>
     </tr>
@@ -32,20 +48,29 @@ Just install the **Script**. It handles all the complicated stuff; the team with
         <td style="text-align:center">
             <details>
                 <summary>Click to view code</summary>
-                <code style="word-break: break-all;">e0g05211111101100000531110000000511111111111100k051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--</code>
+                <code style="word-break: break-all;">e0g05211111001100000531110000000511111111111100k051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--</code>
             </details>
         </td>
     </tr>
 </table>
 
-## Changelog: What Changed Here?
-- Format changes:
-    - Replaced 4 Random songs from Regulation with 4 more Watched "Equal" songs
-    - Added Rebroadcast Songs to both Regulation and Overtime
-    - Improved Mercy Rule calculation to ignore impossible consecutive `TD + 2PCs`
-    - Removed the need to swap between consecutive rounds since the script now handles this automatically
-- Scoresheet/Script changes:
-    - **Moved from Google Sheets to JavaScript for immense speed improvement**
+## Changelog: What Changed From v3.beta?
+### Format change
+    - Removed Rebroadcast Songs in Regulation and Overtime from community feedback
+### Guide changes
+    - Expanded TLDR section for different roles (tour host, lobby host, Captains, players, spectators)
+    - Added link to Balancer for tour host
+    - Changed Overview codes to reflect Rebroadcast removal
+    - Added Flowchart for better visibility
+### Script changes
+    - Unswapped song state reports (e.g., "1111 1100 TD + 2PC 8-0") in even-numbered games to match slot assignments
+    - Changed series reports to list ties last
+    - Changed series reports to list from the perspective of the series leader if applicable
+    - Implemented automatic pause/resume with "Mercy Rule trigger warning next Song!" messages
+    - Implemented automatic return prompts after game-ending situations
+    - Implemented "Possession: [Team]" and "Next Possession: [Team]" messages for better visibility
+### Scoresheet change
+    - Simplified Overtime banner row explanation
 
 ## Lineup: Away and Home, Captains, OPs, DPs
 **Captains** (highest-Elo player in each team) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
@@ -156,7 +181,42 @@ in which case Overtime **repeats** until a winner is found.
 **Clear** the Overtime tally and repeat as necessary.
 
 ## Format: Best-of-7, Round Robin, Swiss, Knockouts
-- For 2 teams, play a best-of-7, automatically swapping Away and Home between games
-- For 4 teams, play a double round-robin, automatically swapping Away and Home between repeat games. 
-The top two teams advance to the **Super Bowl**
-- For 6/8+ teams, play a single round-robin/5-game Swiss league. The top four teams advance to the  **Championship Games**, then the two winners advance to the **Super Bowl**.
+- **For 2 teams:** Play a best-of-7, automatically swapping Away and Home between games.
+- **For 4 teams:** Play a double round-robin, automatically swapping Away and Home between repeat games. The top two teams advance to the **Super Bowl**.
+- **For 6/8+ teams:** Play a single round-robin/5-game Swiss league. The top four teams advance to the  **Championship Games**, then the two winners advance to the **Super Bowl**.
+
+## Manual: What Do I *Really* Do?
+### If you're hosting the tour:
+- Open the tour signup prompt and ask for team requests and/or blacklists.
+- After the player list has been settled, find the [Balancer](#links-balancer-flowchart-script) and follow the instructions there.
+- Read the [Format](#format-best-of-7-round-robin-swiss-knockouts) section and prepare the Challonge.
+- After the team split has been settled, announce team compositions and the Challonge link.
+- Note the results of each game in Challonge.
+- Ping teams that advance to the **Championship Games** and/or the **Super Bowl** if necessary.
+- Announce the final results.
+
+### If you're hosting a lobby for your team:
+Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host needs to install and operate the **Script**), then do the following:
+- Apply the **Regulation** setting code (see [Overview](#overview-those-long-setting-codes)).
+- Set the lobby name to "Tour: [Away Team Name]-[Home Team Name]" (e.g., "Tour: Steelers-Ravens").
+- Invite the right players to the lobby, and make sure they're lined up correctly (**No need to swap between consecutive games**, also see [Lineup](#lineup-away-and-home-captains-ops-dps)).
+- After everyone is ready, type `/nfl howTo` and follow the instructions there.
+- Type `/nfl start` and start playing.
+    - If you started the game by mistake, type `/nfl resetGame`, then return to lobby.
+    - When the Winner has been decided either normally or through Mercy Rule, pause the game, then return to lobby.
+- If it's tied after Regulation:
+    - Apply the **Overtime** setting code (see [Overview](#overview-those-long-setting-codes)).
+    - Start playing after everyone is ready (**No need to type `/nfl start` to start/repeat Overtime**).
+    - If you started Overtime by mistake, type `/nfl resetOvertime`, then return to lobby.
+    - When the winner has been decided either normally or through Sudden Death, pause the game, the return to lobby.
+    - If you need to repeat overtime, start playing after everyone is ready.
+- Type `/nfl export` to download the **Scoresheet**.
+- Open the Scoresheet and copy the top row.
+- Paste it in `#game-reporting` with the Scoresheet and JSON(s) (Regulation and **the last** Overtime, if necessary).
+- Repeat from step 1 for the next game.
+
+### If you're the Captain of your team:
+- **Split** your team into 2 Offensive (OPs) and 2 Defensive (DPs) Players.
+    - **OPs'** main role is to **score** points when your team has possession.
+    - **DPs'** main role is to **prevent** the opposing OPs from scoring points when your team doesn't have possession.
+- Mention the **tour host** in `#tour-general` with the format `@[Tour Host] [Team Name]: OP1, OP2, DP1, DP2` (e.g., `@HakoHoka Steelers: florenz, chommy, miiarad (C), HakoHoka`).

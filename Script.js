@@ -44,14 +44,15 @@
     };
 
     const CODES = {
-        REGULATION  : "e0g0k21111110130k000031110000000k11111111111100k051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1k903-11111--",
-        OVERTIME    : "e0g05211111101100000531110000005111111111111100k051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--"
+        REGULATION  : "e0g0k21111100130k000031110000000k11111111111100k051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1k903-11111--",
+        OVERTIME    : "e0g05211111001100000531110000000511111111111100k051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--"
     };
 
     const COMMAND_DESCRIPTIONS = {
         "end"           : "Stop the game tracker",
         "export"        : "Download the scoresheet as HTML",
-        "guide"         : "Show link to the official NFL Mode guide",
+        "flowchart"     : "Show link to the NFL Mode flowchart",
+        "guide"         : "Show link to the NFL Mode guide",
         "howTo"         : "Show the step-by-step setup tutorial",
         "resetGame"     : "Wipe current Game progress and stop tracker",
         "resetOvertime" : "Wipe current Overtime progress and reset to the start of Overtime",
@@ -644,7 +645,7 @@
                 html += `
                 <tr>
                     <td colspan="14" style="font-weight: bold;">
-                        Overtime (0-100): 5 Random songs. Onside Kick/Defensive Point(s) ends it on Song 1, otherwise Sudden Death from Song 2
+                        Overtime (0-100): 5 Random songs with Sudden Death
                     </td>
                 </tr>`;
                 otBannerAdded = true;
@@ -742,6 +743,7 @@
 
                         if      (cmd === "start")           startGame();
                         else if (cmd === "end")             {match.isActive = false; systemMessage("Manually stopped"); }
+                        else if (cmd === "flowchart")       chatMessage("Flowchart: https://github.com/Frittutisna/NFL-Mode/blob/main/Flowchart/Flowchart.pdf");
                         else if (cmd === "guide")           chatMessage("Guide: https://github.com/Frittutisna/NFL-Mode/blob/main/Guide.md");
                         else if (cmd === "setteams") { 
                             if (parts.length === 4 && parts[2].toLowerCase() !== parts[3].toLowerCase()) {
