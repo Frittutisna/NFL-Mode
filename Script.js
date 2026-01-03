@@ -54,6 +54,36 @@
         OVERTIME    : "e0g05211111001100000531110000000511111111111100k051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--"
     };
 
+    const TERMS = {
+        "away team"     : "The team listed first on Challonge. They have first possession in Regulation and Overtime",
+        "home team"     : "The team listed second on Challonge",
+        "possession"    : "The state of being the Attacking Team. Generally swaps after every song unless s Onside Kick occurs",
+        "attacking"     : "The team currently with Possession",
+        "defending"     : "The team currently without Possession",
+        "op"            : "Offensive Player (Slots 1, 2, 5, and 6). Their main role is to score points when their team has possession",
+        "dp"            : "Defensive Player (Slots 3, 4, 7, and 8). Their main role is to prevent the other team from scoring",
+        "captain"       : "The highest-Elo player on the team. Their correct guesses count double (2 points) for TDIFF and DIFF calculations",
+        "tdiff"         : "Total Difference. Calculated by subtracting the Defending Team's total score from the Attacking Team's total score (counting everyone). Checked first before checking DIFF",
+        "diff"          : "Difference. Calculated by subtracting Defending DPs' score from Attacking OPs' score. Checked only if TDIFF is inconclusive (between -3 and 3)",
+        "onside kick"   : "TDIFF ≥ 4. Attacking Team gets 7 points and keeps possession. Ends Overtime immediately if it happens on Song 1",
+        "house call"    : "TDIFF ≤ -4. Defending Team gets 7 points. Possession swaps",
+        "td + 2pc"      : "DIFF ≥ 3. Attacking Team gets 8 points. Possession swaps",
+        "touchdown"     : "DIFF = 2. Attacking Team gets 7 points. Possession swaps",
+        "td"            : "See 'Touchdown'",
+        "field goal"    : "DIFF = 1. Attacking Team gets 3 points. Possession swaps",
+        "fg"            : "See 'Field Goal'",
+        "rouge"         : "DIFF = 0 or -1, and exactly 1 team got it right. That team (Attacking or Defending) gets 1 point",
+        "punt"          : "DIFF = 0 or -1, and either both or neither got it right. No points awarded",
+        "safety"        : "DIFF = -2. Defending Team gets 2 points",
+        "pick six"      : "DIFF = -3. Defending Team gets 6 points",
+        "mercy rule"    : "Triggers when the trailing team cannot mathematically catch up with the songs remaining",
+        "regulation"    : "The first 20 songs (0-40 Watched Equal)",
+        "overtime"      : "Played if tied after Regulation (5 0-100 Random songs). Away gets first possession",
+        "sudden death"  : "In Overtime, if Song 1 results in an Onside Kick or ANY Defensive points, the game ends immediately",
+        "knockout"      : "A game where a winner must be decided (e.g., Championship Game, Super Bowl). Overtime repeats indefinitely until a winner is found",
+        "balancer"      : "The spreadsheet used to create fair teams based on Elo"
+    };
+
     const COMMAND_DESCRIPTIONS = {
         "end"               : "Stop the game tracker",
         "export"            : "Download the scoresheet as HTML",
@@ -71,7 +101,8 @@
         "setTeams"          : "Set team names (/nfl setTeams [Away] [Home])",
         "showCodes"         : "Show AMQ room setting codes for Regulation and Overtime",
         "start"             : "Start the game tracker",
-        "swap"              : "Swap Home/Away teams"
+        "swap"              : "Swap Home/Away teams",
+        "whatIs"            : "Explain a term or rule (/nfl whatIs [Term])"
     };
 
     const messageQueue = {
@@ -824,7 +855,7 @@
                     setTimeout(() => {
                         const parts     = msg.message.split(" ");
                         const cmd       = parts[1] ? parts[1].toLowerCase() : "help";
-                        const arg       = parts[2] ? parts[2].toLowerCase() : null;
+                        const arg       = parts.slice(2).join(" ").toLowerCase();
                         const cmdKey    = Object.keys(COMMAND_DESCRIPTIONS).find(k => k.toLowerCase() === cmd);
 
                         if      (cmd === "start")           startGame();
@@ -861,9 +892,9 @@
                             else systemMessage("Error: Use /nfl setSeries [1/2/7]");
                         }
                         else if (cmd === "setknockout") {
-                            if      (arg === "true")    {config.knockout = true;    systemMessage("Knockout Mode: True"); }
-                            else if (arg === "false")   {config.knockout = false;   systemMessage("Knockout Mode: False"); }
-                            else                                                    systemMessage("Error: Use /nfl setKnockout [true/false]");
+                            if      (parts[2] === "true")   {config.knockout = true;    systemMessage("Knockout Mode: True"); }
+                            else if (parts[2] === "false")  {config.knockout = false;   systemMessage("Knockout Mode: False"); }
+                            else                                                        systemMessage("Error: Use /nfl setKnockout [true/false]");
                         }
                         else if (cmd === "showcodes") {
                             systemMessage(`Regulation: ${CODES.REGULATION}`);
@@ -908,6 +939,14 @@
                                 config.isSwapped = false;
                                 config.seriesStats = {awayWins: 0, homeWins: 0, draws: 0, history: []};
                                 systemMessage("Series reset, all history wiped, ready for Game 1");
+                            }
+                        }
+                        else if (cmd === "whatis") {
+                            if (!arg || arg === "help") {
+                                systemMessage("Available terms: " + Object.keys(TERMS).sort().join(", "));
+                            } else {
+                                if (TERMS[arg]) systemMessage(`${toTitleCase(arg)}: ${TERMS[arg]}`);
+                                else            systemMessage(`Unknown term '${arg}'. Type /nfl whatIs help for a list.`);
                             }
                         }
                         else if (cmd === "export")  downloadScoresheet();
