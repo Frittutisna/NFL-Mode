@@ -31,7 +31,8 @@
         period          : 'REGULATION',
         otRound         : 0,
         scoresAtReg     : {away: 0, home: 0},
-        historyAtReg    : []
+        historyAtReg    : [],
+        mercyWait       : false
     };
 
     const gameConfig = {
@@ -97,6 +98,13 @@
 
     const systemMessage = (msg) => {messageQueue.add(msg, true)};
     const chatMessage   = (msg) => {messageQueue.add(msg, false)};
+    
+    const sendGameCommand = (cmd) => {
+        if (typeof socket !== 'undefined') {
+            if (cmd === "return to lobby") cmd = "start return to lobby"; 
+            socket.sendCommand({ type: "quiz", command: cmd });
+        }
+    };
 
     const toTitleCase = (str)   => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     const getTeamName = (side)  => {
@@ -147,6 +155,7 @@
         match.otRound       = 0;
         match.scoresAtReg   = {away: 0, home: 0};
         match.historyAtReg  = [];
+        match.mercyWait     = false;
     };
 
     const endGame = (winnerSide) => {
@@ -185,21 +194,39 @@
             }
 
             let     seriesMsg       = "";
-            const   scoresList      = `(${config.seriesStats.history.join(", ")})`;
             const   fmt             = (n) => Number.isInteger(n) ? n : n.toFixed(1);
 
-            if (seriesWinner) {
-                const loserPoints   = (seriesWinner === aName) ? homePoints : awayPoints;
-                const winnerPoints  = (seriesWinner === aName) ? awayPoints : homePoints;
-                const verb          = (loserPoints === 0) ? "swept" : "won";
-                seriesMsg           = `The ${seriesWinner} ${verb} the series ${fmt(winnerPoints)}-${fmt(loserPoints)} ${scoresList}`;
+            let wins, losses, draws, historyStr;
+            const sStats = config.seriesStats;
+
+            if (homePoints > awayPoints) {
+                wins    = sStats.homeWins;
+                losses  = sStats.awayWins;
+                draws   = sStats.draws;
+
+                const flippedHistory = sStats.history.map(sc => {
+                    const [a, h] = sc.split('-');
+                    return `${h}-${a}`;
+                });
+                historyStr = `(${flippedHistory.join(", ")})`;
             } else {
-                if (awayPoints === homePoints) seriesMsg = `Series tied at ${fmt(awayPoints)}-${fmt(homePoints)} ${scoresList}`;
-                else {
-                    const leader    = awayPoints > homePoints ? aName       : hName;
-                    const wCount    = awayPoints > homePoints ? awayPoints  : homePoints;
-                    const lCount    = awayPoints > homePoints ? homePoints  : awayPoints;
-                    seriesMsg       = `The ${leader} leads the series ${fmt(wCount)}-${fmt(lCount)} ${scoresList}`;
+                wins        = sStats.awayWins;
+                losses      = sStats.homeWins;
+                draws       = sStats.draws;
+                historyStr  = `(${sStats.history.join(", ")})`;
+            }
+
+            const recordStr = `${wins}-${losses}-${draws}`;
+
+            if (seriesWinner) {
+                const verb  = (losses === 0 && draws === 0) ? "swept" : "won";
+                seriesMsg   = `The ${seriesWinner} ${verb} the series ${recordStr} ${historyStr}`;
+            } else {
+                if (awayPoints === homePoints) {
+                    seriesMsg = `Series tied at ${recordStr} ${historyStr}`;
+                } else {
+                    const leader = awayPoints > homePoints ? aName : hName;
+                    seriesMsg = `The ${leader} leads the series ${recordStr} ${historyStr}`;
                 }
             }
             
@@ -214,7 +241,7 @@
         match.isActive      = false;
         match.period        = 'REGULATION';
         match.historyAtReg  = [];
-        systemMessage("Game ended, tracker stopped");
+        match.mercyWait     = false;
 
         if (!seriesFinished) {
             config.gameNumber++;
@@ -232,6 +259,8 @@
             }
             systemMessage(`Ready for Game ${config.gameNumber}, auto-swapped teams for the return leg`);
         } else systemMessage("Series finished");
+        
+        setTimeout(() => sendGameCommand("return to lobby"), 2000);
     };
 
     const validateLobby = () => {
@@ -360,8 +389,17 @@
         else if (result.team === "defense") match.scores[defSide]   += result.pts;
         if (result.swap)                    match.possession        = defSide;
 
-        const scoreStr  = `${match.scores.away}-${match.scores.home}`;
-        const mainMsg   = `${awayStats.patternStr} ${homeStats.patternStr} ${result.name} ${scoreStr}`;
+        let displayAwayPattern = awayStats.patternStr;
+        let displayHomePattern = homeStats.patternStr;
+        let displayScoreStr    = `${match.scores.away}-${match.scores.home}`;
+
+        if (config.isSwapped) {
+            displayAwayPattern = homeStats.patternStr;
+            displayHomePattern = awayStats.patternStr;
+            displayScoreStr    = `${match.scores.home}-${match.scores.away}`;
+        }
+        
+        const mainMsg   = `${displayAwayPattern} ${displayHomePattern} ${result.name} ${displayScoreStr}`;
         chatMessage(mainMsg);
 
         let isGameOver = false;
@@ -433,6 +471,8 @@
 
                     if (killOutcome && safeOutcome) {
                         chatMessage(`Mercy Rule trigger warning next Song!`);
+                        match.mercyWait = true;
+
                         const artSafe = getArticle(safeOutcome.name);
                         if (safeOutcome.leaderIsActor) {
                             chatMessage(`The ${trailerName} needs to hold the ${leaderName} to ${artSafe} ${safeOutcome.name} next Song to avoid Mercy Rule`);
@@ -450,6 +490,7 @@
                             chatMessage(`The ${leaderName} ${txtKill} next Song to trigger Mercy Rule`);
                         }
                     } else {
+                        match.mercyWait = false;
                         for (let s = match.songNumber + 2; s < 20 && s <= match.songNumber + 3; s++) {
                             const songsFromHereToS  = s - match.songNumber;
                             const futureMax         = getMaxPossiblePoints(20 - s, (songsFromHereToS % 2 !== 0 ? !trailerPossessing : trailerPossessing));
@@ -535,6 +576,11 @@
             }
         }
 
+        if (!isGameOver) {
+             sendGameCommand("resume game"); 
+             chatMessage(`Next Possession: ${getTeamName(match.possession)}`);
+        }
+
         if (match.isActive || isGameOver) {
              match.history.push({
                 song    : match.songNumber,
@@ -542,7 +588,7 @@
                 awayArr : awayStats.patternArr,
                 homeArr : homeStats.patternArr,
                 result  : result.name,
-                score   : scoreStr,
+                score   : `${match.scores.away}-${match.scores.home}`,
                 period  : currentPeriod,
                 otRound : match.otRound
             });
@@ -834,6 +880,15 @@
 
         new Listener("answer results", (payload) => {
             if (match.isActive) setTimeout(() => processRound(payload), 500);
+        }).bindListener();
+
+        new Listener("play next song", () => {
+            if (match.isActive) {
+                systemMessage(`Possession: ${getTeamName(match.possession)}`);
+                if (match.mercyWait) {
+                    sendGameCommand("pause game");
+                }
+            }
         }).bindListener();
     };
 
