@@ -33,7 +33,7 @@
     <tr>
         <td style="text-align:center">Regulation</td>
         <td style="text-align:center">0 - 40</td>
-        <td style="text-align:center"><strong>20 Watched "Equal"</strong></td>
+        <td style="text-align:center">20 Watched "Equal"</td>
         <td style="text-align:center">
             <details>
                 <summary>Click to view code</summary>
