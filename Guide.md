@@ -59,13 +59,14 @@
     - Removed Rebroadcast Songs in Regulation and Overtime from community feedback
 ### Guide changes
     - Expanded TLDR section for different roles (tour host, lobby host, Captains, players, spectators)
+    - Added Manual section for tour host, lobby host, and Captains
     - Added link to Balancer for tour host
     - Changed Overview codes to reflect Rebroadcast removal
     - Added Flowchart for better visibility
 ### Script changes
     - Unswapped song state reports (e.g., "1111 1100 TD + 2PC 8-0") in even-numbered games to match slot assignments
-    - Changed series reports to list ties last
-    - Changed series reports to list from the perspective of the series leader if applicable
+    - Changed series reports to list ties last (e.g., "The Ravens lead the series 2-0-1 ...")
+    - Changed series reports to list from the perspective of the series leader if applicable (e.g., "... (17-17, 21-15, 30-6))
     - Implemented automatic pause/resume with "Mercy Rule trigger warning next Song!" messages
     - Implemented automatic return prompts after game-ending situations
     - Implemented "Possession: [Team]" and "Next Possession: [Team]" messages for better visibility
