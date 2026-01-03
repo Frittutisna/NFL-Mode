@@ -12,7 +12,8 @@
 
     let playersCache = [];
 
-    const config = {
+    let config = {
+        delay           : 750,
         gameNumber      : 1,
         teamNames       : {away: "Away", home: "Home"},
         captains        : [1, 5],
@@ -54,22 +55,23 @@
     };
 
     const COMMAND_DESCRIPTIONS = {
-        "end"           : "Stop the game tracker",
-        "export"        : "Download the scoresheet as HTML",
-        "flowchart"     : "Show link to the NFL Mode flowchart",
-        "guide"         : "Show link to the NFL Mode guide",
-        "howTo"         : "Show the step-by-step setup tutorial",
-        "resetGame"     : "Wipe current Game progress and stop tracker",
-        "resetOvertime" : "Wipe current Overtime progress and reset to the start of Overtime",
-        "resetSeries"   : "Wipe all series history and reset to Game 1",
-        "setCaptains"   : "Set team captains (/nfl setCaptains [1-4][5-8])",
-        "setGame"       : "Set the current game number",
-        "setKnockout"   : "Enable/disable infinite overtime (/nfl setKnockout [true/false])",
-        "setSeries"     : "Set the series length",
-        "setTeams"      : "Set team names (/nfl setTeams [Away] [Home])",
-        "showCodes"     : "Show AMQ room setting codes for Regulation and Overtime",
-        "start"         : "Start the game tracker",
-        "swap"          : "Swap Home/Away teams"
+        "end"               : "Stop the game tracker",
+        "export"            : "Download the scoresheet as HTML",
+        "flowchart"         : "Show link to the NFL Mode flowchart",
+        "guide"             : "Show link to the NFL Mode guide",
+        "howTo"             : "Show the step-by-step setup tutorial",
+        "resetEverything"   : "Hard reset: Wipe all settings, series history, and teams to default",
+        "resetGame"         : "Wipe current Game progress and stop tracker",
+        "resetOvertime"     : "Wipe current Overtime progress and reset to the start of Overtime",
+        "resetSeries"       : "Wipe all series history and reset to Game 1",
+        "setCaptains"       : "Set team captains (/nfl setCaptains [1-4][5-8])",
+        "setGame"           : "Set the current game number /nfl setGame [1-7]",
+        "setKnockout"       : "Enable/disable infinite overtime (/nfl setKnockout [true/false])",
+        "setSeries"         : "Set the series length (/nfl setSeries [1/2/7]",
+        "setTeams"          : "Set team names (/nfl setTeams [Away] [Home])",
+        "showCodes"         : "Show AMQ room setting codes for Regulation and Overtime",
+        "start"             : "Start the game tracker",
+        "swap"              : "Swap Home/Away teams"
     };
 
     const messageQueue = {
@@ -106,21 +108,27 @@
     const sendGameCommand = (cmd) => {
         if (cmd === "return to lobby") {
             const returnBtn = document.getElementById("qpReturnToLobbyButton");
-            if (returnBtn) returnBtn.click();
-        } 
+            if (returnBtn) {
+                returnBtn.click();
+                setTimeout(() => {
+                    const confirmBtn = document.querySelector(".swal2-confirm");
+                    if (confirmBtn) confirmBtn.click();
+                }, 500);
+            }
+        }
         else if (cmd === "pause game" || cmd === "resume game") {
             const pauseBtn = document.getElementById("qpPauseButton");
             if (pauseBtn) {
                 const icon = pauseBtn.querySelector("i");
                 if (icon) {
-                    const isPaused  = icon.classList.contains("fa-play-circle") || icon.classList.contains("fa-play");
-                    const isPlaying = icon.classList.contains("fa-pause");
-
+                    const isPaused  = icon.classList.contains("fa-play-circle");
+                    const isPlaying = icon.classList.contains("fa-pause-circle");
                     if      (cmd === "resume game"  && isPaused)    pauseBtn.click();
                     else if (cmd === "pause game"   && isPlaying)   pauseBtn.click();
-                } else pauseBtn.click();
+                } else                                              pauseBtn.click();
             }
         }
+        else if (typeof socket !== 'undefined') socket.sendCommand({ type: "quiz", command: cmd });
     };
 
     const toTitleCase = (str)   => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -173,6 +181,19 @@
         match.scoresAtReg   = {away: 0, home: 0};
         match.historyAtReg  = [];
         match.mercyWait     = false;
+    };
+
+    const resetEverything = () => {
+        match.isActive      = false;
+        resetMatchData();
+        config.gameNumber   = 1;
+        config.teamNames    = {away: "Away", home: "Home"};
+        config.captains     = [1, 5];
+        config.isSwapped    = false;
+        config.knockout     = false;
+        config.seriesLength = 1;
+        config.seriesStats  = {awayWins: 0, homeWins: 0, draws: 0, history: []};
+        systemMessage("Full reset complete: settings, teams, and series history wiped");
     };
 
     const endGame = (winnerSide) => {
@@ -784,7 +805,7 @@
         systemMessage("2. Use /nfl setCaptains to set the right Captains for each team");
         systemMessage("3. Use /nfl setSeries to set the series length");
         systemMessage("4. Use /nfl setGame to set the game number");
-        systemMessage("5. Use /nfl setKnockout to enable/disable infinite Overtime for Knockout games");
+        systemMessage("5. Use /nfl setKnockout to enable/disable infinite overtime for Knockout games");
         systemMessage("6. Use /nfl start when you're ready to start a new Game");
     };
 
@@ -861,6 +882,7 @@
                                 systemMessage("Error: No active game or data to reset");
                             }
                         }
+                        else if (cmd === "reseteverything") resetEverything();
                         else if (cmd === "resetovertime") {
                             if (match.period === 'OVERTIME') {
                                 match.isActive      = false;
