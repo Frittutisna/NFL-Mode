@@ -98,7 +98,7 @@
             setTimeout(() => {
                 this.isProcessing = false;
                 this.process();
-            }, 500);
+            }, config.delay);
         }
     };
 
@@ -113,7 +113,7 @@
                 setTimeout(() => {
                     const confirmBtn = document.querySelector(".swal2-confirm");
                     if (confirmBtn) confirmBtn.click();
-                }, 500);
+                }, config.delay);
             }
         }
         else if (cmd === "pause game" || cmd === "resume game") {
@@ -914,13 +914,13 @@
                         else if (cmd === "howto")   printHowTo();
                         else if (cmd === "help")    printHelp(cmdKey ? null : arg);
                         else                        printHelp();
-                    }, 500);
+                    }, config.delay);
                 }
             });
         }).bindListener();
 
         new Listener("answer results", (payload) => {
-            if (match.isActive) setTimeout(() => processRound(payload), 500);
+            if (match.isActive) setTimeout(() => processRound(payload), config.delay);
         }).bindListener();
 
         new Listener("play next song", () => {
@@ -935,7 +935,7 @@
 
     function init() {
         if (typeof quiz !== 'undefined' && typeof Listener !== 'undefined') setup();
-        else setTimeout(init, 500);
+        else setTimeout(init, config.delay);
     }
 
     init();
