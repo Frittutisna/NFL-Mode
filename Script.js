@@ -104,9 +104,22 @@
     const chatMessage   = (msg) => {messageQueue.add(msg, false)};
     
     const sendGameCommand = (cmd) => {
-        if (typeof socket !== 'undefined') {
-            if (cmd === "return to lobby") cmd = "start return to lobby"; 
-            socket.sendCommand({ type: "quiz", command: cmd });
+        if (cmd === "return to lobby") {
+            const returnBtn = document.getElementById("qpReturnToLobbyButton");
+            if (returnBtn) returnBtn.click();
+        } 
+        else if (cmd === "pause game" || cmd === "resume game") {
+            const pauseBtn = document.getElementById("qpPauseButton");
+            if (pauseBtn) {
+                const icon = pauseBtn.querySelector("i");
+                if (icon) {
+                    const isPaused  = icon.classList.contains("fa-play-circle") || icon.classList.contains("fa-play");
+                    const isPlaying = icon.classList.contains("fa-pause");
+
+                    if      (cmd === "resume game"  && isPaused)    pauseBtn.click();
+                    else if (cmd === "pause game"   && isPlaying)   pauseBtn.click();
+                } else pauseBtn.click();
+            }
         }
     };
 
