@@ -19,7 +19,11 @@
         isSwapped       : false,
         knockout        : false,
         seriesLength    : 1,
-        seriesStats     : {awayWins: 0, homeWins: 0, draws: 0, history: []}
+        seriesStats     : {awayWins: 0, homeWins: 0, draws: 0, history: []},
+        links           : {
+            guide       : "https://github.com/Frittutisna/NFL-Mode/blob/main/Guide.md",
+            flowchart   : "https://github.com/Frittutisna/NFL-Mode/blob/main/Flowchart/Flowchart.pdf"
+        }
     };
 
     const match = {
@@ -283,7 +287,9 @@
 
         resetMatchData();
         match.isActive = true;
-        systemMessage(`Game ${config.gameNumber}: ${getTeamName('away')} @ ${getTeamName('home')}`);
+        chatMessage(`Game ${config.gameNumber}: ${getTeamName('away')} @ ${getTeamName('home')} is about to start, get ready`);
+        chatMessage(`Guide: ${config.links.guide}`);
+        chatMessage(`Flowchart: ${config.links.flowchart}`);
     };
 
     const outcomesList = [
@@ -789,8 +795,8 @@
 
                         if      (cmd === "start")           startGame();
                         else if (cmd === "end")             {match.isActive = false; systemMessage("Manually stopped"); }
-                        else if (cmd === "flowchart")       chatMessage("Flowchart: https://github.com/Frittutisna/NFL-Mode/blob/main/Flowchart/Flowchart.pdf");
-                        else if (cmd === "guide")           chatMessage("Guide: https://github.com/Frittutisna/NFL-Mode/blob/main/Guide.md");
+                        else if (cmd === "flowchart")       chatMessage(`Flowchart: ${config.links.flowchart}`);
+                        else if (cmd === "guide")           chatMessage(`Guide: ${config.links.guide}`);
                         else if (cmd === "setteams") { 
                             if (parts.length === 4 && parts[2].toLowerCase() !== parts[3].toLowerCase()) {
                                 config.teamNames.away = toTitleCase(parts[2]);

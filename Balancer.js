@@ -1,7 +1,7 @@
 const ADDR_PLAYERS      = "A2:B33";
-const ADDR_OUTPUT       = "F2:H33";
-const ADDR_REQS         = "J2:K17";
-const ADDR_BL           = "M2:N17";
+const ADDR_OUTPUT       = "G2:I33";
+const ADDR_REQS         = "K2:L17";
+const ADDR_BL           = "N2:O17";
 const SPREAD_THRESHOLD  = 1;
 
 function onOpen() {
@@ -320,7 +320,7 @@ function balanceTeams() {
         }
     }
     
-    ws.getRange(2, 6, totalRows, 3).setValues(outputData);
+    ws.getRange(2, 7, totalRows, 3).setValues(outputData);
 
     let verifiedReqs = 0;
     if (reqCount > 0) {

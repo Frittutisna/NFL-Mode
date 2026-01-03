@@ -177,23 +177,25 @@ The **Away** team again has first possession.
 An `Onside Kick` or any Defensive Point(s) ends Overtime here. 
 Otherwise, after both teams have **≥1** possession(s), whoever has more points wins. 
 If Overtime doesn’t resolve the tie, the game is called a **Tie**, 
-unless it's a **Knockout** game (**Championship Games** or the **Super Bowl**), 
+unless it's the **Championship Games** or the **Super Bowl**, 
 in which case Overtime **repeats** until a winner is found. 
 **Clear** the Overtime tally and repeat as necessary.
 
 ## Format: Best-of-7, Round Robin, Swiss, Knockouts
-- **For 2 teams:** Play a best-of-7, automatically swapping Away and Home between games.
-- **For 4 teams:** Play a double round-robin, automatically swapping Away and Home between repeat games. The top two teams advance to the **Super Bowl**.
-- **For 6/8+ teams:** Play a single round-robin/5-game Swiss league. The top four teams advance to the  **Championship Games**, then the two winners advance to the **Super Bowl**.
+- **For 2 teams**: Play a best-of-7, automatically swapping Away and Home between games.
+- **For 4 teams**: Play a double round-robin. The top two teams advance to the **Super Bowl**.
+- **For 6 teams**: Play a single round-robin. The top four teams advance to the **Championship Games**, then the winners advance to the **Super Bowl**.
+- **For 8 teams**: Play a single round-robin in 2 conferences. The top teams in each conference advance to the **Super Bowl**.
 
 ## Manual: What Do I *Really* Do?
 ### If you're hosting the tour:
 - Open the tour signup prompt and ask for team requests and/or blacklists.
 - After the player list has been settled, find the [Balancer](#links-balancer-flowchart-script) and follow the instructions there.
+- If the tour has 4+ teams, ask for 1 lobby host volunteer from each team.
 - Read the [Format](#format-best-of-7-round-robin-swiss-knockouts) section and prepare the Challonge.
 - After the team split has been settled, announce team compositions and the Challonge link.
 - Note the results of each game in Challonge.
-- Ping teams that advance to the **Championship Games** and/or the **Super Bowl** if necessary.
+- If necessary, ping teams that advance to the **Championship Games** and/or **Super Bowl**.
 - Announce the final results.
 
 ### If you're hosting a lobby for your team:
