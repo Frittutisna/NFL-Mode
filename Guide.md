@@ -8,13 +8,17 @@
 - [Lineup: Away and Home, Captains, OPs, DPs](#lineup-away-and-home-captains-ops-dps)
 - [Score: Check the (T)DIFF](#score-check-the-tdiff)
 - [Ending: Mercy, Overtime, Tie](#ending-mercy-overtime-tie)
-- [Format: Best-of-7, Round Robin, Swiss, Knockouts](#format-best-of-7-round-robin-swiss-knockouts)
+- [Format: Best-of-7, Round Robin, Knockouts](#format-best-of-7-round-robin-knockouts)
 - [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do)
 
 ## TLDR: What Do I Do?
-- If you're **just playing**: Join the right lobby, line up correctly, and click Ready.
+- If you're **just playing**: Join the right lobby, line up correctly, and click Ready. If you're confused about anything, you can (in order of priority):
+    - Just play along. People often say this is a game mode best understood through playing, not reading
+    - Ask the lobby host to enter `/nfl whatIs [Term]` for you
+    - Refer to the [Flowchart](#links-balancer-flowchart-script), or
+    - Read further
 - If you're **just watching**: Grab a bowl of popcorn before spectating the lobby of your choice.
-- **In either case, feel more than welcome to stop reading this guide here.**
+- **Unless you have to, feel more than welcome to stop reading this guide here.**
 - If you're **hosting the tour**, **hosting a lobby** for your team, or the **Captain** (you have the highest **Watched Elo**) of your team, see [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do).
 
 ## Links: Balancer, Flowchart, Script
@@ -77,7 +81,7 @@
 **Captains** (highest-Elo player in each team) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
 Captain’s correct guesses count **double** (2 points) for the (T)DIFF calculations. 
 The team listed first (above) on Challonge is the **Away** team. 
-Line up as follows: **Away** (OP1, OP2, DP1, DP2), then **Home** (OP1, OP2, DP1, DP2).
+Line up as follows: **Away** (1-4: OP1, OP2, DP1, DP2), then **Home** (5-8: OP1, OP2, DP1, DP2).
 
 ## Score: Check the (T)DIFF
 <details>
@@ -181,7 +185,7 @@ unless it's the **Championship Games** or the **Super Bowl**,
 in which case Overtime **repeats** until a winner is found. 
 **Clear** the Overtime tally and repeat as necessary.
 
-## Format: Best-of-7, Round Robin, Swiss, Knockouts
+## Format: Best-of-7, Round Robin, Knockouts
 - **For 2 teams**: Play a best-of-7, automatically swapping Away and Home between games.
 - **For 4 teams**: Play a double round-robin. The top two teams advance to the **Super Bowl**.
 - **For 6 teams**: Play a single round-robin. The top four teams advance to the **Championship Games**, then the winners advance to the **Super Bowl**.
@@ -192,7 +196,7 @@ in which case Overtime **repeats** until a winner is found.
 - Open the tour signup prompt and ask for team requests and/or blacklists.
 - After the player list has been settled, find the [Balancer](#links-balancer-flowchart-script) and follow the instructions there.
 - If the tour has 4+ teams, ask for 1 lobby host volunteer from each team.
-- Read the [Format](#format-best-of-7-round-robin-swiss-knockouts) section and prepare the Challonge.
+- Read the [Format](#format-best-of-7-round-robin-knockouts) section and prepare the Challonge.
 - After the team split has been settled, announce team compositions and the Challonge link.
 - Note the results of each game in Challonge.
 - If necessary, ping teams that advance to the **Championship Games** and/or **Super Bowl**.
