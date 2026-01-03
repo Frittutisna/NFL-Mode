@@ -442,7 +442,7 @@
           <mxGeometry height="40" width="60" x="90" y="180" as="geometry" />
         </mxCell>
         <mxCell id="JCQDH2w9EX0YJWp57w9O-215" parent="WIyWlLk6GJQsqaUBKTNV-1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=12;" value="No" vertex="1">
-          <mxGeometry height="40" width="60" x="100" y="360" as="geometry" />
+          <mxGeometry height="40" width="60" x="90" y="360" as="geometry" />
         </mxCell>
         <mxCell id="JCQDH2w9EX0YJWp57w9O-216" parent="WIyWlLk6GJQsqaUBKTNV-1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=12;" value="No" vertex="1">
           <mxGeometry height="40" width="60" x="410" y="240" as="geometry" />
@@ -463,7 +463,7 @@
           <mxGeometry height="40" width="60" x="320" y="890" as="geometry" />
         </mxCell>
         <mxCell id="JCQDH2w9EX0YJWp57w9O-225" parent="WIyWlLk6GJQsqaUBKTNV-1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=12;" value="&lt;span class=&quot;HzN33d&quot; data-huuid=&quot;3448331377520105211&quot;&gt;&lt;span&gt;≤-4&lt;/span&gt;&lt;/span&gt;" vertex="1">
-          <mxGeometry height="40" width="60" x="470" y="890" as="geometry" />
+          <mxGeometry height="40" width="60" x="460" y="890" as="geometry" />
         </mxCell>
         <mxCell id="JCQDH2w9EX0YJWp57w9O-226" parent="WIyWlLk6GJQsqaUBKTNV-1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=12;" value="Neither" vertex="1">
           <mxGeometry height="40" width="60" x="420" y="960" as="geometry" />
