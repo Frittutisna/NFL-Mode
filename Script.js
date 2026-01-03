@@ -943,10 +943,10 @@
                         }
                         else if (cmd === "whatis") {
                             if (!arg || arg === "help") {
-                                systemMessage("Available terms: " + Object.keys(TERMS).sort().join(", "));
+                                chatMessage("Available terms: " + Object.keys(TERMS).sort().join(", "));
                             } else {
-                                if (TERMS[arg]) systemMessage(`${toTitleCase(arg)}: ${TERMS[arg]}`);
-                                else            systemMessage(`Unknown term '${arg}'. Type /nfl whatIs help for a list.`);
+                                if (TERMS[arg]) chatMessage(`${toTitleCase(arg)}: ${TERMS[arg]}`);
+                                else            chatMessage(`Unknown term '${arg}'. Type /nfl whatIs help for a list.`);
                             }
                         }
                         else if (cmd === "export")  downloadScoresheet();
