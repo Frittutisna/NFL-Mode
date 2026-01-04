@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3.beta.1
+// @version      3.beta.2
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -22,7 +22,8 @@
     };
 
     let config = {
-        delay           : 750,
+        delay           : 1000,
+        priorityDelay   : 500,
         gameNumber      : 1,
         teamNames       : {away: "Away", home: "Home"},
         captains        : [1, 5],
@@ -119,16 +120,16 @@
     const messageQueue = {
         queue           : [],
         isProcessing    : false,
-        add             : function(msg, isSystem = false) {
+        add             : function(msg, isSystem = false, priority = false) {
             const LIMIT = 150; 
-            if (msg.length <= LIMIT) this.queue.push({msg, isSystem});
+            if (msg.length <= LIMIT) this.queue.push({msg, isSystem, priority});
             else {
                 let remaining = msg;
                 while (remaining.length > 0) {
-                    if (remaining.length <= LIMIT) {this.queue.push({msg: remaining, isSystem}); break;}
+                    if (remaining.length <= LIMIT) {this.queue.push({msg: remaining, isSystem, priority}); break;}
                     let splitIndex = remaining.lastIndexOf(' ', LIMIT);
                     if (splitIndex === -1) splitIndex = LIMIT;
-                    this.queue.push({msg: remaining.substring(0, splitIndex), isSystem});
+                    this.queue.push({msg: remaining.substring(0, splitIndex), isSystem, priority});
                     remaining = remaining.substring(splitIndex + 1);
                 }
             }
@@ -150,15 +151,13 @@
                 }
             }
 
-            setTimeout(() => {
-                this.isProcessing = false;
-                this.process();
-            }, config.delay);
+            const waitTime = item.priority ? config.priorityDelay : config.delay;
+            setTimeout(() => {this.isProcessing = false; this.process()}, waitTime);
         }
     };
 
-    const systemMessage = (msg) => {messageQueue.add(msg, true)};
-    const chatMessage   = (msg) => {messageQueue.add(msg, false)};
+    const systemMessage = (msg, priority = false) => {messageQueue.add(msg, true, priority)};
+    const chatMessage   = (msg, priority = false) => {messageQueue.add(msg, false, priority)};
     
     const sendGameCommand = (cmd) => {
         if (cmd === "return to lobby") {
@@ -434,8 +433,8 @@
                 const isCorrect = checkSlot(slotId);
                 const isCaptain = config.captains.includes(slotId);
                 const points    = isCorrect ? (isCaptain ? gameConfig.captainMultiplier : 1) : 0;
-                patternArr.push(isCorrect ? 1 : 0);
-                patternStr += (isCorrect ? 1 : 0);
+                patternArr.push (isCorrect ? points : 0);
+                patternStr +=   (isCorrect ? 1      : 0);
                 if (isCorrect) {
                     correctCount++;
                     totalScore += points;
@@ -808,8 +807,8 @@
             }
             
             const displaySong   = row.period === 'OVERTIME' ? row.otRound : row.song;
-            const awayCells     = row.awayArr.map(b => `<td>${b === 0 ? '' : b}</td>`).join('');
-            const homeCells     = row.homeArr.map(b => `<td>${b === 0 ? '' : b}</td>`).join('');
+            const awayCells     = row.awayArr.map(val => `<td>${val === 0 ? '' : val}</td>`).join('');
+            const homeCells     = row.homeArr.map(val => `<td>${val === 0 ? '' : val}</td>`).join('');
 
             html += `
                 <tr>
@@ -836,22 +835,22 @@
     const printHelp = (topic = null) => {
         if (topic) {
             const actualKey = Object.keys(COMMAND_DESCRIPTIONS).find(key => key.toLowerCase() === topic);
-            if      (actualKey) systemMessage(`/nfl ${actualKey}: ${COMMAND_DESCRIPTIONS[actualKey]}`); 
-            else                systemMessage("Unknown command, type /nfl help for a list");
+            if      (actualKey) systemMessage(`/nfl ${actualKey}: ${COMMAND_DESCRIPTIONS[actualKey]}`, true); 
+            else                systemMessage("Unknown command, type /nfl help for a list", true);
         } else {
             const cmds = Object.keys(COMMAND_DESCRIPTIONS).join(", ");
-            systemMessage("Commands: " + cmds);
-            systemMessage("Type /nfl help [command] for more details or /nfl howTo for setup steps");
+            systemMessage("Commands: " + cmds, true);
+            systemMessage("Type /nfl help [command] for more details or /nfl howTo for setup steps", true);
         }
     };
 
     const printHowTo = () => {
-        systemMessage("1. Use /nfl setTeams to set the Away and Home team names");
-        systemMessage("2. Use /nfl setCaptains to set the right Captains for each team");
-        systemMessage("3. Use /nfl setSeries to set the series length");
-        systemMessage("4. Use /nfl setGame to set the game number");
-        systemMessage("5. Use /nfl setKnockout to enable/disable infinite overtime for Knockout games");
-        systemMessage("6. Use /nfl start when you're ready to start a new Game");
+        systemMessage("1. Use /nfl setTeams to set the Away and Home team names", true);
+        systemMessage("2. Use /nfl setCaptains to set the right Captains for each team", true);
+        systemMessage("3. Use /nfl setSeries to set the series length", true);
+        systemMessage("4. Use /nfl setGame to set the game number", true);
+        systemMessage("5. Use /nfl setKnockout to enable/disable infinite overtime for Knockout games", true);
+        systemMessage("6. Use /nfl start when you're ready to start a new Game", true);
     };
 
     const parseBoolArg = (arg) => {
@@ -886,57 +885,57 @@
                         const arg       = parts.slice(2).join(" ").toLowerCase();
                         const cmdKey    = Object.keys(COMMAND_DESCRIPTIONS).find(k => k.toLowerCase() === cmd);
                         if      (cmd === "start")           startGame();
-                        else if (cmd === "end")             {match.isActive = false; systemMessage("Manually stopped"); }
-                        else if (cmd === "flowchart")       chatMessage(`Flowchart: ${config.links.flowchart}`);
-                        else if (cmd === "guide")           chatMessage(`Guide: ${config.links.guide}`);
+                        else if (cmd === "end")             {match.isActive = false; systemMessage("Manually stopped", true)}
+                        else if (cmd === "flowchart")       chatMessage(`Flowchart: ${config.links.flowchart}`, true);
+                        else if (cmd === "guide")           chatMessage(`Guide: ${config.links.guide}`, true);
                         else if (cmd === "setteams") { 
                             if (parts.length === 4 && parts[2].toLowerCase() !== parts[3].toLowerCase()) {
                                 config.teamNames.away = toTitleCase(parts[2]);
                                 config.teamNames.home = toTitleCase(parts[3]);
-                                systemMessage(`Teams set: ${config.teamNames.away} @ ${config.teamNames.home}`);
-                            } else systemMessage("Error: Use /nfl setTeams [Away] [Home]");
+                                systemMessage(`Teams set: ${config.teamNames.away} @ ${config.teamNames.home}`, true);
+                            } else systemMessage("Error: Use /nfl setTeams [Away] [Home]", true);
                         } 
                         else if (cmd === "setcaptains") {
                             if (typeof lobby !== 'undefined' && lobby.inLobby) playersCache = Object.values(lobby.players);
                             if (parts[2] && /^[1-4][5-8]$/.test(parts[2])) {
                                 config.captains = parts[2].split('').map(Number);
-                                systemMessage(`Captains: ${getCaptainListString()}`);
-                            } else systemMessage("Error: Use /nfl setCaptains [1-4][5-8]");
+                                systemMessage(`Captains: ${getCaptainListString()}`, true);
+                            } else systemMessage("Error: Use /nfl setCaptains [1-4][5-8]", true);
                         }
                         else if (cmd === "setgame") {
                             const num = parseInt(parts[2]);
-                            if (num >= 1 && num <= 7) {config.gameNumber = num; systemMessage(`Game Number: ${num}`)}
-                            else systemMessage("Error: Use /nfl setGame [1-7]");
+                            if (num >= 1 && num <= 7) {config.gameNumber = num; systemMessage(`Game Number: ${num}`, true)}
+                            else systemMessage("Error: Use /nfl setGame [1-7]", true);
                         }
                         else if (cmd === "setseries") {
                             const num = parseInt(parts[2]);
-                            if (num === 1 || num === 2 || num === 7) {config.seriesLength = num; systemMessage(`Series Length: ${num}`)}
-                            else systemMessage("Error: Use /nfl setSeries [1/2/7]");
+                            if (num === 1 || num === 2 || num === 7) {config.seriesLength = num; systemMessage(`Series Length: ${num}`, true)}
+                            else systemMessage("Error: Use /nfl setSeries [1/2/7]", true);
                         }
                         else if (cmd === "setknockout") {
                             const val = parseBoolArg(parts[2]);
-                            if (val !== null) {config.knockout = val; systemMessage(`Knockout Mode: ${val ? "True" : "False"}`)} 
-                            else systemMessage("Error: Use /nfl setKnockout [true/false/1/0/T/F]");
+                            if (val !== null) {config.knockout = val; systemMessage(`Knockout Mode: ${val ? "True" : "False"}`, true)} 
+                            else systemMessage("Error: Use /nfl setKnockout [true/false/1/0/T/F]", true);
                         }
                         else if (cmd === "settest") {
                             const val = parseBoolArg(parts[2]);
-                            if (val !== null) {config.isTest = val; systemMessage(`Test Mode: ${val ? "True" : "False"}`)} 
-                            else systemMessage("Error: Use /nfl setTest [true/false/1/0/T/F]");
+                            if (val !== null) {config.isTest = val; systemMessage(`Test Mode: ${val ? "True" : "False"}`, true)} 
+                            else systemMessage("Error: Use /nfl setTest [true/false/1/0/T/F]", true);
                         }
                         else if (cmd === "showcodes") {
-                            systemMessage(`Regulation: ${CODES.REGULATION}`);
-                            systemMessage(`Overtime: ${CODES.OVERTIME}`);
+                            systemMessage(`Regulation: ${CODES.REGULATION}`, true);
+                            systemMessage(`Overtime: ${CODES.OVERTIME}`, true);
                         }
                         else if (cmd === "swap") {
                             config.isSwapped = !config.isSwapped;
-                            systemMessage(`Swapped: ${config.teamNames.away} is now the Home team`);
+                            systemMessage(`Swapped: ${config.teamNames.away} is now the Home team`, true);
                         }
                         else if (cmd === "resetgame") {
                             if (match.isActive || match.history.length > 0) {
                                 match.isActive = false;
                                 resetMatchData();
-                                systemMessage(`Game ${config.gameNumber} reset, tracker stopped and data wiped`);
-                            } else systemMessage("Error: No active game or data to reset");
+                                systemMessage(`Game ${config.gameNumber} reset, tracker stopped and data wiped`, true);
+                            } else systemMessage("Error: No active game or data to reset", true);
                         }
                         else if (cmd === "reseteverything") resetEverything();
                         else if (cmd === "resetovertime") {
@@ -947,35 +946,35 @@
                                 match.otRound       = 0;
                                 match.songNumber    = 20;
                                 match.period        = 'OVERTIME';
-                                systemMessage("Overtime reset, tracker stopped and reverted to the end of Regulation");
-                                systemMessage("Type /nfl start to restart Overtime")
-                            } else systemMessage("Error: Can only reset Overtime while in Overtime");
+                                systemMessage("Overtime reset, tracker stopped and reverted to the end of Regulation", true);
+                                systemMessage("Type /nfl start to restart Overtime", true)
+                            } else systemMessage("Error: Can only reset Overtime while in Overtime", true);
                         }
                         else if (cmd === "resetseries") {
                             const hasHistory = config.seriesStats.history.length > 0;
                             const isActive   = match.isActive;
-                            if (!hasHistory && !isActive && match.history.length === 0) systemMessage("Error: Cannot reset series; no active game or completed series found");
+                            if (!hasHistory && !isActive && match.history.length === 0) systemMessage("Error: Cannot reset series; no active game or completed series found", true);
                             else {
                                 match.isActive = false;
                                 resetMatchData();
                                 config.gameNumber   = 1;
                                 config.isSwapped    = false;
                                 config.seriesStats  = {awayWins: 0, homeWins: 0, draws: 0, history: []};
-                                systemMessage("Series reset, all history wiped, ready for Game 1");
+                                systemMessage("Series reset, all history wiped, ready for Game 1", true);
                             }
                         }
                         else if (cmd === "whatis") {
-                            if (!arg || arg === "help") chatMessage("Available terms: " + Object.keys(TERMS).sort().join(", "));
+                            if (!arg || arg === "help") chatMessage("Available terms: " + Object.keys(TERMS).sort().join(", "), true);
                             else {
-                                if (TERMS[arg]) chatMessage(`${toTitleCase(arg)}: ${TERMS[arg]}`);
-                                else            chatMessage(`Unknown term '${arg}'. Type /nfl whatIs help for a list.`);
+                                if (TERMS[arg]) chatMessage(`${toTitleCase(arg)}: ${TERMS[arg]}`, true);
+                                else            chatMessage(`Unknown term '${arg}'. Type /nfl whatIs help for a list`, true);
                             }
                         }
                         else if (cmd === "export")  downloadScoresheet();
                         else if (cmd === "howto")   printHowTo();
                         else if (cmd === "help")    printHelp(cmdKey ? null : arg);
                         else                        printHelp();
-                    }, config.delay);
+                    }, 250);
                 }
             });
         }).bindListener();
