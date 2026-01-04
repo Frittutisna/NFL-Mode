@@ -143,8 +143,10 @@
             if (item.isSystem) if (typeof gameChat !== 'undefined') gameChat.systemMessage(item.msg);
             else {
                 if (typeof socket !== 'undefined') {
+                    let type = "lobby";
+                    if (typeof quiz !== 'undefined' && quiz.inQuiz) type = "quiz";
                     socket.sendCommand({
-                        type    : "lobby",
+                        type    : type, 
                         command : "game chat message",
                         data    : {msg: item.msg, teamMessage: false}
                     });
