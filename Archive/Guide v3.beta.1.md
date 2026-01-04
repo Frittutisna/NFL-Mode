@@ -1,10 +1,10 @@
-# NFL Mode v3.beta.2
+# NFL Mode v3.beta.1
 
 ## Table of Contents
 - [TLDR: What Do I Do?](#tldr-what-do-i-do)
 - [Links: Balancer, Flowchart, Script](#links-balancer-flowchart-script)
 - [Overview: Those Long Setting Codes](#overview-those-long-setting-codes)
-- [Changelog: What Changed From v3.beta.1?](#changelog-what-changed-from-v3beta1)
+- [Changelog: What Changed From v3.beta?](#changelog-what-changed-from-v3beta)
 - [Lineup: Away and Home, Captains, OPs, DPs](#lineup-away-and-home-captains-ops-dps)
 - [Score: Check the (T)DIFF](#score-check-the-tdiff)
 - [Ending: Mercy, Overtime, Tie](#ending-mercy-overtime-tie)
@@ -15,14 +15,14 @@
 - If you're **just playing**: Join the right lobby, line up correctly, and click Ready. If you're confused about anything, you can (in order of priority):
     - Just play along. People often say this is a game mode best understood through playing, not reading
     - Ask the lobby host to enter `/nfl whatIs [Term]` for you
-    - **Download** the [Flowchart](#links-balancer-flowchart-script) (since it might not render correctly on GitHub), or
+    - Refer to the [Flowchart](#links-balancer-flowchart-script), or
     - Read further
 - If you're **just watching**: Grab a bowl of popcorn before spectating the lobby of your choice.
-- **Unless you have to, feel more than welcome to stop reading this guide here.** I promise you, unless you **really** have to, you **shouldn't** read the rest of this guide.
+- **Unless you have to, feel more than welcome to stop reading this guide here.**
 - If you're **hosting the tour**, **hosting a lobby** for your team, or the **Captain** (you have the highest **Watched Elo**) of your team, see [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do).
 
 ## Links: Balancer, Flowchart, Script
-- [Link to the Balancer](https://github.com/Frittutisna/NFL-Mode/blob/main/Balancer/Balancer.py)
+- [Link to the Balancer](https://docs.google.com/spreadsheets/d/1AM1pWeTWCijGKjbmJ9Vu_4hZYb1PQ1S0fNbfT9BtWxQ/copy)
 - [Link to the Flowchart](https://github.com/Frittutisna/NFL-Mode/blob/main/Flowchart/Flowchart.pdf)
 - [Link to the Script](https://github.com/Frittutisna/NFL-Mode/blob/main/Script.js)
 
@@ -37,7 +37,7 @@
     <tr>
         <td style="text-align:center">Regulation</td>
         <td style="text-align:center">0 - 40</td>
-        <td style="text-align:center">20 Watched Equal</td>
+        <td style="text-align:center">20 Watched "Equal"</td>
         <td style="text-align:center">
             <details>
                 <summary>Click to view code</summary>
@@ -58,23 +58,24 @@
     </tr>
 </table>
 
-## Changelog: What Changed From v3.beta.1?
-### Balancer Changes
-- Created platform-agnostic Python script for Balancer
-- Changed balancing calculation to count Captain's Elos twice
-- Increased spread threshold from `1.0` to `1.25` to account for doubling Captain's Elos in calculations
-### Guide Change
-- Fixed error in [Format](#format-best-of-7-round-robin-knockouts); 8 teams play a **double** round-robin
-### Script Changes
-- Centralized DOM selectors to top of script for easier maintenance
-- Fixed aggresive resuming behavior on manual pauses
-- Implemented courtesy pause on disconnects
-- Reduced delay for priority messages
-- Increased delay for normal messages
-- Added `/nfl setTest` to enforce/ignore additional lobby validation checks
-- Fixed Boolean commands (e.g., `/nfl setKnockout`, `/nfl setTest`) to ignore capitalizations, take T/Fs and 0/1s
-### Scoresheet Change
-- Fixed HTML output file to tally Captain's guesses as 2
+## Changelog: What Changed From v3.beta?
+### Format change
+    - Removed Rebroadcast Songs in Regulation and Overtime from community feedback
+### Guide changes
+    - Expanded TLDR section for different roles (tour host, lobby host, Captains, players, spectators)
+    - Added Manual section for tour host, lobby host, and Captains
+    - Added link to Balancer for tour host
+    - Changed Overview codes to reflect Rebroadcast removal
+    - Added Flowchart for better visibility
+### Script changes
+    - Unswapped song state reports (e.g., "1111 1100 TD + 2PC 8-0") in even-numbered games to match slot assignments
+    - Changed series reports to list ties last (e.g., "The Ravens lead the series 2-0-1 ...")
+    - Changed series reports to list from the perspective of the series leader if applicable (e.g., "... (17-17, 21-15, 30-6))
+    - Implemented automatic pause/resume with "Mercy Rule trigger warning next Song!" messages
+    - Implemented automatic return prompts after game-ending situations
+    - Implemented "Possession: [Team]" and "Next Possession: [Team]" messages for better visibility
+### Scoresheet change
+    - Simplified Overtime banner row explanation
 
 ## Lineup: Away and Home, Captains, OPs, DPs
 **Captains** (highest-Elo player in each team) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
@@ -188,7 +189,7 @@ in which case Overtime **repeats** until a winner is found.
 - **For 2 teams**: Play a best-of-7, automatically swapping Away and Home between games.
 - **For 4 teams**: Play a double round-robin. The top two teams advance to the **Super Bowl**.
 - **For 6 teams**: Play a single round-robin. The top four teams advance to the **Championship Games**, then the winners advance to the **Super Bowl**.
-- **For 8 teams**: Play a double round-robin in 2 conferences. The winner of each conference advance to the **Super Bowl**.
+- **For 8 teams**: Play a single round-robin in 2 conferences. The top teams in each conference advance to the **Super Bowl**.
 
 ## Manual: What Do I *Really* Do?
 ### If you're hosting the tour:
@@ -219,7 +220,7 @@ Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host 
 - Type `/nfl export` to download the **Scoresheet**.
 - Open the Scoresheet and copy the top row.
 - Paste it in `#game-reporting` with the Scoresheet and JSON(s) (Regulation and **the last** Overtime, if necessary).
-- Repeat from Step 1 for the next game.
+- Repeat from step 1 for the next game.
 
 ### If you're the Captain of your team:
 - **Split** your team into 2 Offensive (OPs) and 2 Defensive (DPs) Players.

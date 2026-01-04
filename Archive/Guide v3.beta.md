@@ -1,4 +1,4 @@
-# NFL Mode v3.beta
+# NFL Mode v3.beta.0
 
 ## TLDR: Too Long, Didn't Read
 Just install the **Script**. It handles all the complicated stuff; the team with the most points after 20 songs wins!

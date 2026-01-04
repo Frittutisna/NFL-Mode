@@ -1,0 +1,9 @@
+Balanced 8 players into 2 teams
+Fulfilled 1 out of 1 request(s)
+Fulfilled 0 out of 0 blacklist(s)
+
+Average Elo: 49.24
+Final Spread: 1.01
+
+Steelers (49.75): AitsukiNakuru (C), tskr, oolli, HakoHoka
+Chiefs (48.73): miiarad (C), Shadow, PotassiumF, brandon_K

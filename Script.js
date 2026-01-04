@@ -886,7 +886,7 @@
                         const cmdKey    = Object.keys(COMMAND_DESCRIPTIONS).find(k => k.toLowerCase() === cmd);
                         if      (cmd === "start")           startGame();
                         else if (cmd === "end")             {match.isActive = false; systemMessage("Manually stopped", true)}
-                        else if (cmd === "flowchart")       chatMessage(`Flowchart: ${config.links.flowchart}`, true);
+                        else if (cmd === "flowchart")       chatMessage(`Download the Flowchart: ${config.links.flowchart}`, true);
                         else if (cmd === "guide")           chatMessage(`Guide: ${config.links.guide}`, true);
                         else if (cmd === "setteams") { 
                             if (parts.length === 4 && parts[2].toLowerCase() !== parts[3].toLowerCase()) {
