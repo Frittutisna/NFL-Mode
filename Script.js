@@ -347,15 +347,15 @@
     };
 
     const validateLobby = () => {
+        if (config.isTest) return {valid: true};
+
         if (typeof lobby === 'undefined' || !lobby.inLobby) return {valid: false, msg: "Error: Not in Lobby"};
         const players = Object.values(lobby.players);
         
-        if (!config.isTest) {
-            if (players.length !== 8) return {valid: false, msg: "Error: NFL Mode requires exactly 8 players"};
-            for (let i = 1; i <= 8; i++) {
-                const pInSlot = players.find(p => getTeamNumber(p) === i);
-                if (!pInSlot) return {valid: false, msg: `Error: Missing player in Slot ${i}`};
-            }
+        if (players.length !== 8) return {valid: false, msg: "Error: NFL Mode requires exactly 8 players"};
+        for (let i = 1; i <= 8; i++) {
+            const pInSlot = players.find(p => getTeamNumber(p) === i);
+            if (!pInSlot) return {valid: false, msg: `Error: Missing player in Slot ${i}`};
         }
 
         const notReady = players.filter(p => !p.ready);
