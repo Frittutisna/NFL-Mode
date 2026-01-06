@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3.beta.3.0
+// @version      3.beta.3.1
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -77,8 +77,8 @@
         "safety"        : "DIFF = -2. Defending Team gets 2 points",
         "pick six"      : "DIFF = -3. Defending Team gets 6 points",
         "mercy rule"    : "Triggers when the trailing team cannot mathematically catch up with the songs remaining",
-        "regulation"    : "The first 20 songs (0-40 Watched Equal)",
-        "overtime"      : "Played if tied after Regulation (5 0-100 Random songs). Away gets first possession",
+        "regulation"    : "The first 16 songs (0-40 Watched Equal)",
+        "overtime"      : "Played if tied after Regulation (4 Random songs). Away gets first possession",
         "sudden death"  : "In Overtime, if Song 1 results in an Onside Kick or ANY Defensive points, the game ends immediately",
         "knockout"      : "A game where a winner must be decided (e.g., Championship Game, Super Bowl). Overtime repeats indefinitely until a winner is found",
         "balancer"      : "The spreadsheet used to create fair teams based on Elo"
@@ -471,9 +471,11 @@
             else if (diff <= -3)            result = {name: "Pick Six",     pts: 6, swap: true,     team: "defense" };
         }
 
-        if      (result.team === "offense") match.scores[attSide]   += result.pts;
-        else if (result.team === "defense") match.scores[defSide]   += result.pts;
-        if (result.swap)                    match.possession        = defSide;
+        if      (result.team === "offense") match.scores[attSide]   +=  result.pts;
+        else if (result.team === "defense") match.scores[defSide]   +=  result.pts;
+        if (result.swap)                    match.possession        =   defSide;
+
+        if (match.period === 'REGULATION' && match.songNumber === 8) match.possession = 'home';
 
         let displayAwayPattern = awayStats.patternStr;
         let displayHomePattern = homeStats.patternStr;
@@ -492,13 +494,13 @@
         let winnerSide = null;
 
         if (match.period === 'REGULATION') {
-            const songsRemaining        = 20 - match.songNumber;
+            const songsRemaining        = 16 - match.songNumber;
             const isAwayLeading         = match.scores.away > match.scores.home;
             const trailerPossessing     = (isAwayLeading && match.possession === 'home') || (!isAwayLeading && match.possession === 'away');
             const maxPointsRemaining    = getMaxPossiblePoints(songsRemaining, trailerPossessing);
             const scoreDiff             = Math.abs(match.scores.away - match.scores.home);
 
-            if (scoreDiff > maxPointsRemaining && match.songNumber < 20) {
+            if (scoreDiff > maxPointsRemaining && match.songNumber < 16) {
                 const winner    = match.scores.away > match.scores.home ? getTeamName('away')   : getTeamName('home');
                 winnerSide      = match.scores.away > match.scores.home ? 'away'                : 'home';
                 chatMessage(`Mercy Rule triggered, ${winner} wins`);
@@ -506,7 +508,7 @@
                 endGame(winnerSide);
                 isGameOver = true;
             } 
-            else if (match.songNumber === 20) {
+            else if (match.songNumber === 16) {
                 if (scoreDiff === 0) {
                     chatMessage("Tied after Regulation, entering Overtime");
                     systemMessage(`Overtime Code: ${CODES.OVERTIME}`);
@@ -525,10 +527,10 @@
                     isGameOver = true;
                 }
             }
-            else if (match.songNumber < 19 && match.songNumber >= 10) {
+            else if (match.songNumber >= 8 && match.songNumber <= 14) {
                  try {
                     const nextRoundSong     = match.songNumber + 1;
-                    const songsAfterNext    = 20 - nextRoundSong;
+                    const songsAfterNext    = 16 - nextRoundSong;
                     const leaderName        = isAwayLeading ? getTeamName('away') : getTeamName('home');
                     const trailerName       = isAwayLeading ? getTeamName('home') : getTeamName('away');
                     const gap               = scoreDiff;
@@ -575,17 +577,7 @@
                             if (Math.abs(killOutcome.change) >= 7) txtKill = `needs ${artKill} ${killOutcome.name}`;
                             chatMessage(`The ${leaderName} ${txtKill} next Song to trigger Mercy Rule`);
                         }
-                    } else {
-                        match.mercyWait = false;
-                        for (let s = match.songNumber + 2; s < 20 && s <= match.songNumber + 3; s++) {
-                            const songsFromHereToS  = s - match.songNumber;
-                            const futureMax         = getMaxPossiblePoints(20 - s, (songsFromHereToS % 2 !== 0 ? !trailerPossessing : trailerPossessing));
-                            if (scoreDiff > futureMax) {
-                                chatMessage(`Mercy Rule trigger warning after Song ${s}`);
-                                break;
-                            }
-                        }
-                    }
+                    } else match.mercyWait = false;
                 } catch(e) {}
             }
         }
@@ -645,7 +637,7 @@
                 }
             }
 
-            if (!isGameOver && match.otRound === 5) {
+            if (!isGameOver && match.otRound === 4) {
                 if (match.scores.away === match.scores.home) {
                     if (config.knockout) {
                         systemMessage("Knockout Overtime ended in a tie, restarting Overtime");
@@ -761,11 +753,7 @@
                         <th>${awayNameRaw}</th>
                         <th>${homeNameRaw}</th>
                     </tr>
-                    <tr>
-                        <td colspan="14" style="font-weight: bold;">
-                            Regulation (0-40): 20 Watched Equal with Mercy Rule
-                        </td>
-                    </tr>
+                    <tr><td colspan="14" style="font-weight: bold;">Regulation (0-40): 16 Watched Equal with Mercy Rule</td></tr>
                 </thead>
                 <tbody>
         `;
@@ -774,12 +762,7 @@
 
         match.history.forEach(row => {
             if (row.period === 'OVERTIME' && !otBannerAdded) {
-                html += `
-                <tr>
-                    <td colspan="14" style="font-weight: bold;">
-                        Overtime (0-100): 5 Random songs with Sudden Death
-                    </td>
-                </tr>`;
+                html += `<tr><td colspan="14" style="font-weight: bold;">Overtime (0-100): 4 Random songs with Sudden Death</td></tr>`;
                 otBannerAdded = true;
             }
 
@@ -788,7 +771,7 @@
             let winnerName                  = "TBD";
 
             if (row.period === 'REGULATION') {
-                 const songsRemaining       = 20 - row.song;
+                 const songsRemaining       = 16 - row.song;
                  const diff                 = Math.abs(scoreAway - scoreHome);
                  let nextPossessionIsAway   = (row.poss === 'away');
                  const swapResults          = ["TD + 2PC", "Touchdown", "Field Goal", "Rouge", "Punt", "Safety", "Pick Six", "House Call"];
@@ -797,23 +780,17 @@
                  const trailerIsPossessing  = (isAwayLeading && !nextPossessionIsAway) || (!isAwayLeading && nextPossessionIsAway);
                  const maxPoints            = getMaxPossiblePoints(songsRemaining, trailerIsPossessing);
                  
-                 if (diff > maxPoints || (row.song >= 20 && diff !== 0)) {
-                    winnerName = scoreAway > scoreHome ? awayNameRaw : homeNameRaw;
-                 }
+                 if (diff > maxPoints || (row.song >= 16 && diff !== 0)) winnerName = scoreAway > scoreHome ? awayNameRaw : homeNameRaw;
             } else {
-                if (row.otRound === 1 && (row.result === "Onside Kick" || (row.result !== "Onside Kick" && ["Safety","Pick Six","House Call","Rouge"].includes(row.result) && row.result!=="Rouge"))) {
-                     if (scoreAway !== scoreHome) winnerName = scoreAway > scoreHome ? awayNameRaw : homeNameRaw;
-                } else if (row.otRound >= 2 && scoreAway !== scoreHome) {
-                     winnerName = scoreAway > scoreHome ? awayNameRaw : homeNameRaw;
-                }
+                if (row.otRound === 1 && (row.result === "Onside Kick" || (row.result !== "Onside Kick" && ["Safety", "Pick Six", "House Call", "Rouge"].includes(row.result) && row.result !== "Rouge"))) if (scoreAway !== scoreHome) winnerName = scoreAway > scoreHome ? awayNameRaw : homeNameRaw;
+                else if (row.otRound >= 2 && scoreAway !== scoreHome) winnerName = scoreAway > scoreHome ? awayNameRaw : homeNameRaw;
             }
             
             const displaySong   = row.period === 'OVERTIME' ? row.otRound : row.song;
             const awayCells     = row.awayArr.map(b => `<td>${b === 0 ? '' : b}</td>`).join('');
             const homeCells     = row.homeArr.map(b => `<td>${b === 0 ? '' : b}</td>`).join('');
 
-            html += `
-                <tr>
+            html += `<tr>
                     <td>${displaySong}</td>
                     <td>${possName}</td>
                     ${awayCells}
@@ -935,7 +912,7 @@
                                 match.scores        = JSON.parse(JSON.stringify(match.scoresAtReg));
                                 match.history       = JSON.parse(JSON.stringify(match.historyAtReg));
                                 match.otRound       = 0;
-                                match.songNumber    = 20;
+                                match.songNumber    = 16;
                                 match.period        = 'OVERTIME';
                                 systemMessage("Overtime reset, tracker stopped and reverted to the end of Regulation");
                                 systemMessage("Type /nfl start to restart Overtime")
