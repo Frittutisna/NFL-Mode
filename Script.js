@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3.beta.3.1
+// @version      3.beta.2.1
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -13,7 +13,7 @@
     let playersCache = [];
 
     let config = {
-        delay           : 750,
+        delay           : 500,
         gameNumber      : 1,
         teamNames       : {away: "Away", home: "Home"},
         captains        : [1, 5],
@@ -344,7 +344,7 @@
             systemMessage(`Ready for Game ${config.gameNumber}, auto-swapped teams for the return leg`);
         } else systemMessage("Series finished");
         
-        setTimeout(() => sendGameCommand("return to lobby"), 2000);
+        setTimeout(() => sendGameCommand("return to lobby"), config.delay);
     };
 
     const validateLobby = () => {
@@ -357,7 +357,12 @@
 
     const startGame = () => {
         const check = validateLobby();
-        if (!check.valid) {systemMessage(check.msg); return;}
+        if (!check.valid) {systemMessage(check.msg); return}
+
+        if (match.period === 'OVERTIME' && match.historyAtReg.length > 0 && match.isActive) {
+            systemMessage("No need to type /nfl start to start Overtime unless you came from a reset");
+            return;
+        }
 
         if (match.period === 'OVERTIME' && match.historyAtReg.length > 0 && !match.isActive) {
             match.isActive = true;
@@ -640,11 +645,18 @@
             if (!isGameOver && match.otRound === 4) {
                 if (match.scores.away === match.scores.home) {
                     if (config.knockout) {
-                        systemMessage("Knockout Overtime ended in a tie, restarting Overtime");
+                        systemMessage("Knockout Overtime ended in a tie, returning to lobby to restart Overtime...");
+                        
                         match.scores        = JSON.parse(JSON.stringify(match.scoresAtReg));
                         match.history       = JSON.parse(JSON.stringify(match.historyAtReg));
                         match.possession    = 'away';
                         match.otRound       = 0;
+                        match.songNumber    = 16;                        
+                        match.isActive      = false; 
+                        
+                        sendGameCommand("pause game");
+                        setTimeout(() => sendGameCommand("return to lobby"), config.delay);
+                        return;
                     } else {
                         chatMessage("Game ended in a Tie");
                         endGame('draw');
