@@ -687,7 +687,9 @@
 
         if (!match.isActive) {
             const seriesJustFinished = config.seriesStats.history.length === config.gameNumber;
-            if (!seriesJustFinished) {effGameNum--; effSwapped = !effSwapped;
+            if (!seriesJustFinished && effGameNum > config.seriesStats.history.length + 1) {
+                effGameNum--; 
+                effSwapped = !effSwapped;
             }
         }
         
