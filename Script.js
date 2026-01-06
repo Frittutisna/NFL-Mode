@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3.beta.2.1
+// @version      3.beta.2.2
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -867,17 +867,17 @@
                         else if (cmd === "guide")           chatMessage(`Guide: ${config.links.guide}`);
                         else if (cmd === "setteams") { 
                             if (parts.length === 4 && parts[2].toLowerCase() !== parts[3].toLowerCase()) {
-                                config.teamNames.away = toTitleCase(parts[2]);
-                                config.teamNames.home = toTitleCase(parts[3]);
+                                config.teamNames.away = "← " + toTitleCase(parts[2]);
+                                config.teamNames.home = toTitleCase(parts[3]) + " →";
                                 systemMessage(`Teams set: ${config.teamNames.away} @ ${config.teamNames.home}`);
                             } else systemMessage("Error: Use /nfl setTeams [Away] [Home]");
                         } 
                         else if (cmd === "setcaptains") {
                             if (typeof lobby !== 'undefined' && lobby.inLobby) playersCache = Object.values(lobby.players);
-                            if (parts[2] && /^[1-4][5-8]$/.test(parts[2])) {
+                            if (parts[2] && /^[13][57]$/.test(parts[2])) {
                                 config.captains = parts[2].split('').map(Number);
                                 systemMessage(`Captains: ${getCaptainListString()}`);
-                            } else systemMessage("Error: Use /nfl setCaptains [1-4][5-8]");
+                            } else systemMessage("Error: Use /nfl setCaptains [1/3][5/7]");
                         }
                         else if (cmd === "setgame") {
                             const num = parseInt(parts[2]);
