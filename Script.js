@@ -50,7 +50,7 @@
     };
 
     const CODES = {
-        REGULATION  : "e0g0k21111100130k000031110000000k11111111111100k051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1k903-11111--",
+        REGULATION  : "e0g0g21111100130g000031110000000g11111111111100k051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1k903-11111--",
         OVERTIME    : "e0g05211111001100000531110000000511111111111100k051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--"
     };
 
@@ -645,7 +645,7 @@
             if (!isGameOver && match.otRound === 4) {
                 if (match.scores.away === match.scores.home) {
                     if (config.knockout) {
-                        systemMessage("Knockout Overtime ended in a tie, returning to lobby to restart Overtime...");
+                        chatMessage("Knockout Overtime ended in a tie, returning to lobby to restart Overtime");
                         
                         match.scores        = JSON.parse(JSON.stringify(match.scoresAtReg));
                         match.history       = JSON.parse(JSON.stringify(match.historyAtReg));
