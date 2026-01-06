@@ -1,4 +1,4 @@
-# NFL Mode v3.beta.2
+# NFL Mode v3.beta.2.3
 
 ## Table of Contents
 - [TLDR: What Do I Do?](#tldr-what-do-i-do)
@@ -14,8 +14,7 @@
 ## TLDR: What Do I Do?
 - If you're **just playing**: Join the right lobby, line up correctly, and click Ready. If you're confused about anything, you can (in order of priority):
     - Just play along. People often say this is a game mode best understood through playing, not reading
-    - Ask the lobby host to enter `/nfl whatIs [Term]` for you
-    - **Download** the [Flowchart](#links-balancer-flowchart-script) (since it might not render correctly on GitHub), or
+    - Try `/nfl [flowchart/guide/help/whatIs]` in the chat, or
     - Read further
 - If you're **just watching**: Grab a bowl of popcorn before spectating the lobby of your choice.
 - **Unless you have to, feel more than welcome to stop reading this guide here.** I promise you, unless you **really** have to, you **shouldn't** read the rest of this guide.
@@ -30,55 +29,69 @@
 <table style="text-align:center">
     <tr>
         <th style="text-align:center"><strong>Phase</strong></th>
+        <th style="text-align:center"><strong>Song Count</strong></th>
+        <th style="text-align:center"><strong>Guess Time</strong></th>
         <th style="text-align:center"><strong>Difficulty</strong></th>
         <th style="text-align:center"><strong>Song Mix</strong></th>
         <th style="text-align:center"><strong>Code</strong></th>
     </tr>
     <tr>
         <td style="text-align:center">Regulation</td>
+        <td style="text-align:center">16</td>
+        <td style="text-align:center">15</td>
         <td style="text-align:center">0 - 40</td>
-        <td style="text-align:center">20 Watched Equal</td>
+        <td style="text-align:center">Watched Equal</td>
         <td style="text-align:center">
             <details>
                 <summary>Click to view code</summary>
-                <code style="word-break: break-all">e0g0k21111100130k000031110000000k11111111111100k051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1k903-11111--</code>
+                <code style="word-break: break-all">e0g0g21111100130g000031110000000g11111111111100f051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1k903-11111--</code>
             </details>
         </td>
     </tr>
     <tr>
         <td style="text-align:center">Overtime</td>
+        <td style="text-align:center">4*</td>
+        <td style="text-align:center">10</td>
         <td style="text-align:center">0 - 100</td>
-        <td style="text-align:center">5 Random</td>
+        <td style="text-align:center">Random</td>
         <td style="text-align:center">
             <details>
                 <summary>Click to view code</summary>
-                <code style="word-break: break-all;">e0g05211111001100000531110000000511111111111100k051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--</code>
+                <code style="word-break: break-all;">e0g05211111001100000531110000000511111111111100a051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--</code>
             </details>
         </td>
     </tr>
 </table>
 
-## Changelog: What Changed From v3.beta.1?
-### Balancer Changes
-- Created platform-agnostic Python script for Balancer
-- Changed balancing calculation to count Captain's Elos twice
-- Increased spread threshold from `1.0` to `1.25` to account for doubling Captain's Elos in calculations
-### Guide Change
-- Fixed error in [Format](#format-best-of-7-round-robin-knockouts); 8 teams play a **double** round-robin
+* Due to AMQ's minimum of 5 songs in each round, the script will automatically return to lobby in a Knockout Overtime tie to restart, ignoring Song 5
+
+## Changelog: What Changed From v3.beta.2?
+### Format Changes
+- Reduced song count from 20/5 to 16/4
+- Reduced guess time from 20/20 to 15/10
+- Home Team has possession in Song 9 regardless of game conditions
+- Limited Captains to OP1/DP1
+### Guide Changes
+- Updated TLDR to account for public informational commands
+- Split `Song Mix` in [Overview](#overview-those-long-setting-codes) into `Song Count` and `Song Mix`
+- Added `Guess Time` to [Overview](#overview-those-long-setting-codes)
+- Added detail about AMQ minimum song count
+- Updated setting codes
+- Clarified OP1/DP1 Captain requirement
+- Clarified team split delegation
 ### Script Changes
-- Centralized DOM selectors to top of script for easier maintenance
-- Fixed aggresive resuming behavior on manual pauses
-- Implemented courtesy pause on disconnects
-- Reduced delay for priority messages
-- Increased delay for normal messages
-- Added `/nfl setTest` to enforce/ignore additional lobby validation checks
-- Fixed Boolean commands (e.g., `/nfl setKnockout`, `/nfl setTest`) to ignore capitalizations, take T/Fs and 0/1s
-### Scoresheet Change
-- Fixed HTML output file to tally Captain's guesses as 2
+- Simplified Mercy Rule lookup to only the song ahead
+- Rejected `/nfl start` to start Overtime except after resets
+- Added possession arrows for better visibility (e.g., `Tour: ← Steelers - Ravens →`)
+- Removed redundant `Possession: [Team]` messages
+- Opened `nfl [flowchart/guide/help/whatIs]` to everyone
+- Automatically set lobby name to match `/nfl setTeams`
+### Other Changes
+- Fixed broken v3.beta.2 and re-implemented all changes. Also see [v3.beta.2](https://github.com/Frittutisna/NFL-Mode/blob/main/Archive/Guide%20v3.beta.2.md) 
 
 ## Lineup: Away and Home, Captains, OPs, DPs
 **Captains** (highest-Elo player in each team) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
-Captain’s correct guesses count **double** (2 points) for the (T)DIFF calculations. 
+Captains must be OP1 or DP1, and their correct guesses count **double** (2 points) for the (T)DIFF calculations. 
 The team listed first (above) on Challonge is the **Away** team. 
 Line up as follows: **Away** (1-4: OP1, OP2, DP1, DP2), then **Home** (5-8: OP1, OP2, DP1, DP2).
 
@@ -225,4 +238,5 @@ Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host 
 - **Split** your team into 2 Offensive (OPs) and 2 Defensive (DPs) Players.
     - **OPs'** main role is to **score** points when your team has possession.
     - **DPs'** main role is to **prevent** the opposing OPs from scoring points when your team doesn't have possession.
+    - You **may delegate** the team split to the **tour host**, but you **relinquish** your right to reject the team split offered.
 - Mention the **tour host** in `#tour-general` with the format `@[Tour Host] [Team Name]: OP1, OP2, DP1, DP2` (e.g., `@HakoHoka Steelers: florenz, chommy, miiarad (C), HakoHoka`).

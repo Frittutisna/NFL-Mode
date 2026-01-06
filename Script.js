@@ -977,10 +977,7 @@
         }).bindListener();
 
         new Listener("play next song", () => {
-            if (match.isActive) {
-                chatMessage(`Possession: ${getTeamName(match.possession)}`);
-                if (match.mercyWait) sendGameCommand("pause game");
-            }
+            if (match.isActive) if (match.mercyWait) sendGameCommand("pause game");
         }).bindListener();
     };
 
