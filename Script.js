@@ -495,6 +495,17 @@
         const mainMsg   = `${displayAwayPattern} ${displayHomePattern} ${result.name} ${displayScoreStr}`;
         chatMessage(mainMsg);
 
+        match.history.push({
+            song    : match.songNumber,
+            poss    : currentPossessionSide,
+            awayArr : awayStats.patternArr,
+            homeArr : homeStats.patternArr,
+            result  : result.name,
+            score   : `${match.scores.away}-${match.scores.home}`,
+            period  : currentPeriod,
+            otRound : match.otRound
+        });
+
         let isGameOver = false;
         let winnerSide = null;
 
@@ -645,15 +656,8 @@
             if (!isGameOver && match.otRound === 4) {
                 if (match.scores.away === match.scores.home) {
                     if (config.knockout) {
-                        chatMessage("Knockout Overtime ended in a tie, returning to lobby to restart Overtime");
-                        
-                        match.scores        = JSON.parse(JSON.stringify(match.scoresAtReg));
-                        match.history       = JSON.parse(JSON.stringify(match.historyAtReg));
-                        match.possession    = 'away';
-                        match.otRound       = 0;
-                        match.songNumber    = 16;                        
+                        chatMessage("Knockout Overtime ended in a tie, returning to lobby to restart Overtime");                 
                         match.isActive      = false; 
-                        
                         sendGameCommand("pause game");
                         setTimeout(() => sendGameCommand("return to lobby"), config.delay);
                         return;
@@ -669,19 +673,6 @@
         if (!isGameOver) {
              sendGameCommand("resume game"); 
              chatMessage(`Next Possession: ${getTeamName(match.possession)}`);
-        }
-
-        if (match.isActive || isGameOver) {
-             match.history.push({
-                song    : match.songNumber,
-                poss    : currentPossessionSide,
-                awayArr : awayStats.patternArr,
-                homeArr : homeStats.patternArr,
-                result  : result.name,
-                score   : `${match.scores.away}-${match.scores.home}`,
-                period  : currentPeriod,
-                otRound : match.otRound
-            });
         }
     };
 
