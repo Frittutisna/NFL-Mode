@@ -656,7 +656,13 @@
             if (!isGameOver && match.otRound === 4) {
                 if (match.scores.away === match.scores.home) {
                     if (config.knockout) {
-                        chatMessage("Knockout Overtime ended in a tie, returning to lobby to restart Overtime");                 
+                        chatMessage("Knockout Overtime ended in a tie, returning to lobby to restart Overtime");
+                        match.scores        = JSON.parse(JSON.stringify(match.scoresAtReg));
+                        match.history       = JSON.parse(JSON.stringify(match.historyAtReg));
+                        match.possession    = 'away';
+                        match.period        = 'OVERTIME';
+                        match.otRound       = 0;
+                        match.songNumber    = 16;
                         match.isActive      = false; 
                         sendGameCommand("pause game");
                         setTimeout(() => sendGameCommand("return to lobby"), config.delay);
