@@ -72,6 +72,14 @@
 - Reduced first team bias
 - Implemented best-of-1,000 random simulations
 - Adapted for NFL/NBA Modes and normal tours
+### Flowchart Changes
+- Added Song R9 rule
+- Color-coded the Home team in orange
+- Color-coded start/end boxes in purple, Attacking plays in green, neutral plays in yellow, and Defending plays in red
+- Unified Attacking and Defending `Rouges`
+- Changed Song OT1 Sudden Death win conditions
+- Clarified and unified song identifies
+- Added `Next song` box for clarity
 ### Format Changes
 - Reduced song count from 20/5 to 16/4
 - Reduced guess time from 20/20 to 15/10
