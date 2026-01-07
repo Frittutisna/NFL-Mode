@@ -219,14 +219,14 @@ Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host 
 - Invite the right players to the lobby, and make sure they're lined up correctly (**No need to swap between consecutive games**, also see [Lineup](#lineup-away-and-home-captains-ops-dps)).
 - After everyone is ready, type `/nfl howTo` and follow the instructions there.
 - Type `/nfl start` and start playing.
-    - If you started the game by mistake, type `/nfl resetGame`, then return to lobby.
-    - When the Winner has been decided either normally or through Mercy Rule, pause the game, then return to lobby.
+    - If you started the game by mistake, type `/nfl resetGame`, return to lobby, then type `/nfl start` to restart.
+    - When the Winner has been decided either normally or through Mercy Rule, the game will automatically start the vote to return to lobby.
 - If it's tied after Regulation:
     - Apply the **Overtime** setting code (see [Overview](#overview-those-long-setting-codes)).
-    - Start playing after everyone is ready (**No need to type `/nfl start` to start/repeat Overtime unless you came from a reset**).
-    - If you started Overtime by mistake, type `/nfl resetOvertime`, then return to lobby and type `/nfl start` to restart Overtime.
-    - When the winner has been decided either normally or through Sudden Death, pause the game, the return to lobby.
-    - If you need to repeat overtime, start playing after everyone is ready.
+    - Start playing after everyone is ready (**No need to type `/nfl start` to start Overtime unless you reset/repeat**).
+    - If you started Overtime by mistake, type `/nfl resetOvertime`, return to lobby, then type `/nfl start` to repeat Overtime.
+    - When the Winner has been decided either normally, through Sudden Death, or if it's still tied after 4 songs, the game will automatically start the vote to return to lobby.
+    - If you need to repeat overtime, type `/nfl start` after everyone is ready.
 - Type `/nfl export` to download the **Scoresheet**.
 - Open the Scoresheet and copy the top row.
 - Paste it in `#game-reporting` with the Scoresheet and JSON(s) (Regulation and **the last** Overtime, if necessary).
