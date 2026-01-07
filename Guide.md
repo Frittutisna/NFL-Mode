@@ -66,6 +66,12 @@
 * Due to AMQ's minimum of 5 songs in each round, the script will automatically return to lobby in a Knockout Overtime tie to restart Overtime, ignoring Song 5
 
 ## Changelog: What Changed From v3.beta.2?
+### Balancer Changes
+- Fully deprecated Balancer on Sheets
+- Moved and adapted instructions to Balancer on Python
+- Reduced first team bias
+- Implemented best-of-1,000 random simulations
+- Adapted for NFL/NBA Modes and normal tours
 ### Format Changes
 - Reduced song count from 20/5 to 16/4
 - Reduced guess time from 20/20 to 15/10
@@ -214,7 +220,7 @@ Overtime will be **reset and restarted** as necessary.
 - Announce the final results.
 
 ### If you're hosting a lobby for your team:
-Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host needs to install and operate the **Script**), then do the following:
+Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host needs to install and operate the **Script**) on your browser through TamperMonkey, then do the following:
 - Apply the **Regulation** setting code (see [Overview](#overview-those-long-setting-codes)).
 - Invite the right players to the lobby, and make sure they're lined up correctly (**No need to swap between consecutive games**, also see [Lineup](#lineup-away-and-home-captains-ops-dps)).
 - After everyone is ready, type `/nfl howTo` and follow the instructions there.
