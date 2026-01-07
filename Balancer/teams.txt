@@ -1,9 +1,0 @@
-Balanced 8 players into 2 teams
-Fulfilled 0 out of 0 request(s)
-Fulfilled 0 out of 0 blacklist(s)
-
-Average Elo: 53.66
-Final Spread: 5.05
-
-Steelers (56.19): ShiinaMahiru (C), Spitzell, oolli, HakoHoka
-Chiefs (51.14): AitsukiNakuru (C), miiarad, PotassiumF, brandon_K
