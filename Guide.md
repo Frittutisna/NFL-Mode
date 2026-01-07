@@ -74,7 +74,7 @@
 - Adapted for NFL/NBA Modes and normal tours
 ### Flowchart Changes
 - Added Song R9 rule
-- Color-coded the Home team in orange
+- Color-coded Home team in orange
 - Color-coded start/end boxes in purple, Attacking plays in green, neutral plays in yellow, and Defending plays in red
 - Unified Attacking and Defending `Rouges`
 - Changed Song OT1 Sudden Death win conditions
