@@ -535,7 +535,7 @@
             const maxPointsRemaining    = getMaxPossiblePoints(songsRemaining, trailerPossessing);
             const scoreDiff             = Math.abs(match.scores.away - match.scores.home);
 
-            if (scoreDiff > maxPointsRemaining && match.songNumber < 16) {
+            if (scoreDiff > maxPointsRemaining && match.songNumber < 16 && !isGameOver) {
                 const winner    = match.scores.away > match.scores.home ? getTeamDisplayName('away')    : getTeamDisplayName('home');
                 winnerSide      = match.scores.away > match.scores.home ? 'away'                        : 'home';
                 chatMessage(`Mercy Rule triggered, ${winner} wins`);
@@ -562,7 +562,7 @@
                     isGameOver = true;
                 }
             }
-            else if (match.songNumber >= 8 && match.songNumber <= 14) {
+            else if (match.songNumber >= 8 && match.songNumber <= 14 && !isGameOver) {
                  try {
                     const nextRoundSong     = match.songNumber + 1;
                     const songsAfterNext    = 16 - nextRoundSong;
@@ -635,7 +635,7 @@
                 } 
                 else chatMessage("Whoever has more points after this wins Overtime");
             } 
-            else if (match.otRound === 2) {
+            else if (match.otRound ===  2 && !isGameOver) {
                 try {
                     const otScoreDiff = match.scores.away - match.scores.home;
                     if (otScoreDiff !== 0) {
@@ -674,7 +674,7 @@
             if (!isGameOver && match.otRound === 4) {
                 if (match.scores.away === match.scores.home) {
                     if (config.knockout) {
-                        chatMessage("Knockout Overtime ended in a tie, returning to lobby to restart Overtime");
+                        chatMessage("Knockout Overtime ended in a tie, returning to lobby. Type /nfl start to restart Overtime");
                         match.scores        = JSON.parse(JSON.stringify(match.scoresAtReg));
                         match.history       = JSON.parse(JSON.stringify(match.historyAtReg));
                         match.possession    = 'away';
@@ -960,7 +960,7 @@
                                     match.otRound       =   0;
                                     match.songNumber    =   16;
                                     match.period        =   'OVERTIME';
-                                    systemMessage("Overtime reset, tracker stopped and reverted to end of Regulation, type /nfl start to restart");
+                                    systemMessage("Overtime reset, tracker stopped and reverted to end of Regulation. Type /nfl start to restart Overtime");
                                 } else systemMessage("Error: Can only reset Overtime while in Overtime");
                             }
                             else if (cmd === "resetseries") {
