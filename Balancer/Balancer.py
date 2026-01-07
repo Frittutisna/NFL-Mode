@@ -1,9 +1,11 @@
 import os
 import math
+import random
 import re
 
 SPREAD_THRESHOLD = 1.25
 TEAM_SIZE        = 4
+SIMULATIONS      = 1000
 FILENAMES        = {
     'PLAYERS'   : 'players.txt',
     'REQS'      : 'requests.txt',
@@ -55,7 +57,7 @@ def get_stats_block(teams_data):
     spread  = max(scores) - min(scores)
     return avg_elo, spread
 
-def write_output(num_selected, num_teams, active_players, final_assignments, reqs, bl):
+def write_output(num_selected, original_count, num_teams, active_players, final_assignments, reqs, bl):
     verified_reqs = 0
     for r in reqs:
         p1 = next((p for p in active_players if p.name == r['p1']), None)
@@ -104,10 +106,14 @@ def write_output(num_selected, num_teams, active_players, final_assignments, req
             'members_str'   : ", ".join(mem_strings)
         })
 
+    avg_elo, spread = get_stats_block(teams_data)
+
     with open(FILENAMES['OUTPUT'], 'w', encoding='utf-8') as f:
-        f.write(f"Balanced {num_selected} players into {num_teams} teams\n")
+        f.write(f"Balanced {num_selected} out of {original_count} players into {num_teams} teams\n")
         f.write(f"Fulfilled {verified_reqs} out of {len(reqs)} request(s)\n")
-        f.write(f"Fulfilled {verified_bl} out of {len(bl)} blacklist(s)\n\n")
+        f.write(f"Fulfilled {verified_bl} out of {len(bl)} blacklist(s)\n")
+        f.write(f"Average Elo: {avg_elo:.2f}\n")
+        f.write(f"Final Spread: {spread:.2f}\n\n")
 
         if num_teams == 8:
             afc_teams           = teams_data[0:4]
@@ -124,11 +130,7 @@ def write_output(num_selected, num_teams, active_players, final_assignments, req
             f.write(f"Average Elo: {nfc_avg:.2f}\n")
             f.write(f"Final Spread: {nfc_spread:.2f}\n\n")
             for t in nfc_teams  : f.write(f"{t['name']} ({t['total_elo']:.2f}): {t['members_str']}\n")
-
-        else:
-            avg_elo, spread = get_stats_block(teams_data)
-            f.write(f"Average Elo: {avg_elo:.2f}\n")
-            f.write(f"Final Spread: {spread:.2f}\n\n")
+        else: 
             for t in teams_data : f.write(f"{t['name']} ({t['total_elo']:.2f}): {t['members_str']}\n")
 
     print(f"Success! Teams written to {FILENAMES['OUTPUT']}")
@@ -147,174 +149,110 @@ def main():
     num_selected    = math.floor(original_count / 8) * 8
     all_players.sort(key = lambda x: x.elo, reverse = True)
     active_players  = all_players[:num_selected]
-    print(f"Selected {num_selected} players out of {original_count}")
     
     reqs                = [r for r in raw_reqs  if r['p1'] and r['p2']]
     bl                  = [b for b in raw_bl    if b['p1'] and b['p2']]
-    req_count           = len(reqs)
-    bl_count            = len(bl)
     num_teams           = int(num_selected / TEAM_SIZE)
-    final_assignments   = [0] * num_selected
-    total_steps         = req_count + bl_count
-    success             = False
+    
+    best_overall_spread = float('inf')
+    best_assignments    = None
 
-    for step in range(total_steps + 1):
-        if step <= req_count:
-            active_reqs = req_count - step
-            active_bls  = bl_count
-        else:
-            active_reqs = 0
-            active_bls  = bl_count - (step - req_count)
-        
-        possible    = True
-        assignments = [0]   * num_selected
-        teams       = [0.0] * num_teams
-        team_counts = [0]   * num_teams
-        
-        for p in range(num_teams):
-            assignments[p]  = p + 1
-            teams[p]        = active_players[p].elo * 2
-            team_counts[p]  = 1
-        
-        if active_reqs > 0:
-            for p in range(num_teams):
-                cap_name = active_players[p].name
-                for r in range(active_reqs):
-                    partner_name = ""
-                    if reqs[r]['p1'] == cap_name: partner_name = reqs[r]['p2']
-                    if reqs[r]['p2'] == cap_name: partner_name = reqs[r]['p1']
-                    if partner_name:
-                        p_idx = next((i for i, pl in enumerate(active_players) if pl.name == partner_name), -1)
-                        if p_idx > -1:
-                            if assignments[p_idx] == 0:
-                                if team_counts[p] < TEAM_SIZE:
-                                    is_compatible = True
-                                    if active_bls > 0:
-                                        for mem in range(num_selected):
-                                            if assignments[mem] == (p + 1):
-                                                m_name = active_players[mem].name
-                                                p_name = active_players[p_idx].name
-                                                for k in range(active_bls):
-                                                    b = bl[k]
-                                                    if ((b['p1'] == m_name and b['p2'] == p_name) or 
-                                                        (b['p2'] == m_name and b['p1'] == p_name)):
-                                                        is_compatible = False
-                                                        break
-                                            if not is_compatible: break
-                                    if is_compatible:
-                                        assignments[p_idx]  =   p + 1
-                                        teams[p]            +=  active_players[p_idx].elo
-                                        team_counts[p]      +=  1
-                                    else:                       possible = False
-                                else:                           possible = False
-                            elif assignments[p_idx] != (p + 1): possible = False
-                    if  not possible: break
-                if      not possible: break
-        
-        if possible:
-            for p in range(num_teams, num_selected):
-                if assignments[p] == 0:
-                    target_team     = -1
-                    min_elo         = float('inf') 
-                    partners_needed = 0
-                    forced_team     = -1
-                    conflict        = False
-                    my_name         = active_players[p].name
+    print(f"Running {SIMULATIONS} simulations to find the best balance")
+
+    for sim in range(SIMULATIONS):
+        possible        = True
+        assignments     = [0]   * num_selected
+        teams           = [0.0] * num_teams
+        team_counts     = [0]   * num_teams
+        team_indices    = list(range(num_teams))
+        random.shuffle(team_indices)
+
+        for i, p_idx in enumerate(team_indices):
+            assignments[i]  = p_idx + 1
+            teams[p_idx]    = active_players[i].elo * 2
+            team_counts[p_idx] = 1
+
+        for p in range(num_teams, num_selected):
+            if assignments[p] == 0:
+                target_team     = -1
+                min_elo         = float('inf') 
+                partners_needed = 0
+                forced_team     = -1
+                conflict        = False
+                my_name         = active_players[p].name
+                
+                for r in reqs:
+                    p_name = ""
+                    if r['p1'] == my_name: p_name = r['p2']
+                    if r['p2'] == my_name: p_name = r['p1']
+                    if p_name:
+                        p_idx_l = next((i for i, pl in enumerate(active_players) if pl.name == p_name), -1)
+                        if p_idx_l > -1:
+                            if assignments[p_idx_l] > 0:
+                                if forced_team == -1                        : forced_team = assignments[p_idx_l]
+                                elif forced_team != assignments[p_idx_l]    : conflict = True
+                            else                                            : partners_needed += 1
+                if conflict:
+                    possible = False
+                    break
+                
+                search_indices = list(range(num_teams))
+                random.shuffle(search_indices)
+                
+                for t_idx in search_indices:
+                    t = t_idx 
+                    if forced_team != -1 and (t + 1) != forced_team: continue
                     
-                    if active_reqs > 0:
-                        for r in range(active_reqs):
-                            p_name = ""
-                            if reqs[r]['p1'] == my_name: p_name = reqs[r]['p2']
-                            if reqs[r]['p2'] == my_name: p_name = reqs[r]['p1']
-                            if p_name:
-                                p_idx_l = next((i for i, pl in enumerate(active_players) if pl.name == p_name), -1)
-                                if p_idx_l > -1:
-                                    if assignments[p_idx_l] > 0:
-                                        if forced_team == -1                        : forced_team = assignments[p_idx_l]
-                                        elif forced_team != assignments[p_idx_l]    : conflict = True
-                                    else                                            : partners_needed += 1
-                    if conflict:
-                        possible = False
-                        break
-                    
-                    start_t = (forced_team - 1) if forced_team > -1 else 0
-                    end_t   = (forced_team - 1) if forced_team > -1 else num_teams - 1
-                    
-                    for t in range(start_t, end_t + 1):
-                        if team_counts[t] + partners_needed < TEAM_SIZE:
-                            is_compatible = True
-                            if active_bls > 0:
-                                for mem in range(num_selected):
-                                    if assignments[mem] == (t + 1):
-                                        m_name = active_players[mem].name
-                                        for k in range(active_bls):
-                                            b = bl[k]
-                                            if ((b['p1'] == m_name and b['p2'] == my_name) or 
-                                                (b['p2'] == m_name and b['p1'] == my_name)):
-                                                is_compatible = False
-                                                break
-                                    if not is_compatible: break
-                            if is_compatible:
-                                if      forced_team > -1: target_team = t
-                                elif    teams[t] < min_elo:
-                                    min_elo     = teams[t]
-                                    target_team = t
-                            elif    forced_team > -1: possible = False
-                        elif        forced_team > -1: possible = False
-                    
-                    if target_team != -1:
-                        assignments[p]              =   target_team + 1
-                        teams[target_team]          +=  active_players[p].elo
-                        team_counts[target_team]    +=  1
+                    if team_counts[t] + partners_needed < TEAM_SIZE:
+                        is_compatible = True
+                        for mem in range(num_selected):
+                            if assignments[mem] == (t + 1):
+                                m_name = active_players[mem].name
+                                for b in bl:
+                                    if ((b['p1'] == m_name and b['p2'] == my_name) or 
+                                        (b['p2'] == m_name and b['p1'] == my_name)):
+                                        is_compatible = False
+                                        break
+                            if not is_compatible: break
                         
-                        if active_reqs > 0:
-                            curr_name = active_players[p].name
-                            for r in range(active_reqs):
-                                p_part = ""
-                                if reqs[r]['p1'] == curr_name: p_part = reqs[r]['p2']
-                                if reqs[r]['p2'] == curr_name: p_part = reqs[r]['p1']
-                                if p_part:
-                                    pp_idx = next((i for i, pl in enumerate(active_players) if pl.name == p_part), -1)
-                                    if pp_idx > -1:
-                                        if assignments[pp_idx] == 0:
-                                            if team_counts[target_team] < TEAM_SIZE:
-                                                is_compatible_part = True
-                                                if active_bls > 0:
-                                                    for mem in range(num_selected):
-                                                        if assignments[mem] == (target_team + 1):
-                                                            m_name      = active_players[mem].name
-                                                            part_name   = active_players[pp_idx].name
-                                                            for k in range(active_bls):
-                                                                b = bl[k]
-                                                                if ((b['p1'] == m_name and b['p2'] == part_name) or 
-                                                                    (b['p2'] == m_name and b['p1'] == part_name)):
-                                                                    is_compatible_part = False
-                                                                    break
-                                                        if not is_compatible_part: break
-                                                if is_compatible_part:
-                                                    assignments[pp_idx]         =   target_team + 1
-                                                    teams[target_team]          +=  active_players[pp_idx].elo
-                                                    team_counts[target_team]    +=  1
-                                                else    : possible = False
-                                            else        : possible = False
-                                if  not possible: break
-                    else                                : possible = False
-                if                  not possible: break
-        
-        if possible:
-            min_t               = min(teams)
-            max_t               = max(teams)
-            spread              = max_t - min_t
-            final_assignments   = list(assignments)
-            success             = True
-            if spread <= SPREAD_THRESHOLD:
-                print(f"Optimal spread found ({spread:.2f}) at step {step}")
-                break
+                        if is_compatible:
+                            if forced_team > -1: 
+                                target_team = t
+                                break
+                            elif teams[t] < min_elo:
+                                min_elo     = teams[t]
+                                target_team = t
+                
+                if target_team != -1:
+                    assignments[p]              =   target_team + 1
+                    teams[target_team]          +=  active_players[p].elo
+                    team_counts[target_team]    +=  1
+                    curr_name                   = active_players[p].name
+                    for r in reqs:
+                        p_part = ""
+                        if r['p1'] == curr_name: p_part = r['p2']
+                        if r['p2'] == curr_name: p_part = r['p1']
+                        if p_part:
+                            pp_idx = next((i for i, pl in enumerate(active_players) if pl.name == p_part), -1)
+                            if pp_idx > -1 and assignments[pp_idx] == 0:
+                                assignments[pp_idx] = target_team + 1
+                                teams[target_team] += active_players[pp_idx].elo
+                                team_counts[target_team] += 1
+                else:
+                    possible = False
+                    break
 
-    if not success:
+        if possible:
+            spread = max(teams) - min(teams)
+            if spread < best_overall_spread:
+                best_overall_spread = spread
+                best_assignments = list(assignments)
+            if spread <= SPREAD_THRESHOLD: break
+
+    if not best_assignments:
         print("Could not generate valid teams, check constraints")
         return
     
-    write_output(num_selected, num_teams, active_players, final_assignments, reqs, bl)
+    write_output(num_selected, original_count, num_teams, active_players, best_assignments, reqs, bl)
 
 if __name__ == "__main__": main()
