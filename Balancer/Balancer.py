@@ -28,8 +28,7 @@ class Player:
         self.elo            = float(elo)
         self.original_idx   = original_idx
 
-    def __repr__(self):
-        return f"{self.name} ({self.elo})"
+    def __repr__(self): return f"{self.name} ({self.elo})"
 
 def parse_file(filename, file_type):
     if not os.path.exists(filename): return []
@@ -50,11 +49,10 @@ def parse_file(filename, file_type):
     return data
 
 def get_stats_block(teams_data):
-    """Calculates Average Elo and Spread using the weighted totals."""
     if not teams_data: return 0.0, 0.0
-    scores = [t['total_elo'] for t in teams_data]
+    scores  = [t['total_elo'] for t in teams_data]
     avg_elo = sum(scores) / len(scores)
-    spread = max(scores) - min(scores)
+    spread  = max(scores) - min(scores)
     return avg_elo, spread
 
 def write_output(num_selected, num_teams, active_players, final_assignments, reqs, bl):
@@ -65,8 +63,7 @@ def write_output(num_selected, num_teams, active_players, final_assignments, req
         if p1 and p2:
             idx1 = active_players.index(p1)
             idx2 = active_players.index(p2)
-            if final_assignments[idx1] == final_assignments[idx2]:
-                verified_reqs += 1
+            if final_assignments[idx1] == final_assignments[idx2]: verified_reqs += 1
 
     verified_bl = 0
     for b in bl:
@@ -75,8 +72,7 @@ def write_output(num_selected, num_teams, active_players, final_assignments, req
         if p1 and p2:
             idx1 = active_players.index(p1)
             idx2 = active_players.index(p2)
-            if final_assignments[idx1] != final_assignments[idx2]:
-                verified_bl += 1
+            if final_assignments[idx1] != final_assignments[idx2]: verified_bl += 1
 
     captains_map = {active_players[i].name: True for i in range(num_teams)}
 
@@ -84,32 +80,28 @@ def write_output(num_selected, num_teams, active_players, final_assignments, req
     for t_idx in range(1, num_teams + 1):
         members = []
         for i, p in enumerate(active_players):
-            if final_assignments[i] == t_idx:
-                members.append(p)
+            if final_assignments[i] == t_idx: members.append(p)
         
         total_elo = 0.0
         for m in members:
-            if m.name in captains_map:
-                total_elo += (m.elo * 2)
-            else:
-                total_elo += m.elo
+            if m.name in captains_map   : total_elo += (m.elo * 2)
+            else                        : total_elo += m.elo
 
-        members.sort(key=lambda x: (1 if x.name in captains_map else 0, x.elo), reverse=True)
+        members.sort(key = lambda x: (1 if x.name in captains_map else 0, x.elo), reverse = True)
         
         mem_strings = []
         for m in members:
             s = m.name
-            if m.name in captains_map:
-                s += " (C)"
+            if m.name in captains_map: s += " (C)"
             mem_strings.append(s)
         
         team_name = TEAM_NAMES.get(t_idx, f"Team {t_idx}")
         
         teams_data.append({
-            'id': t_idx,
-            'name': team_name,
-            'total_elo': total_elo,
-            'members_str': ", ".join(mem_strings)
+            'id'            : t_idx,
+            'name'          : team_name,
+            'total_elo'     : total_elo,
+            'members_str'   : ", ".join(mem_strings)
         })
 
     with open(FILENAMES['OUTPUT'], 'w', encoding='utf-8') as f:
@@ -118,31 +110,26 @@ def write_output(num_selected, num_teams, active_players, final_assignments, req
         f.write(f"Fulfilled {verified_bl} out of {len(bl)} blacklist(s)\n\n")
 
         if num_teams == 8:
-            afc_teams = teams_data[0:4]
-            nfc_teams = teams_data[4:8]
+            afc_teams           = teams_data[0:4]
+            nfc_teams           = teams_data[4:8]
             afc_avg, afc_spread = get_stats_block(afc_teams)
             f.write("AFC:\n")
             f.write(f"Average Elo: {afc_avg:.2f}\n")
             f.write(f"Final Spread: {afc_spread:.2f}\n\n")
-            for t in afc_teams:
-                f.write(f"{t['name']} ({t['total_elo']:.2f}): {t['members_str']}\n")
-            
+            for t in afc_teams  : f.write(f"{t['name']} ({t['total_elo']:.2f}): {t['members_str']}\n")
             f.write("\n")
 
             nfc_avg, nfc_spread = get_stats_block(nfc_teams)
             f.write("NFC:\n")
             f.write(f"Average Elo: {nfc_avg:.2f}\n")
             f.write(f"Final Spread: {nfc_spread:.2f}\n\n")
-            for t in nfc_teams:
-                f.write(f"{t['name']} ({t['total_elo']:.2f}): {t['members_str']}\n")
+            for t in nfc_teams  : f.write(f"{t['name']} ({t['total_elo']:.2f}): {t['members_str']}\n")
 
         else:
             avg_elo, spread = get_stats_block(teams_data)
             f.write(f"Average Elo: {avg_elo:.2f}\n")
             f.write(f"Final Spread: {spread:.2f}\n\n")
-            
-            for t in teams_data:
-                f.write(f"{t['name']} ({t['total_elo']:.2f}): {t['members_str']}\n")
+            for t in teams_data : f.write(f"{t['name']} ({t['total_elo']:.2f}): {t['members_str']}\n")
 
     print(f"Success! Teams written to {FILENAMES['OUTPUT']}")
 
@@ -162,16 +149,14 @@ def main():
     active_players  = all_players[:num_selected]
     print(f"Selected {num_selected} players out of {original_count}")
     
-    reqs        = [r for r in raw_reqs if r['p1'] and r['p2']]
-    bl          = [b for b in raw_bl if b['p1'] and b['p2']]
-    req_count   = len(reqs)
-    bl_count    = len(bl)
-    num_teams   = int(num_selected / TEAM_SIZE)
-    
-    final_assignments = [0] * num_selected
-    
-    total_steps = req_count + bl_count
-    success     = False
+    reqs                = [r for r in raw_reqs  if r['p1'] and r['p2']]
+    bl                  = [b for b in raw_bl    if b['p1'] and b['p2']]
+    req_count           = len(reqs)
+    bl_count            = len(bl)
+    num_teams           = int(num_selected / TEAM_SIZE)
+    final_assignments   = [0] * num_selected
+    total_steps         = req_count + bl_count
+    success             = False
 
     for step in range(total_steps + 1):
         if step <= req_count:
@@ -182,9 +167,9 @@ def main():
             active_bls  = bl_count - (step - req_count)
         
         possible    = True
-        assignments = [0] * num_selected
+        assignments = [0]   * num_selected
         teams       = [0.0] * num_teams
-        team_counts = [0] * num_teams
+        team_counts = [0]   * num_teams
         
         for p in range(num_teams):
             assignments[p]  = p + 1
@@ -270,9 +255,9 @@ def main():
                                                 break
                                     if not is_compatible: break
                             if is_compatible:
-                                if forced_team > -1: target_team = t
-                                elif teams[t] < min_elo:
-                                    min_elo = teams[t]
+                                if      forced_team > -1: target_team = t
+                                elif    teams[t] < min_elo:
+                                    min_elo     = teams[t]
                                     target_team = t
                             elif    forced_team > -1: possible = False
                         elif        forced_team > -1: possible = False
