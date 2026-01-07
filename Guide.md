@@ -1,10 +1,10 @@
-# NFL Mode v3.beta.2.3
+# NFL Mode v3.beta.2.4
 
 ## Table of Contents
 - [TLDR: What Do I Do?](#tldr-what-do-i-do)
 - [Links: Balancer, Flowchart, Script](#links-balancer-flowchart-script)
 - [Overview: Those Long Setting Codes](#overview-those-long-setting-codes)
-- [Changelog: What Changed From v3.beta.1?](#changelog-what-changed-from-v3beta1)
+- [Changelog: What Changed From v3.beta.2?](#changelog-what-changed-from-v3beta2)
 - [Lineup: Away and Home, Captains, OPs, DPs](#lineup-away-and-home-captains-ops-dps)
 - [Score: Check the (T)DIFF](#score-check-the-tdiff)
 - [Ending: Mercy, Overtime, Tie](#ending-mercy-overtime-tie)
@@ -14,7 +14,7 @@
 ## TLDR: What Do I Do?
 - If you're **just playing**: Join the right lobby, line up correctly, and click Ready. If you're confused about anything, you can (in order of priority):
     - Just play along. People often say this is a game mode best understood through playing, not reading
-    - Try `/nfl [flowchart/guide/help/whatIs]` in the chat, or
+    - Try `/nfl help` or `/nfl whatIs` in the chat, or
     - Read further
 - If you're **just watching**: Grab a bowl of popcorn before spectating the lobby of your choice.
 - **Unless you have to, feel more than welcome to stop reading this guide here.** I promise you, unless you **really** have to, you **shouldn't** read the rest of this guide.
@@ -63,14 +63,15 @@
     </tr>
 </table>
 
-* Due to AMQ's minimum of 5 songs in each round, the script will automatically return to lobby in a Knockout Overtime tie to restart, ignoring Song 5
+* Due to AMQ's minimum of 5 songs in each round, the script will automatically return to lobby in a Knockout Overtime tie to restart Overtime, ignoring Song 5
 
 ## Changelog: What Changed From v3.beta.2?
 ### Format Changes
 - Reduced song count from 20/5 to 16/4
 - Reduced guess time from 20/20 to 15/10
-- Home Team has possession in Song 9 regardless of game conditions
+- Home team has possession in Song 9 regardless of game conditions
 - Limited Captains to OP1/DP1
+- Changed Overtime Song 1 win conditions to `Onside Kick`, `TD + 2PC`, or `Touchdown` for the Attacking team, and `Pick Six` or `House Call` for the Defending team
 ### Guide Changes
 - Updated TLDR to account for public informational commands
 - Split `Song Mix` in [Overview](#overview-those-long-setting-codes) into `Song Count` and `Song Mix`
@@ -82,12 +83,13 @@
 ### Script Changes
 - Simplified Mercy Rule lookup to only the song ahead
 - Rejected `/nfl start` to start Overtime except after resets
-- Added possession arrows for better visibility (e.g., `Tour: ← Steelers - Ravens →`)
+- Added possession arrows to chat messages for better visibility (e.g., `Tour: ← Steelers - Ravens →`)
 - Removed redundant `Possession: [Team]` messages
 - Opened `nfl [flowchart/guide/help/whatIs]` to everyone
 - Automatically set lobby name to match `/nfl setTeams`
+- Simplified `[Team] only needs [Outcome] to tie ...` messages in Overtime
 ### Other Changes
-- Fixed broken v3.beta.2 and re-implemented all changes. Also see [v3.beta.2](https://github.com/Frittutisna/NFL-Mode/blob/main/Archive/Guide%20v3.beta.2.md) 
+- Fixed broken [v3.beta.2](https://github.com/Frittutisna/NFL-Mode/blob/main/Archive/Guide%20v3.beta.2.md) and re-implemented all changes
 
 ## Lineup: Away and Home, Captains, OPs, DPs
 **Captains** (highest-Elo player in each team) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
@@ -110,8 +112,8 @@ Line up as follows: **Away** (1-4: OP1, OP2, DP1, DP2), then **Home** (5-8: OP1,
         <th style="text-align:center"><strong>Result</strong></th>
         <th style="text-align:center"><strong>TDIFF</strong></th>
         <th style="text-align:center"><strong>DIFF</strong></th>
-        <th style="text-align:center"><strong>Offense</strong></th>
-        <th style="text-align:center"><strong>Defense</strong></th>
+        <th style="text-align:center"><strong>Attacking</strong></th>
+        <th style="text-align:center"><strong>Defending</strong></th>
         <th style="text-align:center"><strong>Possession</strong></th>
         <th style="text-align:center"><strong>Overtime Song 1</strong></th>
     </tr>
@@ -122,7 +124,7 @@ Line up as follows: **Away** (1-4: OP1, OP2, DP1, DP2), then **Home** (5-8: OP1,
         <td style="text-align:center">7</td>
         <td rowspan="4" style="text-align:center">N/A</td>
         <td style="text-align:center">Keep</td>
-        <td style="text-align:center">Offense Wins</td>
+        <td rowspan="3" style="text-align:center">Attacking Wins</td>
     </tr>
     <tr>
         <td style="text-align:center"><code>TD + 2PC</code></td>
@@ -130,7 +132,6 @@ Line up as follows: **Away** (1-4: OP1, OP2, DP1, DP2), then **Home** (5-8: OP1,
         <td style="text-align:center">3</td>
         <td style="text-align:center">8</td>
         <td rowspan="8" style="text-align:center">Swap</td>
-        <td rowspan="3" style="text-align:center">Continues</td>
     </tr>
     <tr>
         <td style="text-align:center"><code>Touchdown</code></td>
@@ -141,29 +142,28 @@ Line up as follows: **Away** (1-4: OP1, OP2, DP1, DP2), then **Home** (5-8: OP1,
         <td style="text-align:center"><code>Field Goal</code></td>
         <td style="text-align:center">1</td>
         <td style="text-align:center">3</td>
+        <td rowspan="4" style="text-align:center">Continues</td>
     </tr>
     <tr>
         <td style="text-align:center"><code>Rouge</code></td>
         <td rowspan="2" style="text-align:center">0 or -1</td>
         <td colspan="2" style="text-align:center">1</td>
-        <td style="text-align:center">Offense Continues,<br>Defense Wins</td>
     </tr>
     <tr>
         <td style="text-align:center"><code>Punt</code></td>
         <td rowspan="4" style="text-align:center">N/A</td>
         <td style="text-align:center">N/A</td> 
-        <td style="text-align:center">Continues</td>
     </tr>
     <tr>
         <td style="text-align:center"><code>Safety</code></td>
         <td style="text-align:center">-2</td>
         <td style="text-align:center">2</td>
-        <td rowspan="3" style="text-align:center">Defense Wins</td>
     </tr>
     <tr>
         <td style="text-align:center"><code>Pick Six</code></td>
         <td style="text-align:center">-3</td>
         <td style="text-align:center">6</td>
+        <td rowspan="2" style="text-align:center">Defending Wins</td>
     </tr>
     <tr>
         <td style="text-align:center"><code>House Call</code></td>
@@ -180,28 +180,27 @@ Line up as follows: **Away** (1-4: OP1, OP2, DP1, DP2), then **Home** (5-8: OP1,
     a play that would have resulted in a <code>Punt</code> 
     happened such that <b>≥1</b> player(s) from one team got the song right,
     but the other team missed it completely.
-    This applies to both <b>Offense</b> and <b>Defense</b> to reward <i>erigs</i> and covers,
-    even if DIFF calculations would have stalled out with a <code>Punt</code>.
-    A <b>Defensive</b> <code>Rouge</code> on Song 1 ends Overtime,
-    but an <b>Offensive</b> <code>Rouge</code> does not.</p>
+    This applies to both <b>Attacking</b> and <b>Defending</b> teams to reward <i>erigs</i> and covers,
+    even if DIFF calculations would have stalled out with a <code>Punt</code>.</p>
 </details>
 
 ## Ending: Mercy, Overtime, Tie
 Mercy Rule triggers if the trailing team can't catch with the songs left. 
 If both teams are still tied after Regulation, continue to **Overtime**. 
 The **Away** team again has first possession. 
-An `Onside Kick` or any Defensive Point(s) ends Overtime here. 
-Otherwise, after both teams have **≥1** possession(s), whoever has more points wins. 
+An `Onside Kick`, a `TD + 2PC`, or a `Touchdown` from the Away team, 
+as well as a `Pick Six` or a `House Call` from the Home team ends Overtime here. 
+Otherwise, after both teams have **≥1** possession(s) each, whoever has more points wins. 
 If Overtime doesn’t resolve the tie, the game is called a **Tie**, 
 unless it's the **Championship Games** or the **Super Bowl**, 
 in which case Overtime **repeats** until a winner is found. 
-**Clear** the Overtime tally and repeat as necessary.
+Overtime will be **reset and restarted** as necessary.
 
 ## Format: Best-of-7, Round Robin, Knockouts
-- **For 2 teams**: Play a best-of-7, automatically swapping Away and Home between games.
+- **For 2 teams**: Play a best-of-7, automatically swapping Away and Home between games. Whoever gets 4.0 points out of 7.0 wins.
 - **For 4 teams**: Play a double round-robin. The top two teams advance to the **Super Bowl**.
 - **For 6 teams**: Play a single round-robin. The top four teams advance to the **Championship Games**, then the winners advance to the **Super Bowl**.
-- **For 8 teams**: Play a double round-robin in 2 conferences. The winner of each conference advance to the **Super Bowl**.
+- **For 8 teams**: Play a double round-robin in 2 conferences. The conference winners advance to the **Super Bowl**.
 
 ## Manual: What Do I *Really* Do?
 ### If you're hosting the tour:
@@ -217,7 +216,6 @@ in which case Overtime **repeats** until a winner is found.
 ### If you're hosting a lobby for your team:
 Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host needs to install and operate the **Script**), then do the following:
 - Apply the **Regulation** setting code (see [Overview](#overview-those-long-setting-codes)).
-- Set the lobby name to "Tour: [Away Team Name]-[Home Team Name]" (e.g., "Tour: Steelers-Ravens").
 - Invite the right players to the lobby, and make sure they're lined up correctly (**No need to swap between consecutive games**, also see [Lineup](#lineup-away-and-home-captains-ops-dps)).
 - After everyone is ready, type `/nfl howTo` and follow the instructions there.
 - Type `/nfl start` and start playing.
@@ -225,8 +223,8 @@ Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host 
     - When the Winner has been decided either normally or through Mercy Rule, pause the game, then return to lobby.
 - If it's tied after Regulation:
     - Apply the **Overtime** setting code (see [Overview](#overview-those-long-setting-codes)).
-    - Start playing after everyone is ready (**No need to type `/nfl start` to start/repeat Overtime**).
-    - If you started Overtime by mistake, type `/nfl resetOvertime`, then return to lobby.
+    - Start playing after everyone is ready (**No need to type `/nfl start` to start/repeat Overtime unless you came from a reset**).
+    - If you started Overtime by mistake, type `/nfl resetOvertime`, then return to lobby and type `/nfl start` to restart Overtime.
     - When the winner has been decided either normally or through Sudden Death, pause the game, the return to lobby.
     - If you need to repeat overtime, start playing after everyone is ready.
 - Type `/nfl export` to download the **Scoresheet**.

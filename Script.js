@@ -621,7 +621,6 @@
             if (match.otRound === 1) {
                 const suddenDeathOffense = ["Onside Kick", "TD + 2PC", "Touchdown"];
                 const suddenDeathDefense = ["Pick Six", "House Call"];
-
                 if (suddenDeathOffense.includes(result.name) && result.team === "offense") {
                     chatMessage(`${getTeamDisplayName('away')} wins via ${result.name}!`);
                     systemMessage("Game ended in Overtime (Sudden Death)");
@@ -634,9 +633,7 @@
                     endGame('home');
                     isGameOver = true;
                 } 
-                else {
-                    chatMessage("Whoever has more points after this wins Overtime");
-                }
+                else chatMessage("Whoever has more points after this wins Overtime");
             } 
             else if (match.otRound === 2) {
                 try {
