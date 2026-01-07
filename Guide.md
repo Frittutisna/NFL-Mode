@@ -115,7 +115,8 @@ Line up as follows: **Away** (1-4: OP1, OP2, DP1, DP2), then **Home** (5-8: OP1,
 <details>
     <summary><b>Click to know more about Scoring</b></summary>
     <p>The <b>Away</b> team attacks (has <b>possession</b>) first. 
-    Generally, possession swaps after every song. 
+    Generally, possession swaps after every song, 
+    but the Home team <b>must</b> have possession on Song 9. 
     To calculate points, subtract the Defending team’s score from the Attacking team’s score.
     <b>TDIFF</b> counts <b>everyone</b> and is looked at first, 
     while <b>DIFF</b> <b>only</b> counts Attacking team’s OPs and Defending team’s DPs.</p>
