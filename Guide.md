@@ -1,4 +1,4 @@
-# NFL Mode v3.beta.2.4
+# NFL Mode v3.beta.2.5
 
 ## Table of Contents
 - [TLDR: What Do I Do?](#tldr-what-do-i-do)
@@ -102,7 +102,7 @@
 - Automatically set lobby name to match `/nfl setTeams`
 - Simplified `[Team] only needs [Outcome] to tie ...` messages in Overtime
 ### Other Changes
-- Fixed broken [v3.beta.2](https://github.com/Frittutisna/NFL-Mode/blob/main/Archive/Guide%20v3.beta.2.md) and re-implemented all changes
+- Fixed broken v3.beta.2 and re-implemented all changes
 
 ## Lineup: Away and Home, Captains, OPs, DPs
 **Captains** (player with the highest Watched Elo in each team) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
@@ -234,6 +234,7 @@ Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host 
 - After everyone is ready, type `/nfl howTo` and follow the instructions there.
 - Type `/nfl start` and start playing.
     - If you started the game by mistake, type `/nfl resetGame`, return to lobby, then type `/nfl start` to restart.
+    - If someone disconnected mid-game, the script will automatically pause the game for you. Wait for them to return and resume the game themselves.
     - When the Winner has been decided either normally or through Mercy Rule, the game will automatically start the vote to return to lobby.
 - If it's tied after Regulation:
     - Apply the **Overtime** setting code (see [Overview](#overview-those-long-setting-codes)).

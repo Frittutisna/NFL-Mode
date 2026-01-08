@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3.beta.2.4
+// @version      3.beta.2.5
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -462,9 +462,9 @@
         };
 
         const awaySlots = config.isSwapped ? gameConfig.homeSlots : gameConfig.awaySlots;
-        const homeSlots = config.isSwapped ? gameConfig.awaySlots : gameConfig.homeSlots;
+        const homeSlots = config.isSwapped ? gameConfig.awaySlots : homeSlots;
         const awayStats = calcTeamStats(awaySlots);
-        const homeStats = calcTeamStats(homeSlots);
+        const homeStats = calcTeamStats(homeSlots || config.isSwapped ? gameConfig.awaySlots : gameConfig.homeSlots);
 
         const currentPossessionSide = match.possession; 
         const attSide               = match.possession;
@@ -695,7 +695,10 @@
         }
 
         if (!isGameOver) {
-             sendGameCommand("resume game"); 
+             if (match.mercyWait) {
+                 sendGameCommand("resume game");
+                 match.mercyWait = false;
+             }
              chatMessage(`Next Possession: ${getTeamDisplayName(match.possession)}`);
         }
     };
@@ -874,6 +877,18 @@
         new Listener("Player Left",                 (payload) => {playersCache = playersCache.filter(p => p.gamePlayerId !== payload.gamePlayerId)})                                    .bindListener();
         new Listener("Player Changed Team",         (payload) => {const p = playersCache.find(p => p.gamePlayerId === payload.gamePlayerId); if (p) p.teamNumber = payload.newTeam;})   .bindListener();
         new Listener("Spectator Change To Player",  (payload) => {playersCache.push(payload)})                                                                                          .bindListener();
+        
+        new Listener("Rejoin Ability", (payload) => {
+             if (match.isActive && !payload.isAble) {
+                 sendGameCommand("pause game");
+                 chatMessage(`Player disconnected, game paused automatically`);
+             }
+        }).bindListener();
+
+        new Listener("Player Rejoined", (payload) => {
+            if (match.isActive) chatMessage(`${payload.name} has rejoined, resume when ready`)
+        }).bindListener();
+
         new Listener("game chat update", (payload) => {
             payload.messages.forEach(msg => {
                 if (msg.message.startsWith("/nfl")) {
