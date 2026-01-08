@@ -337,9 +337,7 @@
                 seriesFinished = true;
             }
 
-            let     seriesMsg       = "";
-            const   fmt             = (n) => Number.isInteger(n) ? n : n.toFixed(1);
-
+            let seriesMsg = "";
             let wins, losses, draws, historyStr;
             const sStats = config.seriesStats;
 
@@ -378,9 +376,9 @@
         } else seriesFinished = true;
 
         if (match.period === 'OVERTIME' && !seriesFinished) {
-            systemMessage("Series continues after Overtime");
-            systemMessage(`Regulation: ${CODES.REGULATION}`);
-            setTimeout(() => applySettingsCode(CODES.REGULATION), config.delay * 2);
+            if (typeof lobby !== 'undefined' && lobby.inLobby) {
+                setTimeout(() => applySettingsCode(CODES.REGULATION), config.delay * 2);
+            }
         }
 
         match.isActive      = false;
@@ -594,13 +592,14 @@
             else if (match.songNumber === 16) {
                 if (scoreDiff === 0) {
                     chatMessage("Tied after Regulation, entering Overtime");
-                    systemMessage(`Overtime Code: ${CODES.OVERTIME}`);
                     match.period        = 'OVERTIME';
                     match.otRound       = 0;
                     match.possession    = 'away';
                     match.scoresAtReg   = JSON.parse(JSON.stringify(match.scores));
                     match.historyAtReg  = JSON.parse(JSON.stringify(match.history));
-                    setTimeout(() => applySettingsCode(CODES.OVERTIME), config.delay * 2);
+                    if (typeof lobby !== 'undefined' && lobby.inLobby) {
+                        setTimeout(() => applySettingsCode(CODES.OVERTIME), config.delay * 2);
+                    }
                 } else {
                     const winner        = match.scores.away > match.scores.home ? getTeamDisplayName('away')    : getTeamDisplayName('home');
                     winnerSide          = match.scores.away > match.scores.home ? 'away'                        : 'home';
@@ -763,11 +762,8 @@
         let effSwapped = config.isSwapped;
 
         if (!match.isActive) {
-            const seriesJustFinished = config.seriesStats.history.length === config.gameNumber;
-            if (!seriesJustFinished && effGameNum > config.seriesStats.history.length + 1) {
-                effGameNum--; 
-                effSwapped = !effSwapped;
-            }
+            effGameNum = config.gameNumber - 1;
+            effSwapped = !config.isSwapped;
         }
         
         if (effGameNum < 1) effGameNum = 1;
