@@ -872,9 +872,19 @@
                 else if (row.otRound >= 2 && scoreAway !== scoreHome) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
             }
             
-            const displaySong   = row.period === 'OVERTIME' ? row.otRound : row.song;
-            const awayCells     = row.awayArr.map(b => `<td>${b === 0 ? '' : b}</td>`).join('');
-            const homeCells     = row.homeArr.map(b => `<td>${b === 0 ? '' : b}</td>`).join('');
+            const displaySong = row.period === 'OVERTIME' ? row.otRound : row.song;
+
+            const generateCells = (patternArr, slots) => {
+                return patternArr.map((isCorrect, index) => {
+                    if (isCorrect === 0) return `<td></td>`;
+                    const slotId    = slots[index];
+                    const isCaptain = config.captains.includes(slotId);
+                    return `<td>${isCaptain ? 2 : 1}</td>`;
+                }).join('');
+            };
+
+            const awayCells = generateCells(row.awayArr, awaySlots);
+            const homeCells = generateCells(row.homeArr, homeSlots);
 
             html += `<tr>
                     <td>${displaySong}</td>
