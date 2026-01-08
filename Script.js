@@ -619,45 +619,21 @@
 
         else if (match.period === 'OVERTIME') {
             if (match.otRound === 1) {
-                const suddenDeathOffense = ["Onside Kick", "TD + 2PC", "Touchdown"];
-                const suddenDeathDefense = ["Pick Six", "House Call"];
-                if (suddenDeathOffense.includes(result.name) && result.team === "offense") {
+                const suddenDeathOffense = ["Onside Kick",  "TD + 2PC", "Touchdown"];
+                const suddenDeathDefense = ["Pick Six",     "House Call"];
+                if (suddenDeathOffense      .includes(result.name) && result.team === "offense") {
                     chatMessage(`${getTeamDisplayName('away')} wins via ${result.name}!`);
-                    systemMessage("Game ended in Overtime (Sudden Death)");
+                    systemMessage("Game ended in Sudden Death Overtime");
                     endGame('away');
                     isGameOver = true;
                 }
-                else if (suddenDeathDefense.includes(result.name) && result.team === "defense") {
+                else if (suddenDeathDefense .includes(result.name) && result.team === "defense") {
                     chatMessage(`${getTeamDisplayName('home')} wins via ${result.name}!`);
-                    systemMessage("Game ended in Overtime (Sudden Death)");
+                    systemMessage("Game ended in Sudden Death Overtime");
                     endGame('home');
                     isGameOver = true;
                 } 
                 else chatMessage("Whoever has more points after this wins Overtime");
-            } 
-            else if (match.otRound ===  2 && !isGameOver) {
-                try {
-                    const otScoreDiff = match.scores.away - match.scores.home;
-                    if (otScoreDiff !== 0) {
-                        const isAwayLeading = otScoreDiff > 0;
-                        const trailerName   = isAwayLeading ? getTeamDisplayName('home') : getTeamDisplayName('away');
-                        const gap           = Math.abs(otScoreDiff);
-                        const tieOutcomes   = outcomesList.filter(o => o.swing === gap && ["Touchdown", "Field Goal", "Rouge", "TD + 2PC"].includes(o.name));
-                        const tieOutcome    = tieOutcomes.find(o => o.name === "Touchdown") || tieOutcomes[0];
-                        const winOutcomes   = outcomesList.filter(o => o.swing > gap && ["Touchdown", "Field Goal", "Rouge", "TD + 2PC"].includes(o.name));
-                        winOutcomes.sort((a,b) => a.swing - b.swing);
-                        const winOutcome = winOutcomes.find(o => o.name === "Touchdown") || winOutcomes[0];
-                        if (tieOutcome) {
-                            const artTie    = getArticle(tieOutcome.name);
-                            let trailerMsg  = `The ${trailerName} needs ${artTie} ${tieOutcome.name} to tie`;
-                            if (winOutcome) {
-                                const artWin    =   getArticle(winOutcome.name);
-                                trailerMsg      +=  `, or ${artWin} ${winOutcome.name} to win outright`;
-                            }
-                            chatMessage(trailerMsg);
-                        }
-                    }
-                } catch(e) {}
             }
 
             if (!isGameOver && match.otRound >= 2) {
@@ -691,6 +667,31 @@
                         isGameOver = true;
                     }
                 }
+            }
+
+            if (!isGameOver && match.otRound === 2) {
+                try {
+                    const otScoreDiff = match.scores.away - match.scores.home;
+                    if (otScoreDiff !== 0) {
+                        const isAwayLeading = otScoreDiff > 0;
+                        const trailerName   = isAwayLeading ? getTeamDisplayName('home') : getTeamDisplayName('away');
+                        const gap           = Math.abs(otScoreDiff);
+                        const tieOutcomes   = outcomesList.filter(o => o.swing === gap && ["Touchdown", "Field Goal", "Rouge", "TD + 2PC"].includes(o.name));
+                        const tieOutcome    = tieOutcomes.find(o => o.name === "Touchdown") || tieOutcomes[0];
+                        const winOutcomes   = outcomesList.filter(o => o.swing > gap && ["Touchdown", "Field Goal", "Rouge", "TD + 2PC"].includes(o.name));
+                        winOutcomes.sort((a,b) => a.swing - b.swing);
+                        const winOutcome = winOutcomes.find(o => o.name === "Touchdown") || winOutcomes[0];
+                        if (tieOutcome) {
+                            const artTie    = getArticle(tieOutcome.name);
+                            let trailerMsg  = `The ${trailerName} needs ${artTie} ${tieOutcome.name} to tie`;
+                            if (winOutcome) {
+                                const artWin    =   getArticle(winOutcome.name);
+                                trailerMsg      +=  `, or ${artWin} ${winOutcome.name} to win outright`;
+                            }
+                            chatMessage(trailerMsg);
+                        }
+                    }
+                } catch(e) {}
             }
         }
 
