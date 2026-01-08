@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3.beta.2.5
+// @version      3.beta.2.6
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -13,17 +13,31 @@
     let playersCache = [];
 
     let config = {
-        delay           : 500,
-        gameNumber      : 1,
-        teamNames       : {away: "Away", home: "Home"},
-        captains        : [1, 5],
-        isSwapped       : false,
-        knockout        : false,
-        seriesLength    : 1,
-        seriesStats     : {awayWins: 0, homeWins: 0, draws: 0, history: []},
-        links           : {
-            guide       : "https://github.com/Frittutisna/NFL-Mode/blob/main/Guide.md",
-            flowchart   : "https://github.com/Frittutisna/NFL-Mode/blob/main/Flowchart/Flowchart.pdf"
+        delay               : 500,
+        gameNumber          : 1,
+        teamNames           : {away: "Away", home: "Home"},
+        captains            : [1, 5],
+        isSwapped           : false,
+        knockout            : false,
+        isTest              : false,
+        seriesLength        : 1,
+        seriesStats         : {awayWins: 0, homeWins: 0, draws: 0, history: []},
+        links               : {
+            guide           : "https://github.com/Frittutisna/NFL-Mode/blob/main/Guide.md",
+            flowchart       : "https://github.com/Frittutisna/NFL-Mode/blob/main/Flowchart/Flowchart.pdf"
+        },
+        selectors           : {
+            playIcon        : "fa-play-circle",
+            pauseIcon       : "fa-pause-circle",
+            pauseBtn        : "qpPauseButton",
+            returnBtn       : "qpReturnToLobbyButton",
+            lobbyName       : "mhRoomNameInput",
+            lobbyChange     : "mhChangeButton",
+            settingsTab     : 'h3[data-i18n="lobby.room_settings"]',
+            loadTab         : 'h5[data-i18n="game_settings.tabs.load"]',
+            loadFromCode    : 'h4[data-i18n="game_settings.load_from_code"]',
+            swalInput       : '.swal2-input',
+            swalConfirm     : '.swal2-confirm'
         }
     };
 
@@ -99,10 +113,19 @@
         "setKnockout"       : "Enable/disable infinite overtime (/nfl setKnockout [true/false])",
         "setSeries"         : "Set the series length (/nfl setSeries [1/2/7]",
         "setTeams"          : "Set team names (/nfl setTeams [Away] [Home])",
+        "setTest"           : "Enable/disable loose lobby validation (/nfl setTest [true/false])",
         "showCodes"         : "Show AMQ room setting codes for Regulation and Overtime",
         "start"             : "Start the game tracker",
         "swap"              : "Swap Home/Away teams",
         "whatIs"            : "Explain a term or rule (/nfl whatIs [Term])"
+    };
+
+    const parseBool = (val) => {
+        if (typeof val === 'boolean') return val;
+        const s = String(val).toLowerCase().trim();
+        if (['t', '1', 'y', 'true',     'yes']  .includes(s)) return true;
+        if (['f', '0', 'n', 'false',    'no']   .includes(s)) return false;
+        return null;
     };
 
     const getArrowedName = (side) => {
@@ -112,14 +135,30 @@
 
     const updateLobbyName = (awayClean, homeClean) => {
         const newTitle  = `Tour: ${awayClean}-${homeClean}`;
-        const nameInput = document.getElementById("mhRoomNameInput");
-        const changeBtn = document.getElementById("mhChangeButton");
+        const nameInput = document.getElementById(config.selectors.lobbyName);
+        const changeBtn = document.getElementById(config.selectors.lobbyChange);
     
         if (nameInput && changeBtn) {
             nameInput.value = newTitle.substring(0, 20);
             changeBtn.click();
             systemMessage(`Lobby name updated to: ${nameInput.value}`);
         }
+    };
+
+    const applySettingsCode = (code) => {
+        const s = config.selectors;
+        const steps = [
+            () => document.querySelector(s.settingsTab)?.click(),
+            () => document.querySelector(s.loadTab)?.click(),
+            () => document.querySelector(s.loadFromCode)?.click(),
+            () => {
+                const input = document.querySelector(s.swalInput);
+                if (input) input.value = code;
+            },
+            () => document.querySelector(s.swalConfirm)?.click(),
+            () => document.getElementById(s.lobbyChange)?.click()
+        ];
+        steps.forEach((step, i) => {setTimeout(step, config.delay * (i + 1))});
     };
 
     const messageQueue = {
@@ -169,23 +208,24 @@
     const chatMessage   = (msg) => {messageQueue.add(msg, false)};
     
     const sendGameCommand = (cmd) => {
+        const s = config.selectors;
         if (cmd === "return to lobby") {
-            const returnBtn = document.getElementById("qpReturnToLobbyButton");
+            const returnBtn = document.getElementById(s.returnBtn);
             if (returnBtn) {
                 returnBtn.click();
                 setTimeout(() => {
-                    const confirmBtn = document.querySelector(".swal2-confirm");
+                    const confirmBtn = document.querySelector(s.swalConfirm);
                     if (confirmBtn) confirmBtn.click();
                 }, config.delay);
             }
         }
         else if (cmd === "pause game" || cmd === "resume game") {
-            const pauseBtn = document.getElementById("qpPauseButton");
+            const pauseBtn = document.getElementById(s.pauseBtn);
             if (pauseBtn) {
                 const icon = pauseBtn.querySelector("i");
                 if (icon) {
-                    const isPaused  = icon.classList.contains("fa-play-circle");
-                    const isPlaying = icon.classList.contains("fa-pause-circle");
+                    const isPaused  = icon.classList.contains(s.playIcon);
+                    const isPlaying = icon.classList.contains(s.pauseIcon);
                     if      (cmd === "resume game"  && isPaused)    pauseBtn.click();
                     else if (cmd === "pause game"   && isPlaying)   pauseBtn.click();
                 } else                                              pauseBtn.click();
@@ -256,6 +296,7 @@
         config.captains     = [1, 5];
         config.isSwapped    = false;
         config.knockout     = false;
+        config.isTest       = false;
         config.seriesLength = 1;
         config.seriesStats  = {awayWins: 0, homeWins: 0, draws: 0, history: []};
         systemMessage("Full reset complete: settings, teams, and series history wiped");
@@ -339,6 +380,7 @@
         if (match.period === 'OVERTIME' && !seriesFinished) {
             systemMessage("Series continues after Overtime");
             systemMessage(`Regulation: ${CODES.REGULATION}`);
+            setTimeout(() => applySettingsCode(CODES.REGULATION), config.delay * 2);
         }
 
         match.isActive      = false;
@@ -370,7 +412,13 @@
         if (typeof lobby === 'undefined' || !lobby.inLobby) return {valid: false, msg: "Error: Not in Lobby"};
         const players = Object.values(lobby.players);
         const notReady = players.filter(p => !p.ready);
-        if (notReady.length > 0)                            return {valid: false, msg: "Error: All players must be Ready"};
+        if (notReady.length > 0) return {valid: false, msg: "Error: All players must be Ready"};
+        if (!config.isTest) {
+            const occupiedSlots = players.map(p => getTeamNumber(p));
+            const validSlots    = [1, 2, 3, 4, 5, 6, 7, 8];
+            const allInSlots    = occupiedSlots.every(slot => validSlots.includes(slot));
+            if (players.length !== 8 || !allInSlots) return {valid: false, msg: "Error: Additional lobby checks not met. If you know what you're doing, type /nfl setTest True"};
+        }
         return {valid: true};
     };
 
@@ -552,6 +600,7 @@
                     match.possession    = 'away';
                     match.scoresAtReg   = JSON.parse(JSON.stringify(match.scores));
                     match.historyAtReg  = JSON.parse(JSON.stringify(match.history));
+                    setTimeout(() => applySettingsCode(CODES.OVERTIME), config.delay * 2);
                 } else {
                     const winner        = match.scores.away > match.scores.home ? getTeamDisplayName('away')    : getTeamDisplayName('home');
                     winnerSide          = match.scores.away > match.scores.home ? 'away'                        : 'home';
@@ -949,9 +998,14 @@
                                 else systemMessage("Error: Use /nfl setSeries [1/2/7]");
                             }
                             else if (cmd === "setknockout") {
-                                if (parts[2] === "true") {config.knockout = true; systemMessage("Knockout Mode: True")}
-                                else if (parts[2] === "false") {config.knockout = false; systemMessage("Knockout Mode: False")}
+                                const b = parseBool(parts[2]);
+                                if (b !== null) {config.knockout = b; systemMessage(`Knockout Mode: ${b}`)}
                                 else systemMessage("Error: Use /nfl setKnockout [true/false]");
+                            }
+                            else if (cmd === "settest") {
+                                const b = parseBool(parts[2]);
+                                if (b !== null) {config.isTest = b; systemMessage(`Test Mode: ${b}`)}
+                                else systemMessage("Error: Use /nfl setTest [true/false]");
                             }
                             else if (cmd === "showcodes") {
                                 systemMessage(`Regulation: ${CODES.REGULATION}`);
