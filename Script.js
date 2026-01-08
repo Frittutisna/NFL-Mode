@@ -462,9 +462,9 @@
         };
 
         const awaySlots = config.isSwapped ? gameConfig.homeSlots : gameConfig.awaySlots;
-        const homeSlots = config.isSwapped ? gameConfig.awaySlots : homeSlots;
+        const homeSlots = config.isSwapped ? gameConfig.awaySlots : gameConfig.homeSlots;;
         const awayStats = calcTeamStats(awaySlots);
-        const homeStats = calcTeamStats(homeSlots || config.isSwapped ? gameConfig.awaySlots : gameConfig.homeSlots);
+        const homeStats = calcTeamStats(homeSlots);
 
         const currentPossessionSide = match.possession; 
         const attSide               = match.possession;
