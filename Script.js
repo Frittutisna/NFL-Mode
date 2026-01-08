@@ -462,7 +462,7 @@
         };
 
         const awaySlots = config.isSwapped ? gameConfig.homeSlots : gameConfig.awaySlots;
-        const homeSlots = config.isSwapped ? gameConfig.awaySlots : gameConfig.homeSlots;;
+        const homeSlots = config.isSwapped ? gameConfig.awaySlots : gameConfig.homeSlots;
         const awayStats = calcTeamStats(awaySlots);
         const homeStats = calcTeamStats(homeSlots);
 
