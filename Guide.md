@@ -1,4 +1,4 @@
-# NFL Mode v3.beta.2.6
+# NFL Mode v3.beta.3.0
 
 ## Table of Contents
 - [TLDR: What Do I Do?](#tldr-what-do-i-do)
@@ -101,6 +101,7 @@
 - Opened `nfl [export/flowchart/guide/help/whatIs]` to everyone
 - Automatically set lobby name to match `/nfl setTeams`
 - Simplified `[Team] only needs [Outcome] to tie ...` messages in Overtime
+- Implemented automatic setting code changes to switch between Regulation and Overtime
 ### Other Changes
 - Fixed broken v3.beta.2 and re-implemented all changes
 
