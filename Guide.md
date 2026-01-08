@@ -38,7 +38,7 @@
     <tr>
         <td style="text-align:center">Regulation</td>
         <td style="text-align:center">16</td>
-        <td style="text-align:center">15</td>
+        <td rowspan="2" style="text-align:center"><strong>15</strong></td>
         <td style="text-align:center">0 - 40</td>
         <td style="text-align:center">Watched Equal</td>
         <td style="text-align:center">
@@ -51,13 +51,12 @@
     <tr>
         <td style="text-align:center">Overtime</td>
         <td style="text-align:center">4*</td>
-        <td style="text-align:center">10</td>
         <td style="text-align:center">0 - 100</td>
         <td style="text-align:center">Random</td>
         <td style="text-align:center">
             <details>
                 <summary>Click to view code</summary>
-                <code style="word-break: break-all;">e0g05211111001100000531110000000511111111111100a051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--</code>
+                <code style="word-break: break-all;">e0g05211111001100000531110000000511111111111100f051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--</code>
             </details>
         </td>
     </tr>
@@ -82,7 +81,7 @@
 - Added `Next song` box for clarity
 ### Format Changes
 - Reduced song count from 20/5 to 16/4
-- Reduced guess time from 20/20 to 15/10
+- Reduced guess time from 20 to 15 seconds
 - Home team has possession in Song 9 regardless of game conditions
 - Limited Captains to OP1/DP1
 - Changed Overtime Song 1 win conditions to `Onside Kick`, `TD + 2PC`, or `Touchdown` for the Attacking team, and `Pick Six` or `House Call` for the Defending team
@@ -99,14 +98,14 @@
 - Rejected `/nfl start` to start Overtime except after resets
 - Added possession arrows to chat messages for better visibility (e.g., `Tour: ← Steelers - Ravens →`)
 - Removed redundant `Possession: [Team]` messages
-- Opened `nfl [flowchart/guide/help/whatIs]` to everyone
+- Opened `nfl [export/flowchart/guide/help/whatIs]` to everyone
 - Automatically set lobby name to match `/nfl setTeams`
 - Simplified `[Team] only needs [Outcome] to tie ...` messages in Overtime
 ### Other Changes
 - Fixed broken [v3.beta.2](https://github.com/Frittutisna/NFL-Mode/blob/main/Archive/Guide%20v3.beta.2.md) and re-implemented all changes
 
 ## Lineup: Away and Home, Captains, OPs, DPs
-**Captains** (highest-Elo player in each team) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
+**Captains** (player with the highest Watched Elo in each team) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
 Captains must be OP1 or DP1, and their correct guesses count **double** (2 points) for the (T)DIFF calculations. 
 The team listed first (above) on Challonge is the **Away** team. 
 Line up as follows: **Away** (1-4: OP1, OP2, DP1, DP2), then **Home** (5-8: OP1, OP2, DP1, DP2).

@@ -6,7 +6,7 @@ Make sure this only lists players from players.txt.
 Make sure this also only lists players from players.txt, 
 and ensure that no request/blacklist pairs are the same. 
 4. Gather all the TXT files in the same folder as this script
-5. Change MODE to NFL, NBA, or NONE if you're just hosting a normal tour
+5. Change MODE to MLB, NBA, NFL, or NONE if you're just hosting a normal tour
 6. Run this script
 7. Repeat Step 6 until the Final Spread is low enough to your liking
 8. Screenshot the results and send it to #tour-information
@@ -18,7 +18,7 @@ import math
 import random
 import re
 
-MODE                = 'NONE' # Options: 'NFL', 'NBA', 'NONE'
+MODE                = 'NONE' # Options: 'MLB', 'NBA', 'NFL', 'NONE'
 SPREAD_THRESHOLD    = 1.25 if MODE != 'NONE' else 1.0
 TEAM_SIZE           = 4
 SIMULATIONS         = 1000
@@ -29,8 +29,9 @@ FILENAMES           = {
     'OUTPUT'        : 'teams.txt'
 }
 
-NFL_NAMES = {1: "Steelers", 2: "Chiefs", 3: "Colts", 4: "Patriots", 5: "Packers", 6: "Niners",  7: "Saints",    8: "Eagles"}
-NBA_NAMES = {1: "Thunder",  2: "Lakers", 3: "Spurs", 4: "Warriors", 5: "Celtics", 6: "Bulls",   7: "Heat",      8: "Knicks"}
+NFL_NAMES = {1: "Steelers", 2: "Chiefs",    3: "Colts",     4: "Patriots",  5: "Packers",   6: "Niners",    7: "Saints",    8: "Eagles"}
+NBA_NAMES = {1: "Thunder",  2: "Lakers",    3: "Spurs",     4: "Warriors",  5: "Celtics",   6: "Bulls",     7: "Heat",      8: "Knicks"}
+MLB_NAMES = {1: "Yankees",  2: "Guardians", 3: "Mariners",  4: "Astros",    5: "Phillies",  6: "Brewers",   7: "Dodgers",   8: "Pirates"}
 
 class Player:
     def __init__(self, name, elo, original_idx=0):
@@ -97,16 +98,17 @@ def write_output(num_selected, original_count, num_teams, active_players, final_
             if MODE != 'NONE' and m.name in captains_map    : total_elo += (m.elo * 2)
             else                                            : total_elo += m.elo
 
-        members.sort(key = lambda x: (1 if x.name in captains_map else 0, x.elo), reverse = True)
+        members.sort(key = lambda x: x.elo, reverse = True)
         
         mem_strings = []
         for m in members:
             s = m.name
-            if m.name in captains_map: s += " (C)"
+            if MODE != 'NONE' and m.name in captains_map: s += " (C)"
             mem_strings.append(s)
         
         if      MODE == 'NFL'   : team_name = NFL_NAMES.get(t_idx, f"Team {t_idx}")
         elif    MODE == 'NBA'   : team_name = NBA_NAMES.get(t_idx, f"Team {t_idx}")
+        elif    MODE == 'MLB'   : team_name = MLB_NAMES.get(t_idx, f"Team {t_idx}")
         else                    : team_name = f"Team {t_idx}"
         
         teams_data.append({
@@ -127,8 +129,10 @@ def write_output(num_selected, original_count, num_teams, active_players, final_
         f.write(f"Final Spread: {spread:.2f}\n\n")
 
         if num_teams == 8 and MODE != 'NONE':
-            conf1_name  = "AFC" if MODE == 'NFL' else "Western"
-            conf2_name  = "NFC" if MODE == 'NFL' else "Eastern"
+            if      MODE == 'NFL'   : conf1_name, conf2_name = "AFC",       "NFC"
+            elif    MODE == 'NBA'   : conf1_name, conf2_name = "Western",   "Eastern"
+            else                    : conf1_name, conf2_name = "AL",        "NL"
+
             t1_slice    = teams_data[0:4]
             t2_slice    = teams_data[4:8]
             

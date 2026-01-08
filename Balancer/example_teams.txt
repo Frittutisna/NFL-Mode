@@ -3,13 +3,13 @@ Balanced 32 out of 32 players into 8 teams
 Fulfilled 4 out of 4 request(s)
 Fulfilled 4 out of 4 blacklist(s)
 Average Elo: 50.66
-Final Spread: 2.88
+Final Spread: 3.10
 
-Team 1 (51.56): YuriMeguri (C), liljakatsuragi, Isekaijoucho, inta
-Team 2 (51.18): ShiinaMahiru (C), Komari, Ephemeral, MD22
-Team 3 (50.31): Renzou (C), Pile, Spitzell, Janoxx
-Team 4 (49.42): PoolNoodle (C), HaruUrara, Raku51, thjalago
-Team 5 (51.28): FORTNAYT (C), Kryuell, Konsumenci, Spartric
-Team 6 (49.40): Nephirea (C), accelerator11, ss_r_white_pony, Bommie
-Team 7 (49.86): Kazaseno (C), ruuka, miiarad, AnnaYanami
-Team 8 (52.28): Zippy (C), florenz, Vigard, Seguri
+Team 1 (49.48): ShiinaMahiru, HaruUrara, florenz, Seguri
+Team 2 (49.91): Nephirea, Kryuell, Isekaijoucho, Konsumenci
+Team 3 (52.56): Zippy, miiarad, Vigard, ss_r_white_pony
+Team 4 (52.52): FORTNAYT, accelerator11, Ephemeral, inta
+Team 5 (49.77): Kazaseno, Komari, Spitzell, MD22
+Team 6 (51.25): YuriMeguri, Pile, Bommie, Spartric
+Team 7 (49.47): PoolNoodle, ruuka, Raku51, thjalago
+Team 8 (50.32): Renzou, liljakatsuragi, AnnaYanami, Janoxx

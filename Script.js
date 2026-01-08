@@ -51,7 +51,7 @@
 
     const CODES = {
         REGULATION  : "e0g0g21111100130g000031110000000g11111111111100f051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1k903-11111--",
-        OVERTIME    : "e0g05211111001100000531110000000511111111111100a051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--"
+        OVERTIME    : "e0g05211111001100000531110000000511111111111100f051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--"
     };
 
     const TERMS = {
@@ -877,13 +877,13 @@
         new Listener("game chat update", (payload) => {
             payload.messages.forEach(msg => {
                 if (msg.message.startsWith("/nfl")) {
-                    const parts     = msg.message.split(" ");
-                    const cmd       = parts[1] ? parts[1].toLowerCase() : "help";
-                    const arg       = parts.slice(2).join(" ").toLowerCase();
-                    const cmdKey    = Object.keys(COMMAND_DESCRIPTIONS).find(k => k.toLowerCase() === cmd);
-                    const isHost    = (msg.sender === selfName);
-    
-                    const publicCommands = ["flowchart", "guide", "help", "whatis"];
+                    const parts             = msg.message.split(" ");
+                    const cmd               = parts[1] ? parts[1].toLowerCase() : "help";
+                    const arg               = parts.slice(2).join(" ").toLowerCase();
+                    const cmdKey            = Object.keys(COMMAND_DESCRIPTIONS).find(k => k.toLowerCase() === cmd);
+                    const isHost            = (msg.sender === selfName);
+                    const publicCommands    = ["export", "flowchart", "guide", "help", "whatis"];
+
                     if (publicCommands.includes(cmd)) {
                         setTimeout(() => {
                             if (cmd === "whatis") {
@@ -893,9 +893,10 @@
                                     else                    chatMessage(`Unknown term '${arg}'. Type /nfl whatIs help for a list`);
                                 }
                             }
-                            else if (cmd === "help") printHelp(cmdKey ? null : arg);
-                            else if (cmd === "flowchart") chatMessage(`Flowchart: ${config.links.flowchart}`);
-                            else if (cmd === "guide") chatMessage(`Guide: ${config.links.guide}`);
+                            else if (cmd === "help")        printHelp(cmdKey ? null : arg);
+                            else if (cmd === "flowchart")   chatMessage(`Flowchart: ${config.links.flowchart}`);
+                            else if (cmd === "guide")       chatMessage(`Guide: ${config.links.guide}`);
+                            else if (cmd === "export")      downloadScoresheet();
                         }, config.delay);
                         return;
                     }
@@ -974,7 +975,6 @@
                                     systemMessage("Series reset, all history wiped");
                                 }
                             }
-                            else if (cmd === "export")  downloadScoresheet();
                             else if (cmd === "howto")   printHowTo();
                         }, config.delay);
                     }
