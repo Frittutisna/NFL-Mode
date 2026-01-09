@@ -136,12 +136,14 @@
     };
 
     const updateLobbyName = (awayClean, homeClean) => {
-        const newTitle  = `Tour: ${awayClean}-${homeClean}`;
+        const awayAbbr  = awayClean.substring(0, 3).toUpperCase();
+        const homeAbbr  = homeClean.substring(0, 3).toUpperCase();
+        const newTitle  = `Tour: ${awayAbbr}-${homeAbbr}`;
         const nameInput = document.getElementById(config.selectors.lobbyName);
         const changeBtn = document.getElementById(config.selectors.lobbyChange);
 
         if (nameInput && changeBtn) {
-            nameInput.value = newTitle.substring(0, 20);
+            nameInput.value = newTitle;
             changeBtn.click();
             systemMessage(`Lobby name updated to: ${nameInput.value}`);
         }
