@@ -94,7 +94,7 @@
         "mercy rule"    : "Triggers when the trailing team cannot mathematically catch up with the songs remaining",
         "regulation"    : "The first 16 songs (0-40 Watched Equal)",
         "overtime"      : "Played if tied after Regulation (4 Random songs). Away gets first possession",
-        "sudden death"  : "In Overtime, if Song 1 results in an Onside Kick/TD + 2PC/Touchdown/Pick Six/House Call, the game ends immediately",
+        "sudden death"  : "In Overtime, if Song 1 results in an Onside Kick or a House Call, the game ends immediately",
         "knockout"      : "A game where a winner must be decided (e.g., Championship Game, Super Bowl). Overtime repeats indefinitely until a winner is found",
         "balancer"      : "The spreadsheet used to create fair teams based on Elo"
     };
@@ -666,8 +666,8 @@
 
         else if (match.period === 'OVERTIME') {
             if (match.otRound === 1) {
-                const suddenDeathOffense = ["Onside Kick",  "TD + 2PC", "Touchdown"];
-                const suddenDeathDefense = ["Pick Six",     "House Call"];
+                const suddenDeathOffense = ["Onside Kick"];
+                const suddenDeathDefense = ["House Call"];
                 if (suddenDeathOffense      .includes(result.name) && result.team === "offense") {
                     chatMessage(`${getTeamDisplayName('away')} wins via ${result.name}!`);
                     systemMessage("Game ended in Sudden Death Overtime");
@@ -859,8 +859,8 @@
                  if (diff > maxPoints || (row.song >= 16 && diff !== 0)) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
             } 
             else {
-                const suddenDeathOffense = ["Onside Kick", "TD + 2PC", "Touchdown"];
-                const suddenDeathDefense = ["Pick Six", "House Call"];
+                const suddenDeathOffense = ["Onside Kick"];
+                const suddenDeathDefense = ["House Call"];
                 if (row.otRound === 1 && (suddenDeathOffense.includes(row.result) || suddenDeathDefense.includes(row.result))) {
                     if (scoreAway !== scoreHome) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
                 }
