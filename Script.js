@@ -168,7 +168,6 @@
         isProcessing    : false,
         add             : function(msg, isSystem = false) {
             const LIMIT = 150;
-
             if (msg.length <= LIMIT) this.queue.push({msg, isSystem});
             else {
                 let remaining = msg;
@@ -592,7 +591,8 @@
                 systemMessage("Game ended due to Mercy Rule");
                 endGame(winnerSide);
                 isGameOver = true;
-            } 
+            }
+
             else if (match.songNumber === config.lengths.reg) {
                 if (scoreDiff === 0) {
                     chatMessage("Tied after Regulation, entering Overtime");
@@ -616,6 +616,7 @@
                     isGameOver = true;
                 }
             }
+            
             else if (match.songNumber >= (config.lengths.reg / 2) && match.songNumber <= (config.lengths.reg - 2) && !isGameOver) {
                  try {
                     const nextRoundSong     = match.songNumber + 1;
