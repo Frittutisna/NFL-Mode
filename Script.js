@@ -138,7 +138,7 @@
     const updateLobbyName = (awayClean, homeClean) => {
         const awayAbbr  = awayClean.substring(0, 3).toUpperCase();
         const homeAbbr  = homeClean.substring(0, 3).toUpperCase();
-        const newTitle  = `Tour: ${awayAbbr} @ ${homeAbbr}`;
+        const newTitle  = `NFL Tour: ${awayAbbr} @ ${homeAbbr}`;
         const nameInput = document.getElementById(config.selectors.lobbyName);
         const changeBtn = document.getElementById(config.selectors.lobbyChange);
 
