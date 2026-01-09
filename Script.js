@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3.beta.3.0
+// @version      3.beta.3.1
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -72,7 +72,7 @@
     const TERMS = {
         "away team"     : "The team listed first on Challonge. They have first possession in Regulation and Overtime",
         "home team"     : "The team listed second on Challonge",
-        "possession"    : "The state of being the Attacking Team. Generally swaps after every song unless s Onside Kick occurs",
+        "possession"    : "The state of being the Attacking Team. Generally swaps after every song unless an Onside Kick occurs",
         "attacking"     : "The team currently with Possession",
         "defending"     : "The team currently without Possession",
         "op"            : "Offensive Player (Slots 1, 2, 5, and 6). Their main role is to score points when their team has possession",
@@ -400,7 +400,10 @@
             systemMessage(`Ready for Game ${config.gameNumber}, auto-swapped teams for the return leg`);
         } else systemMessage("Series finished");
         
-        setTimeout(() => sendGameCommand("return to lobby"), config.delay);
+        setTimeout(() => {
+            if (match.period === 'OVERTIME' || match.songNumber < 16) sendGameCommand("return to lobby");
+            else systemMessage("Game finished naturally, waiting for auto-return to lobby")
+        }, config.delay);
     };
 
     const validateLobby = () => {
@@ -452,7 +455,10 @@
         {name: "House Call",    swing: -7}
     ];
 
-    const getArticle = (word) => {return /^[AEIOU]/.test(word) ? "an" : "a";};
+    const getArticle = (word) => {
+        if (!word) return "";
+        return /^[aeiou]/i.test(word.trim()) ? "an" : "a";
+    };
 
     const getMaxPossiblePoints = (songsLeft, startsWithBall) => {
         if (songsLeft <= 0) return 0;
@@ -653,7 +659,7 @@
                         }
                         const artKill = getArticle(killOutcome.name);
                         if (killOutcome.change < 0) {
-                            chatMessage(`The ${leaderName} can afford ${artKill} ${killOutcome.actor} ${killOutcome.name} next Song and still trigger Mercy Rule`);
+                            chatMessage(`The ${leaderName} can afford the ${killOutcome.actor} getting ${artKill} ${killOutcome.name} next Song and still trigger Mercy Rule`);
                         } else {
                             let txtKill = `only needs ${artKill} ${killOutcome.name}`;
                             if (Math.abs(killOutcome.change) >= 7) txtKill = `needs ${artKill} ${killOutcome.name}`;
@@ -1062,7 +1068,7 @@
         }).bindListener();
 
         new Listener("play next song", () => {
-            if (match.isActive) if (match.mercyWait) sendGameCommand("pause game");
+            if (match.isActive && match.mercyWait) sendGameCommand("pause game");
         }).bindListener();
 
         new Listener("join lobby", () => {
