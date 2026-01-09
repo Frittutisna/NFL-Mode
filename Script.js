@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3.beta.3.1
+// @version      3.beta.3.2
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -21,6 +21,7 @@
         knockout            : false,
         isTest              : false,
         seriesLength        : 1,
+        lengths             : {reg: 16, ot: 4},
         seriesStats         : {awayWins: 0, homeWins: 0, draws: 0, history: []},
         links               : {
             guide           : "https://github.com/Frittutisna/NFL-Mode/blob/main/Guide.md",
@@ -92,8 +93,8 @@
         "safety"        : "DIFF = -2. Defending Team gets 2 points",
         "pick six"      : "DIFF = -3. Defending Team gets 6 points",
         "mercy rule"    : "Triggers when the trailing team cannot mathematically catch up with the songs remaining",
-        "regulation"    : "The first 16 songs (0-40 Watched Equal)",
-        "overtime"      : "Played if tied after Regulation (4 Random songs). Away gets first possession",
+        "regulation"    : `The first ${config.lengths.reg} songs (0-40 Watched Equal)`,
+        "overtime"      : `Played if tied after Regulation (${config.lengths.ot} Random songs). Away gets first possession`,
         "sudden death"  : "In Overtime, if Song 1 results in an Onside Kick or a House Call, the game ends immediately",
         "knockout"      : "A game where a winner must be decided (e.g., Championship Game, Super Bowl). Overtime repeats indefinitely until a winner is found",
         "balancer"      : "The spreadsheet used to create fair teams based on Elo"
@@ -166,7 +167,7 @@
         queue           : [],
         isProcessing    : false,
         add             : function(msg, isSystem = false) {
-            const LIMIT = 150; 
+            const LIMIT = 150;
 
             if (msg.length <= LIMIT) this.queue.push({msg, isSystem});
             else {
@@ -401,7 +402,7 @@
         } else systemMessage("Series finished");
         
         setTimeout(() => {
-            if (match.period === 'OVERTIME' || match.songNumber < 16) sendGameCommand("return to lobby");
+            if (match.period === 'OVERTIME' || match.songNumber < config.lengths.reg) sendGameCommand("return to lobby");
             else systemMessage("Game finished naturally, waiting for auto-return to lobby")
         }, config.delay);
     };
@@ -471,7 +472,7 @@
 
     const processRound = (payload) => {
         if (!match.isActive) return;
-        const currentPeriod = match.period; 
+        const currentPeriod = match.period;
         match.songNumber++;
         if (match.period === 'OVERTIME') match.otRound++;
 
@@ -481,13 +482,13 @@
 
         const checkSlot = (targetTeamId) => {
             const player = Object.values(quiz.players).find(p => p.teamNumber === targetTeamId);
-            if (!player || !player.name)                        return false; 
+            if (!player || !player.name)                        return false;
             if (resultsMap.hasOwnProperty(player.gamePlayerId)) return resultsMap[player.gamePlayerId];
             return false;
         };
 
         const calcTeamStats = (slots) => {
-            let patternArr      = []; 
+            let patternArr      = [];
             let patternStr      = "";
             let totalScore      = 0;
             let opScore         = 0;
@@ -515,7 +516,7 @@
         const awayStats = calcTeamStats(awaySlots);
         const homeStats = calcTeamStats(homeSlots);
 
-        const currentPossessionSide = match.possession; 
+        const currentPossessionSide = match.possession;
         const attSide               = match.possession;
         const defSide               = match.possession === 'away' ? 'home' : 'away';
         
@@ -548,7 +549,7 @@
         else if (result.team === "defense") match.scores[defSide]   +=  result.pts;
         if (result.swap)                    match.possession        =   defSide;
 
-        if (match.period === 'REGULATION' && match.songNumber === 8) match.possession = 'home';
+        if (match.period === 'REGULATION' && match.songNumber === (config.lengths.reg / 2)) match.possession = 'home';
 
         let displayAwayPattern = awayStats.patternStr;
         let displayHomePattern = homeStats.patternStr;
@@ -578,13 +579,13 @@
         let winnerSide = null;
 
         if (match.period === 'REGULATION') {
-            const songsRemaining        = 16 - match.songNumber;
+            const songsRemaining        = config.lengths.reg - match.songNumber;
             const isAwayLeading         = match.scores.away > match.scores.home;
             const trailerPossessing     = (isAwayLeading && match.possession === 'home') || (!isAwayLeading && match.possession === 'away');
             const maxPointsRemaining    = getMaxPossiblePoints(songsRemaining, trailerPossessing);
             const scoreDiff             = Math.abs(match.scores.away - match.scores.home);
 
-            if (scoreDiff > maxPointsRemaining && match.songNumber < 16 && !isGameOver) {
+            if (scoreDiff > maxPointsRemaining && match.songNumber < config.lengths.reg && !isGameOver) {
                 const winner    = match.scores.away > match.scores.home ? getTeamDisplayName('away')    : getTeamDisplayName('home');
                 winnerSide      = match.scores.away > match.scores.home ? 'away'                        : 'home';
                 chatMessage(`Mercy Rule triggered, ${winner} wins`);
@@ -592,7 +593,7 @@
                 endGame(winnerSide);
                 isGameOver = true;
             } 
-            else if (match.songNumber === 16) {
+            else if (match.songNumber === config.lengths.reg) {
                 if (scoreDiff === 0) {
                     chatMessage("Tied after Regulation, entering Overtime");
                     match.period        = 'OVERTIME';
@@ -615,10 +616,10 @@
                     isGameOver = true;
                 }
             }
-            else if (match.songNumber >= 8 && match.songNumber <= 14 && !isGameOver) {
+            else if (match.songNumber >= (config.lengths.reg / 2) && match.songNumber <= (config.lengths.reg - 2) && !isGameOver) {
                  try {
                     const nextRoundSong     = match.songNumber + 1;
-                    const songsAfterNext    = 16 - nextRoundSong;
+                    const songsAfterNext    = config.lengths.reg - nextRoundSong;
                     const leaderName        = isAwayLeading ? getTeamDisplayName('away') : getTeamDisplayName('home');
                     const trailerName       = isAwayLeading ? getTeamDisplayName('home') : getTeamDisplayName('away');
                     const gap               = scoreDiff;
@@ -700,7 +701,7 @@
                 }
             }
 
-            if (!isGameOver && match.otRound === 4) {
+            if (!isGameOver && match.otRound === config.lengths.ot) {
                 if (match.scores.away === match.scores.home) {
                     if (config.knockout) {
                         chatMessage("Knockout Overtime ended in a tie, returning to lobby. Type /nfl start to restart Overtime");
@@ -709,8 +710,8 @@
                         match.possession    = 'away';
                         match.period        = 'OVERTIME';
                         match.otRound       = 0;
-                        match.songNumber    = 16;
-                        match.isActive      = false; 
+                        match.songNumber    = config.lengths.reg;
+                        match.isActive      = false;
                         sendGameCommand("pause game");
                         setTimeout(() => sendGameCommand("return to lobby"), config.delay);
                         return;
@@ -782,7 +783,7 @@
         const homeNameClean = getEffCleanName('home');
         
         const lastEntry         = match.history[match.history.length - 1];
-        const lastSongDisplay   = lastEntry.song; 
+        const lastSongDisplay   = lastEntry.song;
         const lastScore         = lastEntry.score;
         const titleStr          = `Game ${effGameNum} (${lastSongDisplay}): ${awayNameClean} ${lastScore} ${homeNameClean}`;
 
@@ -796,7 +797,7 @@
         
         const awayHeaderTitle = `${awayNameClean} (${getCaptainPos(awaySlots)})`;
         const homeHeaderTitle = `${homeNameClean} (${getCaptainPos(homeSlots)})`;
-        const subHeaders      = gameConfig.posNames; 
+        const subHeaders      = gameConfig.posNames;
 
         const date      = new Date();
         const y         = date.getFullYear().toString().slice(-2);
@@ -836,7 +837,7 @@
                         <th>${awayNameClean}</th>
                         <th>${homeNameClean}</th>
                     </tr>
-                    <tr><td colspan="14" style="font-weight: bold;">Regulation (0-40): 16 Watched Equal with Mercy Rule</td></tr>
+                    <tr><td colspan="14" style="font-weight: bold;">Regulation (0-40): ${config.lengths.reg} Watched Equal with Mercy Rule</td></tr>
                 </thead>
                 <tbody>
         `;
@@ -845,7 +846,7 @@
 
         match.history.forEach(row => {
             if (row.period === 'OVERTIME' && !otBannerAdded) {
-                html += `<tr><td colspan="14" style="font-weight: bold;">Overtime (0-100): 4 Random songs with Sudden Death</td></tr>`;
+                html += `<tr><td colspan="14" style="font-weight: bold;">Overtime (0-100): ${config.lengths.ot} Random songs with Sudden Death</td></tr>`;
                 otBannerAdded = true;
             }
 
@@ -854,7 +855,7 @@
             let winnerName                  = "TBD";
 
             if (row.period === 'REGULATION') {
-                 const songsRemaining       = 16 - row.song;
+                 const songsRemaining       = config.lengths.reg - row.song;
                  const diff                 = Math.abs(scoreAway - scoreHome);
                  let nextPossessionIsAway   = (row.poss === 'away');
                  const swapResults          = ["TD + 2PC", "Touchdown", "Field Goal", "Rouge", "Punt", "Safety", "Pick Six", "House Call"];
@@ -862,7 +863,7 @@
                  const isAwayLeading        = scoreAway > scoreHome;
                  const trailerIsPossessing  = (isAwayLeading && !nextPossessionIsAway) || (!isAwayLeading && nextPossessionIsAway);
                  const maxPoints            = getMaxPossiblePoints(songsRemaining, trailerIsPossessing);
-                 if (diff > maxPoints || (row.song >= 16 && diff !== 0)) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
+                 if (diff > maxPoints || (row.song >= config.lengths.reg && diff !== 0)) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
             } 
             else {
                 const suddenDeathOffense = ["Onside Kick"];
@@ -911,7 +912,7 @@
     const printHelp = (topic = null) => {
         if (topic) {
             const actualKey = Object.keys(COMMAND_DESCRIPTIONS).find(key => key.toLowerCase() === topic);
-            if      (actualKey) systemMessage(`/nfl ${actualKey}: ${COMMAND_DESCRIPTIONS[actualKey]}`); 
+            if      (actualKey) systemMessage(`/nfl ${actualKey}: ${COMMAND_DESCRIPTIONS[actualKey]}`);
             else                systemMessage("Unknown command, type /nfl help for a list");
         } else {
             const cmds = Object.keys(COMMAND_DESCRIPTIONS).join(", ");
@@ -1040,7 +1041,7 @@
                                     match.scores        =   JSON.parse(JSON.stringify(match.scoresAtReg));
                                     match.history       =   JSON.parse(JSON.stringify(match.historyAtReg));
                                     match.otRound       =   0;
-                                    match.songNumber    =   16;
+                                    match.songNumber    =   config.lengths.reg;
                                     match.period        =   'OVERTIME';
                                     systemMessage("Overtime reset, tracker stopped and reverted to end of Regulation. Type /nfl start to restart Overtime");
                                 } else systemMessage("Error: Can only reset Overtime while in Overtime");
