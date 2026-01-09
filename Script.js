@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3.beta.2.6
+// @version      3.beta.3.0
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -51,7 +51,8 @@
         otRound         : 0,
         scoresAtReg     : {away: 0, home: 0},
         historyAtReg    : [],
-        mercyWait       : false
+        mercyWait       : false,
+        pendingCode     : null
     };
 
     const gameConfig = {
@@ -93,7 +94,7 @@
         "mercy rule"    : "Triggers when the trailing team cannot mathematically catch up with the songs remaining",
         "regulation"    : "The first 16 songs (0-40 Watched Equal)",
         "overtime"      : "Played if tied after Regulation (4 Random songs). Away gets first possession",
-        "sudden death"  : "In Overtime, if Song 1 results in an Onside Kick/TD + 2PC/Touchdown/Pick Six/House Call, the game ends immediately",
+        "sudden death"  : "In Overtime, if Song 1 results in an Onside Kick or a House Call, the game ends immediately",
         "knockout"      : "A game where a winner must be decided (e.g., Championship Game, Super Bowl). Overtime repeats indefinitely until a winner is found",
         "balancer"      : "The spreadsheet used to create fair teams based on Elo"
     };
@@ -375,11 +376,7 @@
             chatMessage(seriesMsg);
         } else seriesFinished = true;
 
-        if (match.period === 'OVERTIME' && !seriesFinished) {
-            if (typeof lobby !== 'undefined' && lobby.inLobby) {
-                setTimeout(() => applySettingsCode(CODES.REGULATION), config.delay * 2);
-            }
-        }
+        if (match.period === 'OVERTIME' && !seriesFinished) match.pendingCode = CODES.REGULATION;
 
         match.isActive      = false;
         match.period        = 'REGULATION';
@@ -597,8 +594,10 @@
                     match.possession    = 'away';
                     match.scoresAtReg   = JSON.parse(JSON.stringify(match.scores));
                     match.historyAtReg  = JSON.parse(JSON.stringify(match.history));
+                    match.pendingCode   = CODES.OVERTIME;
                     if (typeof lobby !== 'undefined' && lobby.inLobby) {
-                        setTimeout(() => applySettingsCode(CODES.OVERTIME), config.delay * 2);
+                        applySettingsCode(match.pendingCode);
+                        match.pendingCode = null;
                     }
                 } else {
                     const winner        = match.scores.away > match.scores.home ? getTeamDisplayName('away')    : getTeamDisplayName('home');
@@ -667,8 +666,8 @@
 
         else if (match.period === 'OVERTIME') {
             if (match.otRound === 1) {
-                const suddenDeathOffense = ["Onside Kick",  "TD + 2PC", "Touchdown"];
-                const suddenDeathDefense = ["Pick Six",     "House Call"];
+                const suddenDeathOffense = ["Onside Kick"];
+                const suddenDeathDefense = ["House Call"];
                 if (suddenDeathOffense      .includes(result.name) && result.team === "offense") {
                     chatMessage(`${getTeamDisplayName('away')} wins via ${result.name}!`);
                     systemMessage("Game ended in Sudden Death Overtime");
@@ -763,7 +762,7 @@
 
         if (!match.isActive) {
             effGameNum = config.gameNumber - 1;
-            effSwapped = !config.isSwapped;
+            if (config.seriesLength > 1) effSwapped = !config.isSwapped;
         }
         
         if (effGameNum < 1) effGameNum = 1;
@@ -860,8 +859,8 @@
                  if (diff > maxPoints || (row.song >= 16 && diff !== 0)) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
             } 
             else {
-                const suddenDeathOffense = ["Onside Kick", "TD + 2PC", "Touchdown"];
-                const suddenDeathDefense = ["Pick Six", "House Call"];
+                const suddenDeathOffense = ["Onside Kick"];
+                const suddenDeathDefense = ["House Call"];
                 if (row.otRound === 1 && (suddenDeathOffense.includes(row.result) || suddenDeathDefense.includes(row.result))) {
                     if (scoreAway !== scoreHome) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
                 }
@@ -1064,6 +1063,14 @@
 
         new Listener("play next song", () => {
             if (match.isActive) if (match.mercyWait) sendGameCommand("pause game");
+        }).bindListener();
+
+        new Listener("join lobby", () => {
+            if (match.pendingCode) {
+                systemMessage("Returning to lobby, applying queued room settings");
+                applySettingsCode(match.pendingCode);
+                match.pendingCode = null;
+            }
         }).bindListener();
     };
 
