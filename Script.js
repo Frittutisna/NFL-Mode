@@ -23,10 +23,12 @@
         seriesLength        : 1,
         lengths             : {reg: 16, ot: 4},
         seriesStats         : {awayWins: 0, homeWins: 0, draws: 0, history: []},
+
         links               : {
             guide           : "https://github.com/Frittutisna/NFL-Mode/blob/main/Guide.md",
             flowchart       : "https://github.com/Frittutisna/NFL-Mode/blob/main/Flowchart/Flowchart.pdf"
         },
+
         selectors           : {
             playIcon        : "fa-play-circle",
             pauseIcon       : "fa-pause-circle",
@@ -125,8 +127,8 @@
     const parseBool = (val) => {
         if (typeof val === 'boolean') return val;
         const s = String(val).toLowerCase().trim();
-        if (['t', '1', 'y', 'true',     'yes']  .includes(s)) return true;
-        if (['f', '0', 'n', 'false',    'no']   .includes(s)) return false;
+        if (['t', '1', 'y', 'true', 'yes'].includes(s)) return true;
+        if (['f', '0', 'n', 'false', 'no'].includes(s)) return false;
         return null;
     };
 
@@ -149,28 +151,34 @@
 
     const applySettingsCode = (code) => {
         const s = config.selectors;
+
         const steps = [
             () => document.querySelector(s.settingsTab)?.click(),
             () => document.querySelector(s.loadTab)?.click(),
             () => document.querySelector(s.loadFromCode)?.click(),
+
             () => {
                 const input = document.querySelector(s.swalInput);
                 if (input) input.value = code;
             },
+
             () => document.querySelector(s.swalConfirm)?.click(),
             () => document.getElementById(s.lobbyChange)?.click()
         ];
+
         steps.forEach((step, i) => {setTimeout(step, config.delay * (i + 1))});
     };
 
     const messageQueue = {
         queue           : [],
         isProcessing    : false,
+
         add             : function(msg, isSystem = false) {
             const LIMIT = 150;
             if (msg.length <= LIMIT) this.queue.push({msg, isSystem});
             else {
                 let remaining = msg;
+
                 while (remaining.length > 0) {
                     if (remaining.length <= LIMIT) {this.queue.push({msg: remaining, isSystem}); break;}
                     let splitIndex = remaining.lastIndexOf(' ', LIMIT);
@@ -181,14 +189,15 @@
             }
             this.process();
         },
+
         process: function() {
             if (this.isProcessing || this.queue.length === 0) return;
             this.isProcessing   = true;
             const item          = this.queue.shift();
 
-            if (item.isSystem) {
-                if (typeof gameChat !== 'undefined') gameChat.systemMessage(item.msg);
-            } else {
+            if (item.isSystem) if (typeof gameChat !== 'undefined') gameChat.systemMessage(item.msg);
+
+            else {
                 if (typeof socket !== 'undefined') {
                     socket.sendCommand({
                         type    : "lobby",
@@ -210,59 +219,68 @@
     
     const sendGameCommand = (cmd) => {
         const s = config.selectors;
+
         if (cmd === "return to lobby") {
             const returnBtn = document.getElementById(s.returnBtn);
+
             if (returnBtn) {
                 returnBtn.click();
+
                 setTimeout(() => {
                     const confirmBtn = document.querySelector(s.swalConfirm);
                     if (confirmBtn) confirmBtn.click();
                 }, config.delay);
             }
         }
+
         else if (cmd === "pause game" || cmd === "resume game") {
             const pauseBtn = document.getElementById(s.pauseBtn);
+
             if (pauseBtn) {
                 const icon = pauseBtn.querySelector("i");
+
                 if (icon) {
                     const isPaused  = icon.classList.contains(s.playIcon);
                     const isPlaying = icon.classList.contains(s.pauseIcon);
+
                     if      (cmd === "resume game"  && isPaused)    pauseBtn.click();
                     else if (cmd === "pause game"   && isPlaying)   pauseBtn.click();
-                } else                                              pauseBtn.click();
+                }
+                
+                else                                                pauseBtn.click();
             }
         }
+
         else if (typeof socket !== 'undefined') socket.sendCommand({ type: "quiz", command: cmd });
     };
 
-    const toTitleCase = (str)   => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    const toTitleCase = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     
-    const getTeamDisplayName = (side)  => {
+    const getTeamDisplayName = (side) => {
         let actualSide = side;
         if (config.isSwapped) actualSide = (side === 'away' ? 'home' : 'away');
         return getArrowedName(actualSide);
     };
 
     const getTeamNumber = (player) => {
-        try {
-            if (player.lobbySlot && player.lobbySlot.$TEAM_DISPLAY_TEXT) {
-                return parseInt(player.lobbySlot.$TEAM_DISPLAY_TEXT.text().trim(), 10);
-            }
-        } catch (e) {return null}
+        try {if (player.lobbySlot && player.lobbySlot.$TEAM_DISPLAY_TEXT) return parseInt(player.lobbySlot.$TEAM_DISPLAY_TEXT.text().trim(), 10)}
+        catch (e) {return null}
         return player.teamNumber;
     };
 
     const getPlayerNameAtTeamId = (teamId) => {
         if (typeof quiz !== 'undefined' && quiz.inQuiz) {
-            const p = Object.values(quiz.players).find(player => player.teamNumber == teamId);
-            if (p) return p.name;
-        } 
-        else if (typeof lobby !== 'undefined' && lobby.inLobby) {
-            const p = Object.values(lobby.players).find(player => getTeamNumber(player) == teamId);
+            const p = Object.values(quiz.players)   .find(player => player.teamNumber       == teamId);
             if (p) return p.name;
         }
+
+        else if (typeof lobby !== 'undefined' && lobby.inLobby) {
+            const p = Object.values(lobby.players)  .find(player => getTeamNumber(player)   == teamId);
+            if (p) return p.name;
+        }
+
         if (playersCache.length > 0) {
-            const p = playersCache.find(player => player.teamNumber == teamId);
+            const p = playersCache                  .find(player => player.teamNumber       == teamId);
             if (p) return p.name;
         }
         return "N/A";
@@ -273,6 +291,7 @@
             const name = getPlayerNameAtTeamId(teamId);
             return name !== "N/A" ? name : `Player ${teamId}`;
         });
+
         return names.join(", ");
     };
 
@@ -308,13 +327,10 @@
         let seriesFinished  = false;
 
         if (config.seriesLength > 1) {
-            const finalScoreStr = config.isSwapped ? 
-                                  `${match.scores.home}-${match.scores.away}` : 
-                                  `${match.scores.away}-${match.scores.home}`;
-                                  
+            const finalScoreStr = config.isSwapped ? `${match.scores.home}-${match.scores.away}` : `${match.scores.away}-${match.scores.home}`;
             config.seriesStats.history.push(finalScoreStr);
-            
             let actualWinnerSide = winnerSide;
+
             if (config.isSwapped) {
                  if (winnerSide === 'away')      actualWinnerSide = 'home';
                  else if (winnerSide === 'home') actualWinnerSide = 'away';
@@ -331,12 +347,10 @@
             const aName = config.teamNames.away;
             const hName = config.teamNames.home;
 
-            if (awayPoints > winThreshold)  seriesWinner    = aName;
-            if (homePoints > winThreshold)  seriesWinner    = hName;
+            if (awayPoints > winThreshold) seriesWinner = aName;
+            if (homePoints > winThreshold) seriesWinner = hName;
             
-            if (seriesWinner || config.seriesStats.history.length >= config.seriesLength) {
-                seriesFinished = true;
-            }
+            if (seriesWinner || config.seriesStats.history.length >= config.seriesLength) seriesFinished = true;
 
             let seriesMsg = "";
             let wins, losses, draws, historyStr;
@@ -351,8 +365,11 @@
                     const [a, h] = sc.split('-');
                     return `${h}-${a}`;
                 });
+
                 historyStr = `(${flippedHistory.join(", ")})`;
-            } else {
+            } 
+            
+            else {
                 wins        = sStats.awayWins;
                 losses      = sStats.homeWins;
                 draws       = sStats.draws;
@@ -364,17 +381,21 @@
             if (seriesWinner) {
                 const verb  = (losses === 0 && draws === 0) ? "swept" : "won";
                 seriesMsg   = `The ${seriesWinner} ${verb} the series ${recordStr} ${historyStr}`;
-            } else {
-                if (awayPoints === homePoints) {
-                    seriesMsg = `Series tied at ${recordStr} ${historyStr}`;
-                } else {
-                    const leader = awayPoints > homePoints ? aName : hName;
-                    seriesMsg = `The ${leader} leads the series ${recordStr} ${historyStr}`;
+            }
+            
+            else {
+                if (awayPoints === homePoints) seriesMsg = `Series tied at ${recordStr} ${historyStr}`;
+
+                else {
+                    const leader    = awayPoints > homePoints ? aName : hName;
+                    seriesMsg       = `The ${leader} leads the series ${recordStr} ${historyStr}`;
                 }
             }
             
             chatMessage(seriesMsg);
-        } else seriesFinished = true;
+        } 
+        
+        else seriesFinished = true;
 
         if (match.period === 'OVERTIME' && !seriesFinished) match.pendingCode = CODES.REGULATION;
 
@@ -397,8 +418,11 @@
                     chatMessage("Game 7 decider detected, Knockout Mode forced to True");
                 }
             }
+
             systemMessage(`Ready for Game ${config.gameNumber}, auto-swapped teams for the return leg`);
-        } else systemMessage("Series finished");
+        }
+        
+        else systemMessage("Series finished");
         
         setTimeout(() => {
             if (match.period === 'OVERTIME' || match.songNumber < config.lengths.reg) sendGameCommand("return to lobby");
@@ -408,15 +432,17 @@
 
     const validateLobby = () => {
         if (typeof lobby === 'undefined' || !lobby.inLobby) return {valid: false, msg: "Error: Not in Lobby"};
-        const players = Object.values(lobby.players);
-        const notReady = players.filter(p => !p.ready);
+        const players   = Object.values(lobby.players);
+        const notReady  = players.filter(p => !p.ready);
         if (notReady.length > 0) return {valid: false, msg: "Error: All players must be Ready"};
+
         if (!config.isTest) {
             const occupiedSlots = players.map(p => getTeamNumber(p));
             const validSlots    = [1, 2, 3, 4, 5, 6, 7, 8];
             const allInSlots    = occupiedSlots.every(slot => validSlots.includes(slot));
             if (players.length !== 8 || !allInSlots) return {valid: false, msg: "Error: Additional lobby checks not met. If you know what you're doing, type /nfl setTest True"};
         }
+
         return {valid: true};
     };
 
@@ -456,8 +482,8 @@
     ];
 
     const getArticle = (word) => {
-        if (!word) return "";
-        return /^[aeiou]/i.test(word.trim()) ? "an" : "a";
+        if (!word)  return "";
+        else        return /^[aeiou]/i.test(word.trim()) ? "an" : "a";
     };
 
     const getMaxPossiblePoints = (songsLeft, startsWithBall) => {
@@ -483,7 +509,7 @@
             const player = Object.values(quiz.players).find(p => p.teamNumber === targetTeamId);
             if (!player || !player.name)                        return false;
             if (resultsMap.hasOwnProperty(player.gamePlayerId)) return resultsMap[player.gamePlayerId];
-            return false;
+                                                                return false;
         };
 
         const calcTeamStats = (slots) => {
@@ -498,8 +524,10 @@
                 const isCorrect = checkSlot(slotId);
                 const isCaptain = config.captains.includes(slotId);
                 const points    = isCorrect ? (isCaptain ? gameConfig.captainMultiplier : 1) : 0;
-                patternArr.push(isCorrect ? 1 : 0);
-                patternStr += (isCorrect ? 1 : 0);
+
+                patternArr.push (isCorrect ? 1 : 0);
+                patternStr +=   (isCorrect ? 1 : 0);
+
                 if (isCorrect) {
                     correctCount++;
                     totalScore += points;
@@ -507,6 +535,7 @@
                     else if (gameConfig.dpsRelativeIndices.includes(index)) dpScore += points;
                 }
             });
+
             return {patternStr, patternArr, totalScore, opScore, dpScore, correctCount};
         };
 
@@ -533,13 +562,16 @@
             if      (diff >=    3)          result = {name: "TD + 2PC",     pts: 8, swap: true,     team: "offense"};
             else if (diff ===   2)          result = {name: "Touchdown",    pts: 7, swap: true,     team: "offense"};
             else if (diff ===   1)          result = {name: "Field Goal",   pts: 3, swap: true,     team: "offense"};
+
             else if (diff ===   0 || diff === -1) {
                 const attHit = attStats.correctCount > 0;
                 const defHit = defStats.correctCount > 0;
+
                 if      (attHit && !defHit) result = {name: "Rouge",        pts: 1, swap: true,     team: "offense"};
                 else if (defHit && !attHit) result = {name: "Rouge",        pts: 1, swap: true,     team: "defense"};
                 else                        result = {name: "Punt",         pts: 0, swap: true,     team: "defense"};
             }
+
             else if (diff ===   -2)         result = {name: "Safety",       pts: 2, swap: true,     team: "defense" };
             else if (diff <= -3)            result = {name: "Pick Six",     pts: 6, swap: true,     team: "defense" };
         }
@@ -560,7 +592,7 @@
             displayScoreStr    = `${match.scores.home}-${match.scores.away}`;
         }
         
-        const mainMsg   = `${displayAwayPattern} ${displayHomePattern} ${result.name} ${displayScoreStr}`;
+        const mainMsg = `${displayAwayPattern} ${displayHomePattern} ${result.name} ${displayScoreStr}`;
         chatMessage(mainMsg);
 
         match.history.push({
@@ -587,6 +619,7 @@
             if (scoreDiff > maxPointsRemaining && match.songNumber < config.lengths.reg && !isGameOver) {
                 const winner    = match.scores.away > match.scores.home ? getTeamDisplayName('away')    : getTeamDisplayName('home');
                 winnerSide      = match.scores.away > match.scores.home ? 'away'                        : 'home';
+
                 chatMessage(`Mercy Rule triggered, ${winner} wins`);
                 systemMessage("Game ended due to Mercy Rule");
                 endGame(winnerSide);
@@ -602,21 +635,25 @@
                     match.scoresAtReg   = JSON.parse(JSON.stringify(match.scores));
                     match.historyAtReg  = JSON.parse(JSON.stringify(match.history));
                     match.pendingCode   = CODES.OVERTIME;
+
                     if (typeof lobby !== 'undefined' && lobby.inLobby) {
                         applySettingsCode(match.pendingCode);
                         match.pendingCode = null;
                     }
-                } else {
+                }
+                
+                else {
                     const winner        = match.scores.away > match.scores.home ? getTeamDisplayName('away')    : getTeamDisplayName('home');
                     winnerSide          = match.scores.away > match.scores.home ? 'away'                        : 'home';
                     const winnerScore   = match.scores.away > match.scores.home ? match.scores.away             : match.scores.home;
                     const loserScore    = match.scores.away > match.scores.home ? match.scores.home             : match.scores.away;
+
                     chatMessage(`The ${winner} won Game ${config.gameNumber} ${winnerScore}-${loserScore}`);
                     endGame(winnerSide);
                     isGameOver = true;
                 }
             }
-            
+
             else if (match.songNumber >= (config.lengths.reg / 2) && match.songNumber <= (config.lengths.reg - 2) && !isGameOver) {
                  try {
                     const nextRoundSong     = match.songNumber + 1;
@@ -652,23 +689,28 @@
                         match.mercyWait = true;
 
                         const artSafe = getArticle(safeOutcome.name);
-                        if (safeOutcome.leaderIsActor) {
-                            chatMessage(`The ${trailerName} needs to hold the ${leaderName} to ${artSafe} ${safeOutcome.name} next Song to avoid Mercy Rule`);
-                        } else {
+                        if (safeOutcome.leaderIsActor) chatMessage(`The ${trailerName} needs to hold the ${leaderName} to ${artSafe} ${safeOutcome.name} next Song to avoid Mercy Rule`);
+
+                        else {
                             let txtSafe = `at least ${artSafe} ${safeOutcome.name}`;
                             if (safeOutcome.name === scenarios[0].name) txtSafe = `${artSafe} ${safeOutcome.name}`;
                             chatMessage(`The ${trailerName} needs ${txtSafe} next Song to avoid Mercy Rule`);
                         }
+
                         const artKill = getArticle(killOutcome.name);
-                        if (killOutcome.change < 0) {
-                            chatMessage(`The ${leaderName} can afford the ${killOutcome.actor} getting ${artKill} ${killOutcome.name} next Song and still trigger Mercy Rule`);
-                        } else {
+                        if (killOutcome.change < 0) chatMessage(`The ${leaderName} can afford the ${killOutcome.actor} getting ${artKill} ${killOutcome.name} next Song and still trigger Mercy Rule`);
+                        
+                        else {
                             let txtKill = `only needs ${artKill} ${killOutcome.name}`;
                             if (Math.abs(killOutcome.change) >= 7) txtKill = `needs ${artKill} ${killOutcome.name}`;
                             chatMessage(`The ${leaderName} ${txtKill} next Song to trigger Mercy Rule`);
                         }
-                    } else match.mercyWait = false;
-                } catch(e) {}
+                    }
+                    
+                    else match.mercyWait = false;
+                }
+                
+                catch(e) {}
             }
         }
 
@@ -676,18 +718,21 @@
             if (match.otRound === 1) {
                 const suddenDeathOffense = ["Onside Kick"];
                 const suddenDeathDefense = ["House Call"];
+
                 if (suddenDeathOffense      .includes(result.name) && result.team === "offense") {
                     chatMessage(`${getTeamDisplayName('away')} wins via ${result.name}!`);
                     systemMessage("Game ended in Sudden Death Overtime");
                     endGame('away');
                     isGameOver = true;
                 }
+
                 else if (suddenDeathDefense .includes(result.name) && result.team === "defense") {
                     chatMessage(`${getTeamDisplayName('home')} wins via ${result.name}!`);
                     systemMessage("Game ended in Sudden Death Overtime");
                     endGame('home');
                     isGameOver = true;
                 } 
+
                 else chatMessage("Whoever has more points after this wins Overtime");
             }
 
@@ -695,6 +740,7 @@
                 if (match.scores.away !== match.scores.home) {
                     const winner    = match.scores.away > match.scores.home ? getTeamDisplayName('away')    : getTeamDisplayName('home');
                     winnerSide      = match.scores.away > match.scores.home ? 'away'                        : 'home';
+
                     chatMessage(`${winner} wins in Overtime!`);
                     systemMessage("Game ended in Overtime");
                     endGame(winnerSide);
@@ -706,6 +752,7 @@
                 if (match.scores.away === match.scores.home) {
                     if (config.knockout) {
                         chatMessage("Knockout Overtime ended in a tie, returning to lobby. Type /nfl start to restart Overtime");
+
                         match.scores        = JSON.parse(JSON.stringify(match.scoresAtReg));
                         match.history       = JSON.parse(JSON.stringify(match.historyAtReg));
                         match.possession    = 'away';
@@ -713,10 +760,13 @@
                         match.otRound       = 0;
                         match.songNumber    = config.lengths.reg;
                         match.isActive      = false;
+
                         sendGameCommand("pause game");
                         setTimeout(() => sendGameCommand("return to lobby"), config.delay);
                         return;
-                    } else {
+                    }
+                    
+                    else {
                         chatMessage("Game ended in a Tie");
                         endGame('draw');
                         isGameOver = true;
@@ -727,6 +777,7 @@
             if (!isGameOver && match.otRound === 2) {
                 try {
                     const otScoreDiff = match.scores.away - match.scores.home;
+
                     if (otScoreDiff !== 0) {
                         const isAwayLeading = otScoreDiff > 0;
                         const trailerName   = isAwayLeading ? getTeamDisplayName('home') : getTeamDisplayName('away');
@@ -734,28 +785,35 @@
                         const tieOutcomes   = outcomesList.filter(o => o.swing === gap && ["Touchdown", "Field Goal", "Rouge", "TD + 2PC"].includes(o.name));
                         const tieOutcome    = tieOutcomes.find(o => o.name === "Touchdown") || tieOutcomes[0];
                         const winOutcomes   = outcomesList.filter(o => o.swing > gap && ["Touchdown", "Field Goal", "Rouge", "TD + 2PC"].includes(o.name));
+
                         winOutcomes.sort((a,b) => a.swing - b.swing);
                         const winOutcome = winOutcomes.find(o => o.name === "Touchdown") || winOutcomes[0];
+
                         if (tieOutcome) {
                             const artTie    = getArticle(tieOutcome.name);
                             let trailerMsg  = `The ${trailerName} needs ${artTie} ${tieOutcome.name} to tie`;
+
                             if (winOutcome) {
                                 const artWin    =   getArticle(winOutcome.name);
                                 trailerMsg      +=  `, or ${artWin} ${winOutcome.name} to win outright`;
                             }
+
                             chatMessage(trailerMsg);
                         }
                     }
-                } catch(e) {}
+                }
+                
+                catch(e) {}
             }
         }
 
         if (!isGameOver) {
-             if (match.mercyWait) {
-                 sendGameCommand("resume game");
-                 match.mercyWait = false;
-             }
-             chatMessage(`Next Possession: ${getTeamDisplayName(match.possession)}`);
+            if (match.mercyWait) {
+                sendGameCommand("resume game");
+                match.mercyWait = false;
+            }
+
+            chatMessage(`Next Possession: ${getTeamDisplayName(match.possession)}`);
         }
     };
 
@@ -865,14 +923,13 @@
                  const trailerIsPossessing  = (isAwayLeading && !nextPossessionIsAway) || (!isAwayLeading && nextPossessionIsAway);
                  const maxPoints            = getMaxPossiblePoints(songsRemaining, trailerIsPossessing);
                  if (diff > maxPoints || (row.song >= config.lengths.reg && diff !== 0)) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
-            } 
+            }
+
             else {
                 const suddenDeathOffense = ["Onside Kick"];
                 const suddenDeathDefense = ["House Call"];
-                if (row.otRound === 1 && (suddenDeathOffense.includes(row.result) || suddenDeathDefense.includes(row.result))) {
-                    if (scoreAway !== scoreHome) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
-                }
-                else if (row.otRound >= 2 && scoreAway !== scoreHome) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
+                if (row.otRound === 1 && (suddenDeathOffense.includes(row.result) || suddenDeathDefense.includes(row.result))) if (scoreAway !== scoreHome) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
+                else if (row.otRound >= 2 && scoreAway !== scoreHome)                                                                                       winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
             }
             
             const displaySong = row.period === 'OVERTIME' ? row.otRound : row.song;
@@ -913,9 +970,11 @@
     const printHelp = (topic = null) => {
         if (topic) {
             const actualKey = Object.keys(COMMAND_DESCRIPTIONS).find(key => key.toLowerCase() === topic);
-            if      (actualKey) systemMessage(`/nfl ${actualKey}: ${COMMAND_DESCRIPTIONS[actualKey]}`);
-            else                systemMessage("Unknown command, type /nfl help for a list");
-        } else {
+            if (actualKey)  systemMessage(`/nfl ${actualKey}: ${COMMAND_DESCRIPTIONS[actualKey]}`);
+            else            systemMessage("Unknown command, type /nfl help for a list");
+        }
+        
+        else {
             const cmds = Object.keys(COMMAND_DESCRIPTIONS).join(", ");
             systemMessage("Commands: " + cmds);
             systemMessage("Type /nfl help [command] for more details or /nfl howTo for setup steps");
@@ -948,9 +1007,7 @@
              }
         }).bindListener();
 
-        new Listener("Player Rejoined", (payload) => {
-            if (match.isActive) chatMessage(`${payload.name} has rejoined, resume when ready`)
-        }).bindListener();
+        new Listener("Player Rejoined",             (payload) => {if (match.isActive) chatMessage(`${payload.name} has rejoined, resume when ready`)})                                  .bindListener();
 
         new Listener("game chat update", (payload) => {
             payload.messages.forEach(msg => {
@@ -966,16 +1023,19 @@
                         setTimeout(() => {
                             if (cmd === "whatis") {
                                 if (!arg || arg === "help") chatMessage("Available terms: " + Object.keys(TERMS).sort().join(", "));
+
                                 else {
                                     if (TERMS[arg])         chatMessage(`${toTitleCase(arg)}: ${TERMS[arg]}`);
                                     else                    chatMessage(`Unknown term '${arg}'. Type /nfl whatIs help for a list`);
                                 }
                             }
+                            
                             else if (cmd === "help")        printHelp(cmdKey ? null : arg);
                             else if (cmd === "flowchart")   chatMessage(`Flowchart: ${config.links.flowchart}`);
                             else if (cmd === "guide")       chatMessage(`Guide: ${config.links.guide}`);
                             else if (cmd === "export")      downloadScoresheet();
                         }, config.delay);
+
                         return;
                     }
         
@@ -983,51 +1043,66 @@
                         setTimeout(() => {
                             if (cmd === "start") startGame();
                             else if (cmd === "end") {match.isActive = false; systemMessage("Manually stopped")}
+
                             else if (cmd === "setteams") {
                                 if (parts.length === 4 && parts[2].toLowerCase() !== parts[3].toLowerCase()) {
                                     config.teamNames.away   = toTitleCase(parts[2]);
                                     config.teamNames.home   = toTitleCase(parts[3]);
                                     const awayArr           = getArrowedName('away');
                                     const homeArr           = getArrowedName('home');
+
                                     systemMessage(`Teams set: ${awayArr} @ ${homeArr}`);
                                     updateLobbyName(config.teamNames.away, config.teamNames.home);
-                                } else systemMessage("Error: Use /nfl setTeams [Away] [Home]");
+                                }
+                                
+                                else systemMessage("Error: Use /nfl setTeams [Away] [Home]");
                             }
+
                             else if (cmd === "setcaptains") {
                                 if (typeof lobby !== 'undefined' && lobby.inLobby) playersCache = Object.values(lobby.players);
+
                                 if (parts[2] && /^[13][57]$/.test(parts[2])) {
                                     config.captains = parts[2].split('').map(Number);
                                     systemMessage(`Captains: ${getCaptainListString()}`);
-                                } else systemMessage("Error: Use /nfl setCaptains [1/3][5/7]");
+                                }
+                                
+                                else systemMessage("Error: Use /nfl setCaptains [1/3][5/7]");
                             }
+
                             else if (cmd === "setgame") {
                                 const num = parseInt(parts[2]);
                                 if (num >= 1 && num <= 7) {config.gameNumber = num; systemMessage(`Game Number: ${num}`)}
                                 else systemMessage("Error: Use /nfl setGame [1-7]");
                             }
+
                             else if (cmd === "setseries") {
                                 const num = parseInt(parts[2]);
                                 if (num === 1 || num === 2 || num === 7) {config.seriesLength = num; systemMessage(`Series Length: ${num}`)}
                                 else systemMessage("Error: Use /nfl setSeries [1/2/7]");
                             }
+
                             else if (cmd === "setknockout") {
                                 const b = parseBool(parts[2]);
                                 if (b !== null) {config.knockout = b; systemMessage(`Knockout Mode: ${b}`)}
                                 else systemMessage("Error: Use /nfl setKnockout [true/false]");
                             }
+
                             else if (cmd === "settest") {
                                 const b = parseBool(parts[2]);
                                 if (b !== null) {config.isTest = b; systemMessage(`Test Mode: ${b}`)}
                                 else systemMessage("Error: Use /nfl setTest [true/false]");
                             }
+
                             else if (cmd === "showcodes") {
                                 systemMessage(`Regulation: ${CODES.REGULATION}`);
                                 systemMessage(`Overtime: ${CODES.OVERTIME}`);
                             }
+
                             else if (cmd === "swap") {
                                 config.isSwapped = !config.isSwapped;
                                 systemMessage(`Swapped: ${getTeamDisplayName('away')} is now the Away team`);
                             }
+
                             else if (cmd === "resetgame") {
                                 if (match.isActive || match.history.length > 0) {
                                     match.isActive = false;
@@ -1035,7 +1110,9 @@
                                     systemMessage(`Game ${config.gameNumber} reset, tracker stopped and data wiped`);
                                 } else systemMessage("Error: No active game or data to reset");
                             }
+
                             else if (cmd === "reseteverything") resetEverything();
+
                             else if (cmd === "resetovertime") {
                                 if (match.period        === 'OVERTIME') {
                                     match.isActive      =   false;
@@ -1044,11 +1121,16 @@
                                     match.otRound       =   0;
                                     match.songNumber    =   config.lengths.reg;
                                     match.period        =   'OVERTIME';
+
                                     systemMessage("Overtime reset, tracker stopped and reverted to end of Regulation. Type /nfl start to restart Overtime");
-                                } else systemMessage("Error: Can only reset Overtime while in Overtime");
+                                }
+                                
+                                else systemMessage("Error: Can only reset Overtime while in Overtime");
                             }
+
                             else if (cmd === "resetseries") {
                                 if (config.seriesStats.history.length === 0 && !match.isActive && match.history.length === 0) systemMessage("Error: No series data to reset");
+
                                 else {
                                     match.isActive      = false;
                                     resetMatchData();
@@ -1058,20 +1140,16 @@
                                     systemMessage("Series reset, all history wiped");
                                 }
                             }
-                            else if (cmd === "howto")   printHowTo();
+
+                            else if (cmd === "howto") printHowTo();
                         }, config.delay);
                     }
                 }
             });
         }).bindListener();
 
-        new Listener("answer results", (payload) => {
-            if (match.isActive) setTimeout(() => processRound(payload), config.delay);
-        }).bindListener();
-
-        new Listener("play next song", () => {
-            if (match.isActive && match.mercyWait) sendGameCommand("pause game");
-        }).bindListener();
+        new Listener("answer results", (payload)    => {if (match.isActive)                     setTimeout(() => processRound(payload), config.delay)}) .bindListener();
+        new Listener("play next song", ()           => {if (match.isActive && match.mercyWait)  sendGameCommand("pause game");})                        .bindListener();
 
         new Listener("join lobby", () => {
             if (match.pendingCode) {
@@ -1084,7 +1162,7 @@
 
     function init() {
         if (typeof quiz !== 'undefined' && typeof Listener !== 'undefined') setup();
-        else setTimeout(init, config.delay);
+        else                                                                setTimeout(init, config.delay);
     }
 
     init();
