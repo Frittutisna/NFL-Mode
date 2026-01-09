@@ -136,6 +136,11 @@
     };
 
     const updateLobbyName = (awayClean, homeClean) => {
+        if (config.isTest) {
+            systemMessage("Test Mode active: Skipping lobby name update");
+            return;
+        }
+
         const awayAbbr  = awayClean.substring(0, 3).toUpperCase();
         const homeAbbr  = homeClean.substring(0, 3).toUpperCase();
         const newTitle  = `NFL Tour: ${awayAbbr} @ ${homeAbbr}`;
