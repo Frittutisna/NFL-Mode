@@ -46,7 +46,7 @@
         isActive        : false,
         songNumber      : 0,
         scores          : {away: 0, home: 0},
-        possession      : 'away', 
+        possession      : 'away',
         history         : [],
         period          : 'REGULATION',
         otRound         : 0,
@@ -60,7 +60,7 @@
         captainMultiplier   : 2,
         awaySlots           : [1, 2, 3, 4],
         homeSlots           : [5, 6, 7, 8],
-        opsRelativeIndices  : [0, 1], 
+        opsRelativeIndices  : [0, 1],
         dpsRelativeIndices  : [2, 3],
         posNames            : ["OP1", "OP2", "DP1", "DP2"]
     };
@@ -139,7 +139,7 @@
         const newTitle  = `Tour: ${awayClean}-${homeClean}`;
         const nameInput = document.getElementById(config.selectors.lobbyName);
         const changeBtn = document.getElementById(config.selectors.lobbyChange);
-    
+
         if (nameInput && changeBtn) {
             nameInput.value = newTitle.substring(0, 20);
             changeBtn.click();
@@ -207,7 +207,7 @@
 
     const systemMessage = (msg) => {messageQueue.add(msg, true)};
     const chatMessage   = (msg) => {messageQueue.add(msg, false)};
-    
+
     const sendGameCommand = (cmd) => {
         const s = config.selectors;
         if (cmd === "return to lobby") {
@@ -236,7 +236,7 @@
     };
 
     const toTitleCase = (str)   => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-    
+
     const getTeamDisplayName = (side)  => {
         let actualSide = side;
         if (config.isSwapped) actualSide = (side === 'away' ? 'home' : 'away');
@@ -256,7 +256,7 @@
         if (typeof quiz !== 'undefined' && quiz.inQuiz) {
             const p = Object.values(quiz.players).find(player => player.teamNumber == teamId);
             if (p) return p.name;
-        } 
+        }
         else if (typeof lobby !== 'undefined' && lobby.inLobby) {
             const p = Object.values(lobby.players).find(player => getTeamNumber(player) == teamId);
             if (p) return p.name;
@@ -308,12 +308,12 @@
         let seriesFinished  = false;
 
         if (config.seriesLength > 1) {
-            const finalScoreStr = config.isSwapped ? 
-                                  `${match.scores.home}-${match.scores.away}` : 
+            const finalScoreStr = config.isSwapped ?
+                                  `${match.scores.home}-${match.scores.away}` :
                                   `${match.scores.away}-${match.scores.home}`;
-                                  
+
             config.seriesStats.history.push(finalScoreStr);
-            
+
             let actualWinnerSide = winnerSide;
             if (config.isSwapped) {
                  if (winnerSide === 'away')      actualWinnerSide = 'home';
@@ -327,13 +327,13 @@
             const awayPoints    = config.seriesStats.awayWins + (config.seriesStats.draws * 0.5);
             const homePoints    = config.seriesStats.homeWins + (config.seriesStats.draws * 0.5);
             const winThreshold  = config.seriesLength / 2;
-            
+
             const aName = config.teamNames.away;
             const hName = config.teamNames.home;
 
             if (awayPoints > winThreshold)  seriesWinner    = aName;
             if (homePoints > winThreshold)  seriesWinner    = hName;
-            
+
             if (seriesWinner || config.seriesStats.history.length >= config.seriesLength) {
                 seriesFinished = true;
             }
@@ -372,7 +372,7 @@
                     seriesMsg = `The ${leader} leads the series ${recordStr} ${historyStr}`;
                 }
             }
-            
+
             chatMessage(seriesMsg);
         } else seriesFinished = true;
 
@@ -391,7 +391,7 @@
                 const sStats    = config.seriesStats;
                 const aPts      = sStats.awayWins + (sStats.draws * 0.5);
                 const hPts      = sStats.homeWins + (sStats.draws * 0.5);
-                
+
                 if (aPts === hPts) {
                     config.knockout = true;
                     chatMessage("Game 7 decider detected, Knockout Mode forced to True");
@@ -399,7 +399,7 @@
             }
             systemMessage(`Ready for Game ${config.gameNumber}, auto-swapped teams for the return leg`);
         } else systemMessage("Series finished");
-        
+
         setTimeout(() => {
             if (match.period === 'OVERTIME' || match.songNumber < config.lengths.reg) sendGameCommand("return to lobby");
             else systemMessage("Game finished naturally, waiting for auto-return to lobby")
@@ -518,7 +518,7 @@
         const currentPossessionSide = match.possession;
         const attSide               = match.possession;
         const defSide               = match.possession === 'away' ? 'home' : 'away';
-        
+
         const attStats = attSide === 'away' ? awayStats : homeStats;
         const defStats = attSide === 'away' ? homeStats : awayStats;
 
@@ -559,7 +559,7 @@
             displayHomePattern = awayStats.patternStr;
             displayScoreStr    = `${match.scores.home}-${match.scores.away}`;
         }
-        
+
         const mainMsg   = `${displayAwayPattern} ${displayHomePattern} ${result.name} ${displayScoreStr}`;
         chatMessage(mainMsg);
 
@@ -616,7 +616,7 @@
                     isGameOver = true;
                 }
             }
-            
+
             else if (match.songNumber >= (config.lengths.reg / 2) && match.songNumber <= (config.lengths.reg - 2) && !isGameOver) {
                  try {
                     const nextRoundSong     = match.songNumber + 1;
@@ -636,7 +636,7 @@
                         const   maxChaseNext        = getMaxPossiblePoints(songsAfterNext, trailerHasBallNext);
                         return {name: o.name, change: leaderGapChange, actor: actorName, maxChase: maxChaseNext, leaderIsActor: (actorName === leaderName)};
                     });
-                    
+
                     scenarios.sort((a, b) => {
                          if (a.change !== b.change) return a.change - b.change;
                          const priority = ["Touchdown", "Field Goal", "Punt", "Rouge", "Safety", "Pick Six", "House Call", "TD + 2PC", "Onside Kick"];
@@ -687,7 +687,7 @@
                     systemMessage("Game ended in Sudden Death Overtime");
                     endGame('home');
                     isGameOver = true;
-                } 
+                }
                 else chatMessage("Whoever has more points after this wins Overtime");
             }
 
@@ -772,7 +772,7 @@
             effGameNum = config.gameNumber - 1;
             if (config.seriesLength > 1) effSwapped = !config.isSwapped;
         }
-        
+
         if (effGameNum < 1) effGameNum = 1;
 
         const getEffCleanName = (side) => {
@@ -782,7 +782,7 @@
 
         const awayNameClean = getEffCleanName('away');
         const homeNameClean = getEffCleanName('home');
-        
+
         const lastEntry         = match.history[match.history.length - 1];
         const lastSongDisplay   = lastEntry.song;
         const lastScore         = lastEntry.score;
@@ -795,7 +795,7 @@
             const index = slots.findIndex(slot => config.captains.includes(slot));
             return index !== -1 ? gameConfig.posNames[index] : "?";
         };
-        
+
         const awayHeaderTitle = `${awayNameClean} (${getCaptainPos(awaySlots)})`;
         const homeHeaderTitle = `${homeNameClean} (${getCaptainPos(homeSlots)})`;
         const subHeaders      = gameConfig.posNames;
@@ -842,7 +842,7 @@
                 </thead>
                 <tbody>
         `;
-        
+
         let otBannerAdded = false;
 
         match.history.forEach(row => {
@@ -865,7 +865,7 @@
                  const trailerIsPossessing  = (isAwayLeading && !nextPossessionIsAway) || (!isAwayLeading && nextPossessionIsAway);
                  const maxPoints            = getMaxPossiblePoints(songsRemaining, trailerIsPossessing);
                  if (diff > maxPoints || (row.song >= config.lengths.reg && diff !== 0)) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
-            } 
+            }
             else {
                 const suddenDeathOffense = ["Onside Kick"];
                 const suddenDeathDefense = ["House Call"];
@@ -874,7 +874,7 @@
                 }
                 else if (row.otRound >= 2 && scoreAway !== scoreHome) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
             }
-            
+
             const displaySong = row.period === 'OVERTIME' ? row.otRound : row.song;
 
             const generateCells = (patternArr, slots) => {
@@ -902,7 +902,7 @@
         });
 
         html += `</tbody></table></body></html>`;
-        
+
         const blob  = new Blob([html], {type: "text/html"});
         const a     = document.createElement('a');
         a.href      = URL.createObjectURL(blob);
@@ -940,7 +940,7 @@
         new Listener("Player Left",                 (payload) => {playersCache = playersCache.filter(p => p.gamePlayerId !== payload.gamePlayerId)})                                    .bindListener();
         new Listener("Player Changed Team",         (payload) => {const p = playersCache.find(p => p.gamePlayerId === payload.gamePlayerId); if (p) p.teamNumber = payload.newTeam;})   .bindListener();
         new Listener("Spectator Change To Player",  (payload) => {playersCache.push(payload)})                                                                                          .bindListener();
-        
+
         new Listener("Rejoin Ability", (payload) => {
              if (match.isActive && !payload.isAble) {
                  sendGameCommand("pause game");
@@ -978,7 +978,7 @@
                         }, config.delay);
                         return;
                     }
-        
+
                     if (isHost) {
                         setTimeout(() => {
                             if (cmd === "start") startGame();
