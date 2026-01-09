@@ -70,7 +70,7 @@
 - Moved and adapted instructions to Balancer on Python
 - Reduced first team bias
 - Implemented best-of-1,000 random simulations
-- Adapted for NFL/NBA Modes and normal tours
+- Adapted for MLB/NBA/NFL Modes and normal tours
 ### Flowchart Changes
 - Added Song R9 rule
 - Color-coded Home team in orange
