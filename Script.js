@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3.beta.3.3
-// @description  Script to track NFL Mode on AMQ
+// @version      3.beta.4.0
+// @description  Script to track NFL Mode on AMQ (v3.beta.4.0)
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
 // ==/UserScript==
@@ -96,7 +96,8 @@
         "regulation"    : `The first ${config.lengths.reg} songs (0-40 Watched Equal)`,
         "overtime"      : `Played if tied after Regulation (${config.lengths.ot} Random songs). Away gets first possession`,
         "sudden death"  : "In Overtime, if Song 1 results in an Onside Kick or a House Call, the game ends immediately",
-        "knockout"      : "A game where a winner must be decided (e.g., Championship Game, Super Bowl). Overtime repeats indefinitely until a winner is found",
+        "knockout"      : "A game where a winner must be decided via Tiebreakers if tied after Overtime",
+        "tiebreaker"    : "Weighted Total, Captains, Non-Captain OP/DP-1s, Cross OP/DP-2s, Away",
         "balancer"      : "The spreadsheet used to create fair teams based on Elo"
     };
 
@@ -112,7 +113,7 @@
         "resetSeries"       : "Wipe all series history and reset to Game 1",
         "setCaptains"       : "Set team captains (/nfl setCaptains [1-4][5-8])",
         "setGame"           : "Set the current game number /nfl setGame [1-7]",
-        "setKnockout"       : "Enable/disable infinite overtime (/nfl setKnockout [true/false])",
+        "setKnockout"       : "Enable/disable tiebreakers (/nfl setKnockout [true/false])",
         "setSeries"         : "Set the series length (/nfl setSeries [1/2/7]",
         "setTeams"          : "Set team names (/nfl setTeams [Away] [Home])",
         "setTest"           : "Enable/disable loose lobby validation (/nfl setTest [true/false])",
@@ -476,6 +477,89 @@
         return points;
     };
 
+    const resolveKnockoutTie = (awaySlots, homeSlots) => {
+        const getStat = (side, targetIndices) => {
+            let total   = 0;
+            const slots = side === 'away' ? awaySlots : homeSlots;
+
+            match.history.filter(r => r.period === 'OVERTIME').forEach(row => {
+                const arr = side === 'away' ? row.awayArr : row.homeArr;
+
+                targetIndices.forEach(idx => {
+                    const isCorrect = arr[idx] === 1;
+
+                    if (isCorrect) {
+                        const slotId    = slots[idx];
+                        const isCaptain = config.captains.includes(slotId);
+
+                        total += (isCaptain ? 2 : 1);
+                    }
+                });
+            });
+            return total;
+        };
+
+        const getCapIndex   = (slots) => slots.findIndex(s => config.captains.includes(s));
+        const awayCapIndex  = getCapIndex(awaySlots);
+        const homeCapIndex  = getCapIndex(homeSlots);
+
+        const awayTotal = getStat('away', [0, 1, 2, 3]);
+        const homeTotal = getStat('home', [0, 1, 2, 3]);
+
+        if (awayTotal !== homeTotal) {
+            chatMessage(`Tiebreaker: ${getTeamDisplayName(awayTotal > homeTotal ? 'away' : 'home')} wins on Weighted Total Tiebreaker (${awayTotal}-${homeTotal})`);
+            return awayTotal > homeTotal ? 'away' : 'home';
+        }
+
+        if (awayCapIndex !== -1 && homeCapIndex !== -1) {
+            const awayCapStat = getStat('away', [awayCapIndex]);
+            const homeCapStat = getStat('home', [homeCapIndex]);
+            if (awayCapStat !== homeCapStat) {
+                chatMessage(`Tiebreaker: ${getTeamDisplayName(awayCapStat > homeCapStat ? 'away' : 'home')} wins on Captain Tiebreaker (${awayCapStat}-${homeCapStat})`);
+                return awayCapStat > homeCapStat ? 'away' : 'home';
+            }
+        }
+
+        const getSecondaryIndex = (capIndex) => {
+            if (capIndex === 0) return 2;
+            if (capIndex === 2) return 0;
+            return -1;
+        };
+
+        const awaySecIndex = getSecondaryIndex(awayCapIndex);
+        const homeSecIndex = getSecondaryIndex(homeCapIndex);
+
+        if (awaySecIndex !== -1 && homeSecIndex !== -1) {
+            const awaySecStat = getStat('away', [awaySecIndex]);
+            const homeSecStat = getStat('home', [homeSecIndex]);
+            if (awaySecStat !== homeSecStat) {
+                chatMessage(`Tiebreaker: ${getTeamDisplayName(awaySecStat > homeSecStat ? 'away' : 'home')} wins on Non-Captain Tiebreaker (${awaySecStat}-${homeSecStat})`);
+                return awaySecStat > homeSecStat ? 'away' : 'home';
+            }
+        }
+
+        const getTertiaryIndex = (capIndex) => {
+            if (capIndex === 0) return 3;
+            if (capIndex === 2) return 1;
+            return -1;
+        }
+
+        const awayTerIndex = getTertiaryIndex(awayCapIndex);
+        const homeTerIndex = getTertiaryIndex(homeCapIndex);
+
+        if (awayTerIndex !== -1 && homeTerIndex !== -1) {
+            const awayTerStat = getStat('away', [awayTerIndex]);
+            const homeTerStat = getStat('home', [homeTerIndex]);
+            if (awayTerStat !== homeTerStat) {
+                chatMessage(`Tiebreaker: ${getTeamDisplayName(awayTerStat > homeTerStat ? 'away' : 'home')} wins on Cross Tiebreaker (${awayTerStat}-${homeTerStat})`);
+                return awayTerStat > homeTerStat ? 'away' : 'home';
+            }
+        }
+
+        chatMessage(`Tiebreaker: ${getTeamDisplayName('away')} wins on Advantage Tiebreaker`);
+        return 'away';
+    };
+
     const processRound = (payload) => {
         if (!match.isActive) return;
         const currentPeriod = match.period;
@@ -683,47 +767,49 @@
             if (match.otRound === 1) {
                 const suddenDeathOffense = ["Onside Kick"];
                 const suddenDeathDefense = ["House Call"];
+
                 if (suddenDeathOffense      .includes(result.name) && result.team === "offense") {
                     chatMessage(`${getTeamDisplayName('away')} wins via ${result.name}!`);
                     systemMessage("Game ended in Sudden Death Overtime");
                     endGame('away');
                     isGameOver = true;
                 }
+
                 else if (suddenDeathDefense .includes(result.name) && result.team === "defense") {
                     chatMessage(`${getTeamDisplayName('home')} wins via ${result.name}!`);
                     systemMessage("Game ended in Sudden Death Overtime");
                     endGame('home');
                     isGameOver = true;
                 }
-                else chatMessage("Whoever has more points after this wins Overtime");
+
+                else chatMessage("Whoever has more points after Song 4 wins. If tied, the game ends in a Tie or through Tiebreakers");
             }
 
-            if (!isGameOver && match.otRound >= 2) {
+            if (!isGameOver && match.otRound >= 4) {
                 if (match.scores.away !== match.scores.home) {
                     const winner    = match.scores.away > match.scores.home ? getTeamDisplayName('away')    : getTeamDisplayName('home');
                     winnerSide      = match.scores.away > match.scores.home ? 'away'                        : 'home';
+
                     chatMessage(`${winner} wins in Overtime!`);
                     systemMessage("Game ended in Overtime");
                     endGame(winnerSide);
                     isGameOver = true;
                 }
-            }
-
-            if (!isGameOver && match.otRound === config.lengths.ot) {
-                if (match.scores.away === match.scores.home) {
+                
+                else {
                     if (config.knockout) {
-                        chatMessage("Knockout Overtime ended in a tie, returning to lobby. Type /nfl start to restart Overtime");
-                        match.scores        = JSON.parse(JSON.stringify(match.scoresAtReg));
-                        match.history       = JSON.parse(JSON.stringify(match.historyAtReg));
-                        match.possession    = 'away';
-                        match.period        = 'OVERTIME';
-                        match.otRound       = 0;
-                        match.songNumber    = config.lengths.reg;
-                        match.isActive      = false;
-                        sendGameCommand("pause game");
-                        setTimeout(() => sendGameCommand("return to lobby"), config.delay);
-                        return;
-                    } else {
+                        chatMessage("Knockout Mode: Calculating Tiebreakers");
+
+                        winnerSide      = resolveKnockoutTie(awaySlots, homeSlots);
+                        const winner    = getTeamDisplayName(winnerSide);
+
+                        chatMessage(`${winner} wins via Tiebreaker!`);
+                        systemMessage("Game ended via Knockout Tiebreaker");
+                        endGame(winnerSide);
+                        isGameOver = true;
+                    }
+                    
+                    else {
                         chatMessage("Game ended in a Tie");
                         endGame('draw');
                         isGameOver = true;
@@ -772,9 +858,10 @@
             return;
         }
 
-        const sStats    = config.seriesStats;
-        const aPts      = sStats.awayWins + (sStats.draws * 0.5);
-        const hPts      = sStats.homeWins + (sStats.draws * 0.5);
+        const sStats        = config.seriesStats;
+        const aPts          = sStats.awayWins + (sStats.draws * 0.5);
+        const hPts          = sStats.homeWins + (sStats.draws * 0.5);
+        const winThreshold  = config.seriesLength / 2;
 
         let isSeriesOver = (aPts > winThreshold || hPts > winThreshold || sStats.history.length >= config.seriesLength);
 
@@ -881,13 +968,16 @@
                  const maxPoints            = getMaxPossiblePoints(songsRemaining, trailerIsPossessing);
                  if (diff > maxPoints || (row.song >= config.lengths.reg && diff !== 0)) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
             }
+
             else {
                 const suddenDeathOffense = ["Onside Kick"];
                 const suddenDeathDefense = ["House Call"];
+
                 if (row.otRound === 1 && (suddenDeathOffense.includes(row.result) || suddenDeathDefense.includes(row.result))) {
                     if (scoreAway !== scoreHome) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
                 }
-                else if (row.otRound >= 2 && scoreAway !== scoreHome) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
+
+                else if (row.otRound >= config.lengths.ot && scoreAway !== scoreHome) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
             }
 
             const displaySong = row.period === 'OVERTIME' ? row.otRound : row.song;
@@ -942,7 +1032,7 @@
         systemMessage("2. Use /nfl setCaptains to set the right Captains for each team");
         systemMessage("3. Use /nfl setSeries to set the series length");
         systemMessage("4. Use /nfl setGame to set the game number");
-        systemMessage("5. Use /nfl setKnockout to enable/disable infinite overtime for Knockout games");
+        systemMessage("5. Use /nfl setKnockout to enable/disable Overtime tiebreakers for Knockout Games");
         systemMessage("6. Use /nfl start when you're ready to start a new Game");
     };
 
