@@ -4,6 +4,7 @@
 - [TLDR: What Do I Do?](#tldr-what-do-i-do)
 - [Links: Balancer, Flowchart, Script](#links-balancer-flowchart-script)
 - [Overview: Those Long Setting Codes](#overview-those-long-setting-codes)
+- [Comparison: What's The Difference?](#comparison-whats-the-difference)
 - [Changelog: What Changed From v3.beta.2?](#changelog-what-changed-from-v3beta2)
 - [Lineup: Away and Home, Captains, OPs, DPs](#lineup-away-and-home-captains-ops-dps)
 - [Score: Check the (T)DIFF](#score-check-the-tdiff)
@@ -64,6 +65,97 @@
 
 * Due to AMQ's minimum of 5 songs in each round, the script will automatically return to lobby in a Knockout Overtime tie to restart Overtime, ignoring Song 5
 
+## Comparison: What's The Difference?
+<table>
+    <thead>
+        <tr>
+            <th style="text-align:center">Phase</th>
+            <th style="text-align:center">Differences</th>
+            <th style="text-align:center">NFL</th>
+            <th style="text-align:center">NBA</th>
+            <th style="text-align:center">MLB</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td rowspan="9" style="text-align:center"><b>BOTH</b></td>
+            <td style="text-align:center">Guess Time</td>
+            <td style="text-align:center">15</td>
+            <td style="text-align:center">10</td>
+            <td style="text-align:center">20</td>
+        </tr>
+        <tr>
+            <td style="text-align:center">OP/DP Split</td>
+            <td rowspan="3" style="text-align:center">Yes</td>
+            <td rowspan="3" style="text-align:center">No</td>
+            <td style="text-align:center">No</td>
+        </tr>
+        <tr>
+            <td style="text-align:center">DIFF</td>
+            <td style="text-align:center">Yes</td>
+        </tr>
+        <tr>
+            <td style="text-align:center">Rouge</td>
+            <td rowspan="5" style="text-align:center">No</td>
+        </tr>
+        <tr>
+            <td style="text-align:center">Hot Streak</td>
+            <td rowspan="5" style="text-align:center">No</td>
+            <td rowspan="4" style="text-align:center">Yes</td>
+        </tr>
+        <tr><td style="text-align:center">Fast Break</td></tr>
+        <tr><td style="text-align:center">Buzzer Beater</td></tr>
+        <tr><td style="text-align:center">Elam Ending</td></tr>
+        <tr>
+            <td style="text-align:center">Base Running</td>
+            <td style="text-align:center">No</td>
+            <td style="text-align:center">Yes</td>
+        </tr>
+        <tr>
+            <td rowspan="4" style="text-align:center"><b>REG</b></td>
+            <td style="text-align:center">Song Count</td>
+            <td style="text-align:center">16</td>
+            <td style="text-align:center">24</td>
+            <td style="text-align:center">32</td>
+        </tr>
+        <tr>
+            <td style="text-align:center">Song Mix</td>
+            <td colspan="2" style="text-align:center">Watched Equal</td>
+            <td style="text-align:center">Random</td>
+        </tr>
+        <tr>
+            <td style="text-align:center">Song Difficulty</td>
+            <td colspan="2" style="text-align:center">0-40</td>
+            <td style="text-align:center">0-100</td>
+        </tr>
+        <tr>
+            <td style="text-align:center">Mercy Rule</td>
+            <td style="text-align:center">Yes</td>
+            <td colspan="2" style="text-align:center">No</td>
+        </tr>
+        <tr>
+            <td rowspan="5" style="text-align:center"><b>OT</b></td>
+            <td style="text-align:center">Song Count</td>
+            <td style="text-align:center">4</td>
+            <td style="text-align:center">6</td>
+            <td style="text-align:center">8</td>
+        </tr>
+        <tr>
+            <td style="text-align:center">Sudden Death</td>
+            <td rowspan="2" style="text-align:center">Yes</td>
+            <td rowspan="4" style="text-align:center">No</td>
+            <td rowspan="2" style="text-align:center">No</td>
+        </tr>
+        <tr><td style="text-align:center">Tie</td></tr>
+        <tr>
+            <td style="text-align:center">Ghost Runner on 2nd</td>
+            <td rowspan="2" style="text-align:center">No</td>
+            <td rowspan="2" style="text-align:center">Yes</td>
+        </tr>
+        <tr><td style="text-align:center">1 Out</td></tr>
+    </tbody>
+</table>
+
 ## Changelog: What Changed From v3.beta.2?
 ### Balancer Changes
 - Fully deprecated Balancer on Sheets
@@ -73,11 +165,10 @@
 - Adapted for MLB/NBA/NFL Modes and normal tours
 ### Flowchart Changes
 - Added Song R9 rule
-- Color-coded Home team in orange
-- Color-coded start/end boxes in purple, Attacking plays in green, neutral plays in yellow, and Defending plays in red
+- Color-coded for better visibility
 - Unified Attacking and Defending `Rouges`
 - Changed Song OT1 Sudden Death win conditions
-- Clarified and unified song identifies
+- Clarified and unified song identifiers
 - Added `Next song` box for clarity
 ### Format Changes
 - Reduced song count from 20/5 to 16/4
@@ -89,6 +180,7 @@
 - Updated TLDR to account for public informational commands
 - Split `Song Mix` in [Overview](#overview-those-long-setting-codes) into `Song Count` and `Song Mix`
 - Added `Guess Time` to [Overview](#overview-those-long-setting-codes)
+- Added [Comparison](#comparison-whats-the-difference) section
 - Added detail about AMQ minimum song count
 - Updated setting codes
 - Clarified OP1/DP1 Captain requirement
@@ -211,7 +303,8 @@ in which case Overtime **repeats** until a winner is found.
 Overtime will be **reset and restarted** as necessary.
 
 ## Format: Best-of-7, Round Robin, Knockouts
-- **For 2 teams**: Play a best-of-7, automatically swapping Away and Home between games. Whoever gets 4.0 points out of 7.0 wins.
+The script will automatically swap Away and Home teams between consecutive games.
+- **For 2 teams**: Play a best-of-7. Whoever gets 4.0 points out of 7.0 wins.
 - **For 4 teams**: Play a double round-robin. The top two teams advance to the **Super Bowl**.
 - **For 6 teams**: Play a single round-robin. The top four teams advance to the **Championship Games**, then the winners advance to the **Super Bowl**.
 - **For 8 teams**: Play a double round-robin in 2 conferences. The conference winners advance to the **Super Bowl**.
@@ -220,7 +313,7 @@ Overtime will be **reset and restarted** as necessary.
 ### If you're hosting the tour:
 - Open the tour signup prompt and ask for team requests and/or blacklists.
 - After the player list has been settled, find the [Balancer](#links-balancer-flowchart-script) and follow the instructions there.
-- If the tour has 4+ teams, ask for 1 lobby host volunteer from each team.
+- If the tour has ≥4 teams, ask for 1 lobby host volunteer from each team.
 - Read the [Format](#format-best-of-7-round-robin-knockouts) section and prepare the Challonge.
 - After the team split has been settled, announce team compositions and the Challonge link.
 - Note the results of each game in Challonge.
@@ -230,7 +323,7 @@ Overtime will be **reset and restarted** as necessary.
 ### If you're hosting a lobby for your team:
 Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host needs to install and operate the **Script**) on your browser through TamperMonkey, then do the following:
 - Apply the **Regulation** setting code (see [Overview](#overview-those-long-setting-codes)).
-- Invite the right players to the lobby, and make sure they're lined up correctly (**No need to swap between consecutive games**, also see [Lineup](#lineup-away-and-home-captains-ops-dps)).
+- Invite the right players to the lobby, and make sure they're lined up correctly (see [Lineup](#lineup-away-and-home-captains-ops-dps)).
 - After everyone is ready, type `/nfl howTo` and follow the instructions there.
 - Type `/nfl start` and start playing.
     - If you started the game by mistake, type `/nfl resetGame`, return to lobby, then type `/nfl start` to restart.
@@ -239,9 +332,9 @@ Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host 
 - If it's tied after Regulation:
     - Apply the **Overtime** setting code (see [Overview](#overview-those-long-setting-codes)).
     - Start playing after everyone is ready (**No need to type `/nfl start` to start Overtime unless you reset/repeat**).
-    - If you started Overtime by mistake, type `/nfl resetOvertime`, return to lobby, then type `/nfl start` to repeat Overtime.
+    - If you started Overtime by mistake, type `/nfl resetOvertime`, return to lobby, then type `/nfl start` to restart Overtime.
     - When the Winner has been decided either normally, through Sudden Death, or if it's still tied after 4 songs, the game will automatically start the vote to return to lobby.
-    - If you need to repeat overtime, type `/nfl start` after everyone is ready.
+    - If you need to repeat Overtime, type `/nfl start` after everyone is ready.
 - Type `/nfl export` to download the **Scoresheet**.
 - Open the Scoresheet and copy the top row.
 - Paste it in `#game-reporting` with the Scoresheet and JSON(s) (Regulation and **the last** Overtime, if necessary).
