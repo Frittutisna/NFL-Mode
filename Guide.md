@@ -1,7 +1,7 @@
 # NFL Mode v3.beta.3.3
 
 ## Table of Contents
-- [TLDR: What Do I Do?](#tldr-what-do-i-do)
+- [TLDR: What Is This And What Do I Do?](#tldr-what-is-this-and-what-do-i-do)
 - [Links: Balancer, Flowchart, Script](#links-balancer-flowchart-script)
 - [Overview: Those Long Setting Codes](#overview-those-long-setting-codes)
 - [Comparison: What's The Difference?](#comparison-whats-the-difference)
