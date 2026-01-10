@@ -6,10 +6,10 @@
 - [Overview: Those Long Setting Codes](#overview-those-long-setting-codes)
 - [Comparison: What's The Difference?](#comparison-whats-the-difference)
 - [Changelog: What Changed From v3.beta.2?](#changelog-what-changed-from-v3beta2)
-- [Lineup: Away and Home, Captains, OPs, DPs](#lineup-away-and-home-captains-ops-dps)
-- [Score: Check the (T)DIFF](#score-check-the-tdiff)
+- [Lineup: Away And Home, Captains, OPs, DPs](#lineup-away-and-home-captains-ops-dps)
+- [Score: Check The (T)DIFF](#score-check-the-tdiff)
 - [Ending: Mercy, Overtime, Tie](#ending-mercy-overtime-tie)
-- [Format: Best-of-7, Round Robin, Knockouts](#format-best-of-7-round-robin-knockouts)
+- [Format: Best-Of-7, Round Robin, Knockouts](#format-best-of-7-round-robin-knockouts)
 - [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do)
 
 ## TLDR: What Do I Do?
@@ -71,88 +71,93 @@
         <tr>
             <th style="text-align:center">Phase</th>
             <th style="text-align:center">Differences</th>
-            <th style="text-align:center">NFL</th>
-            <th style="text-align:center">NBA</th>
             <th style="text-align:center">MLB</th>
+            <th style="text-align:center">NBA</th>
+            <th style="text-align:center">NFL</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td rowspan="9" style="text-align:center"><b>BOTH</b></td>
+            <td rowspan="11" style="text-align:center"><b>BOTH</b></td>
             <td style="text-align:center">Guess Time</td>
-            <td style="text-align:center">15</td>
-            <td style="text-align:center">10</td>
             <td style="text-align:center">20</td>
+            <td style="text-align:center">10</td>
+            <td style="text-align:center">15</td>
         </tr>
         <tr>
             <td style="text-align:center">OP/DP Split</td>
-            <td rowspan="3" style="text-align:center">Yes</td>
-            <td rowspan="3" style="text-align:center">No</td>
             <td style="text-align:center">No</td>
+            <td rowspan="3" style="text-align:center">No</td>
+            <td rowspan="5" style="text-align:center">Yes</td>
         </tr>
         <tr>
             <td style="text-align:center">DIFF</td>
+            <td rowspan="3" style="text-align:center">Yes</td>
+        </tr>
+        <tr><td style="text-align:center">ODIFF</td></tr>
+        <tr>
+            <td style="text-align:center">TDIFF</td>
             <td style="text-align:center">Yes</td>
         </tr>
         <tr>
             <td style="text-align:center">Rouge</td>
             <td rowspan="5" style="text-align:center">No</td>
+            <td style="text-align:center">No</td>
         </tr>
         <tr>
             <td style="text-align:center">Hot Streak</td>
-            <td rowspan="5" style="text-align:center">No</td>
             <td rowspan="4" style="text-align:center">Yes</td>
+            <td rowspan="5" style="text-align:center">No</td>
         </tr>
         <tr><td style="text-align:center">Fast Break</td></tr>
         <tr><td style="text-align:center">Buzzer Beater</td></tr>
         <tr><td style="text-align:center">Elam Ending</td></tr>
         <tr>
             <td style="text-align:center">Base Running</td>
-            <td style="text-align:center">No</td>
             <td style="text-align:center">Yes</td>
+            <td style="text-align:center">No</td>
         </tr>
         <tr>
             <td rowspan="4" style="text-align:center"><b>REG</b></td>
             <td style="text-align:center">Song Count</td>
-            <td style="text-align:center">16</td>
-            <td style="text-align:center">24</td>
             <td style="text-align:center">32</td>
+            <td style="text-align:center">24</td>
+            <td style="text-align:center">16</td>
         </tr>
         <tr>
             <td style="text-align:center">Song Mix</td>
-            <td colspan="2" style="text-align:center">Watched Equal</td>
             <td style="text-align:center">Random</td>
+            <td colspan="2" style="text-align:center">Watched Equal</td>
         </tr>
         <tr>
             <td style="text-align:center">Song Difficulty</td>
-            <td colspan="2" style="text-align:center">0-40</td>
             <td style="text-align:center">0-100</td>
+            <td colspan="2" style="text-align:center">0-40</td>
         </tr>
         <tr>
             <td style="text-align:center">Mercy Rule</td>
-            <td style="text-align:center">Yes</td>
             <td colspan="2" style="text-align:center">No</td>
+            <td style="text-align:center">Yes</td>
         </tr>
         <tr>
             <td rowspan="5" style="text-align:center"><b>OT</b></td>
             <td style="text-align:center">Song Count</td>
-            <td style="text-align:center">4</td>
-            <td style="text-align:center">6</td>
             <td style="text-align:center">8</td>
+            <td style="text-align:center">6</td>
+            <td style="text-align:center">4</td>
         </tr>
         <tr>
             <td style="text-align:center">Sudden Death</td>
-            <td rowspan="2" style="text-align:center">Yes</td>
-            <td rowspan="4" style="text-align:center">No</td>
             <td rowspan="2" style="text-align:center">No</td>
+            <td rowspan="3" style="text-align:center">No</td>
+            <td rowspan="2" style="text-align:center">Yes</td>
         </tr>
         <tr><td style="text-align:center">Tie</td></tr>
         <tr>
-            <td style="text-align:center">Ghost Runner on 2nd</td>
-            <td rowspan="2" style="text-align:center">No</td>
-            <td rowspan="2" style="text-align:center">Yes</td>
+            <td style="text-align:center">Runner on 2nd, 1 Out</td>
+            <td style="text-align:center">Yes</td>
+            <td style="text-align:center">No</td>
         </tr>
-        <tr><td style="text-align:center">1 Out</td></tr>
     </tbody>
 </table>
 
@@ -197,13 +202,13 @@
 ### Other Changes
 - Fixed broken [v3.beta.2](https://github.com/Frittutisna/NFL-Mode/blob/main/Archive/Guide%20v3.beta.2.md) and re-implemented all changes
 
-## Lineup: Away and Home, Captains, OPs, DPs
+## Lineup: Away And Home, Captains, OPs, DPs
 **Captains** (player with the highest Watched Elo in each team) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
 Captains must be OP1 or DP1, and their correct guesses count **double** (2 points) for the (T)DIFF calculations. 
 The team listed first (above) on Challonge is the **Away** team. 
 Line up as follows: **Away** (1-4: OP1, OP2, DP1, DP2), then **Home** (5-8: OP1, OP2, DP1, DP2).
 
-## Score: Check the (T)DIFF
+## Score: Check The (T)DIFF
 <details>
     <summary><b>Click to know more about Scoring</b></summary>
     <p>The <b>Away</b> team attacks (has <b>possession</b>) first. 
@@ -302,7 +307,7 @@ unless it's the **Championship Games** or the **Super Bowl**,
 in which case Overtime **repeats** until a winner is found. 
 Overtime will be **reset and restarted** as necessary.
 
-## Format: Best-of-7, Round Robin, Knockouts
+## Format: Best-Of-7, Round Robin, Knockouts
 The script will automatically swap Away and Home teams between consecutive games.
 - **For 2 teams**: Play a best-of-7. Whoever gets 4.0 points out of 7.0 wins.
 - **For 4 teams**: Play a double round-robin. The top two teams advance to the **Super Bowl**.
@@ -328,12 +333,12 @@ Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host 
 - Type `/nfl start` and start playing.
     - If you started the game by mistake, type `/nfl resetGame`, return to lobby, then type `/nfl start` to restart.
     - If someone disconnected mid-game, the script will automatically pause the game for you. Wait for them to return and resume the game themselves.
-    - When the Winner has been decided either normally or through Mercy Rule, the game will automatically start the vote to return to lobby.
+    - When the Winner has been decided through Mercy Rule, the game will automatically start the vote to return to lobby.
 - If it's tied after Regulation:
     - Apply the **Overtime** setting code (see [Overview](#overview-those-long-setting-codes)).
     - Start playing after everyone is ready (**No need to type `/nfl start` to start Overtime unless you reset/repeat**).
     - If you started Overtime by mistake, type `/nfl resetOvertime`, return to lobby, then type `/nfl start` to restart Overtime.
-    - When the Winner has been decided either normally, through Sudden Death, or if it's still tied after 4 songs, the game will automatically start the vote to return to lobby.
+    - When the Winner has been decided through Sudden Death, the game will automatically start the vote to return to lobby.
     - If you need to repeat Overtime, type `/nfl start` after everyone is ready.
 - Type `/nfl export` to download the **Scoresheet**.
 - Open the Scoresheet and copy the top row.
