@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3.beta.3.2
+// @version      3.beta.3.3
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -772,12 +772,20 @@
             return;
         }
 
+        const sStats    = config.seriesStats;
+        const aPts      = sStats.awayWins + (sStats.draws * 0.5);
+        const hPts      = sStats.homeWins + (sStats.draws * 0.5);
+
+        let isSeriesOver = (aPts > winThreshold || hPts > winThreshold || sStats.history.length >= config.seriesLength);
+
         let effGameNum = config.gameNumber;
         let effSwapped = config.isSwapped;
 
         if (!match.isActive) {
-            effGameNum = config.gameNumber - 1;
-            if (config.seriesLength > 1) effSwapped = !config.isSwapped;
+            if (!isSeriesOver) {
+                effGameNum = config.gameNumber - 1;
+                if (config.seriesLength > 1) effSwapped = !config.isSwapped;
+            }
         }
 
         if (effGameNum < 1) effGameNum = 1;

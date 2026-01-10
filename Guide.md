@@ -1,4 +1,4 @@
-# NFL Mode v3.beta.3.2
+# NFL Mode v3.beta.3.3
 
 ## Table of Contents
 - [TLDR: What Do I Do?](#tldr-what-do-i-do)
@@ -12,7 +12,8 @@
 - [Format: Best-Of-7, Round Robin, Knockouts](#format-best-of-7-round-robin-knockouts)
 - [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do)
 
-## TLDR: What Do I Do?
+## TLDR: What Is This And What Do I Do?
+This is an oversimplifcation of things, but *it's basically just swapping 2v2 Eru Modes in a 4v4 setting*.
 - If you're **just playing**: Join the right lobby, line up correctly, and click Ready. If you're confused about anything, you can (in order of priority):
     - Just play along. People often say this is a game mode best understood through playing, not reading
     - Try `/nfl help` or `/nfl whatIs` in the chat, or
@@ -39,7 +40,7 @@
     <tr>
         <td style="text-align:center">Regulation</td>
         <td style="text-align:center">16</td>
-        <td rowspan="2" style="text-align:center"><strong>15</strong></td>
+        <td rowspan="2" style="text-align:center">15</td>
         <td style="text-align:center">0 - 40</td>
         <td style="text-align:center">Watched Equal</td>
         <td style="text-align:center">
@@ -199,6 +200,7 @@
 - Automatically set lobby name to match `/nfl setTeams`
 - Simplified `[Team] only needs [Outcome] to tie ...` messages in Overtime
 - Implemented automatic setting code changes to switch between Regulation and Overtime
+- Fixed HTML output logic on series-ending Game
 ### Other Changes
 - Fixed broken [v3.beta.2](https://github.com/Frittutisna/NFL-Mode/blob/main/Archive/Guide%20v3.beta.2.md) and re-implemented all changes
 
@@ -332,8 +334,7 @@ Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host 
 - After everyone is ready, type `/nfl howTo` and follow the instructions there.
 - Type `/nfl start` and start playing.
     - If you started the game by mistake, type `/nfl resetGame`, return to lobby, then type `/nfl start` to restart.
-    - If someone disconnected mid-game, the script will automatically pause the game for you. Wait for them to return and resume the game themselves.
-    - When the Winner has been decided through Mercy Rule, the game will automatically start the vote to return to lobby.
+    - Pause the game at the start of the next Song when the `Mercy rule trigger warning next Song!` message comes up. If it didn't trigger, the script will resume the game for you. If it triggered, the game will automatically start the vote to return to lobby.
 - If it's tied after Regulation:
     - Apply the **Overtime** setting code (see [Overview](#overview-those-long-setting-codes)).
     - Start playing after everyone is ready (**No need to type `/nfl start` to start Overtime unless you reset/repeat**).

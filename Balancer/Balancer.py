@@ -18,7 +18,7 @@ import math
 import random
 import re
 
-MODE                = 'NONE' # Options: 'MLB', 'NBA', 'NFL', 'NONE'
+MODE                = 'NFL' # Options: 'MLB', 'NBA', 'NFL', 'NONE'
 SPREAD_THRESHOLD    = 1.25 if MODE != 'NONE' else 1.0
 TEAM_SIZE           = 4
 SIMULATIONS         = 1000
