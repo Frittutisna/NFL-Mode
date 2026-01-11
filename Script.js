@@ -564,8 +564,9 @@
 
     const processRound = (payload) => {
         if (!match.isActive) return;
-        match.pendingPause  = false;
-        const currentPeriod = match.period;
+        const wasPendingPause   = match.pendingPause;
+        match.pendingPause      = false;
+        const currentPeriod     = match.period;
         match.songNumber++;
         if (match.period === 'OVERTIME') match.otRound++;
 
@@ -869,6 +870,7 @@
 
         if (!isGameOver) {
              chatMessage(`Next Possession: ${getTeamDisplayName(match.possession)}`);
+             if (wasPendingPause) sendGameCommand("resume game");
         }
     };
 
