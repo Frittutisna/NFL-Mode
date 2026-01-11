@@ -683,7 +683,7 @@
                 const winner    = match.scores.away > match.scores.home ? getTeamDisplayName('away')    : getTeamDisplayName('home');
                 winnerSide      = match.scores.away > match.scores.home ? 'away'                        : 'home';
                 chatMessage(`Mercy Rule triggered, ${winner} wins`);
-                systemMessage("Game ended due to Mercy Rule");
+                chatMessage("Game ended due to Mercy Rule");
                 endGame(winnerSide);
                 isGameOver = true;
             }
