@@ -958,7 +958,7 @@
                         <th>${awayNameClean}</th>
                         <th>${homeNameClean}</th>
                     </tr>
-                    <tr><td colspan="14" style="font-weight: bold;">Regulation (0-40): ${config.lengths.reg} Watched Equal with Mercy Rule</td></tr>
+                    <tr><td colspan="14" style="font-weight: bold;">Regulation (0-40): ${config.lengths.reg / 2 + 1}-${config.lengths.reg} Watched Equal with Mercy Rule</td></tr>
                 </thead>
                 <tbody>
         `;
@@ -967,7 +967,7 @@
 
         match.history.forEach(row => {
             if (row.period === 'OVERTIME' && !otBannerAdded) {
-                html += `<tr><td colspan="14" style="font-weight: bold;">Overtime (0-100): ${config.lengths.ot} Random songs with Sudden Death</td></tr>`;
+                html += `<tr><td colspan="14" style="font-weight: bold;">Overtime (0-100): 1-${config.lengths.ot} Random with Sudden Death</td></tr>`;
                 otBannerAdded = true;
             }
 

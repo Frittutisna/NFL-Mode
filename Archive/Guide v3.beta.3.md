@@ -1,14 +1,14 @@
-# NFL Mode v3.beta.4.0
+# NFL Mode v3.beta.3.3
 
 ## Table of Contents
 - [TLDR: What Is This And What Do I Do?](#tldr-what-is-this-and-what-do-i-do)
 - [Links: Balancer, Flowchart, Script](#links-balancer-flowchart-script)
 - [Overview: Those Long Setting Codes](#overview-those-long-setting-codes)
 - [Comparison: What's The Difference?](#comparison-whats-the-difference)
-- [Changelog: What Changed From v3.beta.2?](#changelog-what-changed-from-v3beta3)
+- [Changelog: What Changed From v3.beta.2?](#changelog-what-changed-from-v3beta2)
 - [Lineup: Away And Home, Captains, OPs, DPs](#lineup-away-and-home-captains-ops-dps)
 - [Score: Check The (T)DIFF](#score-check-the-tdiff)
-- [Ending: Mercy, Overtime, Tie(breakers)](#ending-mercy-overtime-tiebreakers)
+- [Ending: Mercy, Overtime, Tie](#ending-mercy-overtime-tie)
 - [Format: Best-Of-7, Round Robin, Knockouts](#format-best-of-7-round-robin-knockouts)
 - [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do)
 
@@ -20,7 +20,7 @@ This is an oversimplifcation of things, but *it's basically just swapping 2v2 Er
     - Read further
 - If you're **just watching**: Grab a bowl of popcorn before spectating the lobby of your choice.
 - **Unless you have to, feel more than welcome to stop reading this guide here.** I promise you, unless you **really** have to, you **shouldn't** read the rest of this guide.
-- If you're **hosting the tour**, **hosting a lobby** for your team, or the **Captain** (you have the highest **Combined Elo**) of your team, see [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do).
+- If you're **hosting the tour**, **hosting a lobby** for your team, or the **Captain** (you have the highest **Watched Elo**) of your team, see [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do).
 
 ## Links: Balancer, Flowchart, Script
 - [Link to the Balancer](https://github.com/Frittutisna/NFL-Mode/blob/main/Balancer/Balancer.py)
@@ -39,9 +39,9 @@ This is an oversimplifcation of things, but *it's basically just swapping 2v2 Er
     </tr>
     <tr>
         <td style="text-align:center">Regulation</td>
-        <td style="text-align:center">9-16</td>
+        <td style="text-align:center">16</td>
         <td rowspan="2" style="text-align:center">15</td>
-        <td style="text-align:center">0-40</td>
+        <td style="text-align:center">0 - 40</td>
         <td style="text-align:center">Watched Equal</td>
         <td style="text-align:center">
             <details>
@@ -52,8 +52,8 @@ This is an oversimplifcation of things, but *it's basically just swapping 2v2 Er
     </tr>
     <tr>
         <td style="text-align:center">Overtime</td>
-        <td style="text-align:center">1-4*</td>
-        <td style="text-align:center">0-100</td>
+        <td style="text-align:center">4*</td>
+        <td style="text-align:center">0 - 100</td>
         <td style="text-align:center">Random</td>
         <td style="text-align:center">
             <details>
@@ -64,7 +64,7 @@ This is an oversimplifcation of things, but *it's basically just swapping 2v2 Er
     </tr>
 </table>
 
-* Due to AMQ's minimum of 5 songs in each round, the script will automatically return to lobby after Song 4, ignoring Song 5
+* Due to AMQ's minimum of 5 songs in each round, the script will automatically return to lobby in a Knockout Overtime tie to restart Overtime, ignoring Song 5
 
 ## Comparison: What's The Difference?
 <table>
@@ -122,8 +122,8 @@ This is an oversimplifcation of things, but *it's basically just swapping 2v2 Er
             <td rowspan="4" style="text-align:center"><b>REG</b></td>
             <td style="text-align:center">Song Count</td>
             <td style="text-align:center">32</td>
-            <td style="text-align:center">12-24</td>
-            <td style="text-align:center">9-16</td>
+            <td style="text-align:center">24</td>
+            <td style="text-align:center">16</td>
         </tr>
         <tr>
             <td style="text-align:center">Song Mix</td>
@@ -141,53 +141,71 @@ This is an oversimplifcation of things, but *it's basically just swapping 2v2 Er
             <td style="text-align:center">Yes</td>
         </tr>
         <tr>
-            <td rowspan="6" style="text-align:center"><b>OT</b></td>
+            <td rowspan="5" style="text-align:center"><b>OT</b></td>
             <td style="text-align:center">Song Count</td>
             <td style="text-align:center">8</td>
-            <td style="text-align:center">3-6</td>
-            <td style="text-align:center">1-4</td>
-        </tr>
-        <tr>
-            <td style="text-align:center">Song Mix</td>
-            <td style="text-align:center">Random</td>
-            <td style="text-align:center">Watched Equal</td>
-            <td style="text-align:center">Random</td>
+            <td style="text-align:center">6</td>
+            <td style="text-align:center">4</td>
         </tr>
         <tr>
             <td style="text-align:center">Sudden Death</td>
             <td rowspan="2" style="text-align:center">No</td>
-            <td rowspan="2" style="text-align:center">No</td>
+            <td rowspan="3" style="text-align:center">No</td>
             <td rowspan="2" style="text-align:center">Yes</td>
         </tr>
         <tr><td style="text-align:center">Tie</td></tr>
         <tr>
-            <td style="text-align:center">Last Tiebreaker</td>
-            <td colspan="2" style="text-align:center">Home</td>
-            <td style="text-align:center">Away</td>
-        </tr>
-        <tr>
             <td style="text-align:center">Runner on 2nd, 1 Out</td>
             <td style="text-align:center">Yes</td>
-            <td colspan="2" style="text-align:center">No</td>
+            <td style="text-align:center">No</td>
         </tr>
     </tbody>
 </table>
 
-## Changelog: What Changed From v3.beta.3
-### Balancer Change
-- Accomodated Combined Elo for NFL Mode
+## Changelog: What Changed From v3.beta.2?
+### Balancer Changes
+- Fully deprecated Balancer on Sheets
+- Moved and adapted instructions to Balancer on Python
+- Reduced first team bias
+- Implemented best-of-1,000 random simulations
+- Adapted for MLB/NBA/NFL Modes and normal tours
+### Flowchart Changes
+- Added Song R9 rule
+- Color-coded for better visibility
+- Unified Attacking and Defending `Rouges`
+- Changed Song OT1 Sudden Death win conditions
+- Clarified and unified song identifiers
+- Added `Next song` box for clarity
 ### Format Changes
-- Changed Captain allocation from Watched Elo to Combined Elo
-- Changed Overtime to strictly 1-4 songs long
-- Added Tiebreakers for Knockout Overtime ties
-### Guide Change
-- Clarified variable round lengths (Mercy Rule, Sudden Death)
-- Added Last Tiebreaker row for OT in [Comparison](#comparison-whats-the-difference)
-### Script Change
-- Fixed pause/resume logic on relevant Songs
+- Reduced song count from 20/5 to 16/4
+- Reduced guess time from 20 to 15 seconds
+- Home team has possession in Song 9 regardless of game conditions
+- Limited Captains to OP1/DP1
+- Changed Overtime Song 1 win conditions to `Onside Kick` for the Attacking team or `House Call` for the Defending team
+### Guide Changes
+- Updated TLDR to account for public informational commands
+- Split `Song Mix` in [Overview](#overview-those-long-setting-codes) into `Song Count` and `Song Mix`
+- Added `Guess Time` to [Overview](#overview-those-long-setting-codes)
+- Added [Comparison](#comparison-whats-the-difference) section
+- Added detail about AMQ minimum song count
+- Updated setting codes
+- Clarified OP1/DP1 Captain requirement
+- Clarified team split delegation
+### Script Changes
+- Simplified Mercy Rule lookup to only the song ahead
+- Rejected `/nfl start` to start Overtime except after resets
+- Added possession arrows to chat messages for better visibility (e.g., `Tour: ← Steelers - Ravens →`)
+- Removed redundant `Possession: [Team]` messages
+- Opened `nfl [export/flowchart/guide/help/whatIs]` to everyone
+- Automatically set lobby name to match `/nfl setTeams`
+- Simplified `[Team] only needs [Outcome] to tie ...` messages in Overtime
+- Implemented automatic setting code changes to switch between Regulation and Overtime
+- Fixed HTML output logic on series-ending Game
+### Other Changes
+- Fixed broken [v3.beta.2](https://github.com/Frittutisna/NFL-Mode/blob/main/Archive/Guide%20v3.beta.2.md) and re-implemented all changes
 
 ## Lineup: Away And Home, Captains, OPs, DPs
-**Captains** (player with the highest Combined Elo in each team; 80% Watched Elo, 20% Random Elo) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
+**Captains** (player with the highest Watched Elo in each team) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
 Captains must be OP1 or DP1, and their correct guesses count **double** (2 points) for the (T)DIFF calculations. 
 The team listed first (above) on Challonge is the **Away** team. 
 Line up as follows: **Away** (1-4: OP1, OP2, DP1, DP2), then **Home** (5-8: OP1, OP2, DP1, DP2).
@@ -280,21 +298,16 @@ Line up as follows: **Away** (1-4: OP1, OP2, DP1, DP2), then **Home** (5-8: OP1,
     even if DIFF calculations would have stalled out with a <code>Punt</code>.</p>
 </details>
 
-## Ending: Mercy, Overtime, Tie(breakers)
+## Ending: Mercy, Overtime, Tie
 Mercy Rule triggers if the trailing team can't catch with the songs left. 
-If both teams are still tied after Regulation, continue to 4-song **Overtime**. 
+If both teams are still tied after Regulation, continue to **Overtime**. 
 The **Away** team again has first possession. 
 An `Onside Kick` from the Away team or a `House Call` from the Home team ends Overtime here. 
 Otherwise, after both teams have **≥1** possession(s) each, whoever has more points wins. 
 If Overtime doesn’t resolve the tie, the game is called a **Tie**, 
 unless it's the **Championship Games** or the **Super Bowl**, 
-in which case the following Tiebreakers determine the winner 
-(Tiebreakers 1-4 are determined solely from Overtime results):
-1. Weighted Total Correct (counting Captains twice)
-2. Captains
-3. Non-Captain OP/DP-1s (if the Captains were 17, look for 35)
-4. Cross OP/DP-2s (if 17 then 46)
-5. Away Team (to account for the Home team's knowledge advantage in Songs 2 and 4)
+in which case Overtime **repeats** until a winner is found. 
+Overtime will be **reset and restarted** as necessary.
 
 ## Format: Best-Of-7, Round Robin, Knockouts
 The script will automatically swap Away and Home teams between consecutive games.
@@ -319,10 +332,18 @@ Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host 
 - Apply the **Regulation** setting code (see [Overview](#overview-those-long-setting-codes)).
 - Invite the right players to the lobby, and make sure they're lined up correctly (see [Lineup](#lineup-away-and-home-captains-ops-dps)).
 - After everyone is ready, type `/nfl howTo` and follow the instructions there.
-- Type `/nfl start` and start playing. If you started the game by mistake, type `/nfl resetGame`, return to lobby, then type `/nfl start` to restart.
-- If it's tied after Regulation, apply the **Overtime** setting code (see [Overview](#overview-those-long-setting-codes)), then start playing after everyone is ready. If you started Overtime by mistake, type `/nfl resetOvertime`, return to lobby, then type `/nfl start` to restart Overtime.
+- Type `/nfl start` and start playing.
+    - If you started the game by mistake, type `/nfl resetGame`, return to lobby, then type `/nfl start` to restart.
+    - Pause the game at the start of the next Song when the `Mercy rule trigger warning next Song!` message comes up. If it didn't trigger, the script will resume the game for you. If it triggered, the game will automatically start the vote to return to lobby.
+- If it's tied after Regulation:
+    - Apply the **Overtime** setting code (see [Overview](#overview-those-long-setting-codes)).
+    - Start playing after everyone is ready (**No need to type `/nfl start` to start Overtime unless you reset/repeat**).
+    - If you started Overtime by mistake, type `/nfl resetOvertime`, return to lobby, then type `/nfl start` to restart Overtime.
+    - When the Winner has been decided through Sudden Death, the game will automatically start the vote to return to lobby.
+    - If you need to repeat Overtime, type `/nfl start` after everyone is ready.
+- Type `/nfl export` to download the **Scoresheet**.
 - Open the Scoresheet and copy the top row.
-- Paste it in `#game-reporting` with the Scoresheet and JSON(s) (Regulation and Overtime if necessary).
+- Paste it in `#game-reporting` with the Scoresheet and JSON(s) (Regulation and **the last** Overtime, if necessary).
 - Repeat from Step 1 for the next game.
 
 ### If you're the Captain of your team:
