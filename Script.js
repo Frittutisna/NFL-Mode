@@ -2,7 +2,7 @@
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
 // @version      3.beta.4.0
-// @description  Script to track NFL Mode on AMQ (v3.beta.4.0)
+// @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
 // ==/UserScript==
@@ -52,7 +52,7 @@
         otRound         : 0,
         scoresAtReg     : {away: 0, home: 0},
         historyAtReg    : [],
-        mercyWait       : false,
+        pendingPause    : false,
         pendingCode     : null
     };
 
@@ -294,7 +294,7 @@
         match.otRound       = 0;
         match.scoresAtReg   = {away: 0, home: 0};
         match.historyAtReg  = [];
-        match.mercyWait     = false;
+        match.pendingPause  = false;
     };
 
     const resetEverything = () => {
@@ -389,7 +389,7 @@
         match.isActive      = false;
         match.period        = 'REGULATION';
         match.historyAtReg  = [];
-        match.mercyWait     = false;
+        match.pendingPause  = false;
 
         if (!seriesFinished) {
             config.gameNumber++;
@@ -562,6 +562,7 @@
 
     const processRound = (payload) => {
         if (!match.isActive) return;
+        match.pendingPause  = false;
         const currentPeriod = match.period;
         match.songNumber++;
         if (match.period === 'OVERTIME') match.otRound++;
@@ -687,23 +688,30 @@
             else if (match.songNumber === config.lengths.reg) {
                 if (scoreDiff === 0) {
                     chatMessage("Tied after Regulation, entering Overtime");
+
                     match.period        = 'OVERTIME';
                     match.otRound       = 0;
                     match.possession    = 'away';
                     match.scoresAtReg   = JSON.parse(JSON.stringify(match.scores));
                     match.historyAtReg  = JSON.parse(JSON.stringify(match.history));
                     match.pendingCode   = CODES.OVERTIME;
+                    match.pendingPause  = true;
+                    
                     if (typeof lobby !== 'undefined' && lobby.inLobby) {
                         applySettingsCode(match.pendingCode);
                         match.pendingCode = null;
                     }
-                } else {
+                }
+                
+                else {
                     const winner        = match.scores.away > match.scores.home ? getTeamDisplayName('away')    : getTeamDisplayName('home');
                     winnerSide          = match.scores.away > match.scores.home ? 'away'                        : 'home';
                     const winnerScore   = match.scores.away > match.scores.home ? match.scores.away             : match.scores.home;
                     const loserScore    = match.scores.away > match.scores.home ? match.scores.home             : match.scores.away;
+                    
                     chatMessage(`The ${winner} won Game ${config.gameNumber} ${winnerScore}-${loserScore}`);
                     endGame(winnerSide);
+                    
                     isGameOver = true;
                 }
             }
@@ -740,25 +748,34 @@
 
                     if (killOutcome && safeOutcome) {
                         chatMessage(`Mercy Rule trigger warning next Song!`);
-                        match.mercyWait = true;
+                        match.pendingPause = true;
 
                         const artSafe = getArticle(safeOutcome.name);
+
                         if (safeOutcome.leaderIsActor) {
                             chatMessage(`The ${trailerName} needs to hold the ${leaderName} to ${artSafe} ${safeOutcome.name} next Song to avoid Mercy Rule`);
-                        } else {
+                        }
+                        
+                        else {
                             let txtSafe = `at least ${artSafe} ${safeOutcome.name}`;
                             if (safeOutcome.name === scenarios[0].name) txtSafe = `${artSafe} ${safeOutcome.name}`;
                             chatMessage(`The ${trailerName} needs ${txtSafe} next Song to avoid Mercy Rule`);
                         }
+
                         const artKill = getArticle(killOutcome.name);
+
                         if (killOutcome.change < 0) {
                             chatMessage(`The ${leaderName} can afford the ${killOutcome.actor} getting ${artKill} ${killOutcome.name} next Song and still trigger Mercy Rule`);
-                        } else {
+                        }
+                        
+                        else {
                             let txtKill = `only needs ${artKill} ${killOutcome.name}`;
                             if (Math.abs(killOutcome.change) >= 7) txtKill = `needs ${artKill} ${killOutcome.name}`;
                             chatMessage(`The ${leaderName} ${txtKill} next Song to trigger Mercy Rule`);
                         }
-                    } else match.mercyWait = false;
+                    }
+                    
+                    else match.pendingPause = false;
                 } catch(e) {}
             }
         }
@@ -841,13 +858,14 @@
                     }
                 } catch(e) {}
             }
+            
+            if (!isGameOver && match.otRound === 3) {
+                 match.pendingPause = true;
+                 chatMessage("End of Overtime approaching");
+            }
         }
 
         if (!isGameOver) {
-             if (match.mercyWait) {
-                 sendGameCommand("resume game");
-                 match.mercyWait = false;
-             }
              chatMessage(`Next Possession: ${getTeamDisplayName(match.possession)}`);
         }
     };
@@ -1142,13 +1160,14 @@
                             }
                             else if (cmd === "reseteverything") resetEverything();
                             else if (cmd === "resetovertime") {
-                                if (match.period        === 'OVERTIME') {
-                                    match.isActive      =   false;
-                                    match.scores        =   JSON.parse(JSON.stringify(match.scoresAtReg));
-                                    match.history       =   JSON.parse(JSON.stringify(match.historyAtReg));
-                                    match.otRound       =   0;
-                                    match.songNumber    =   config.lengths.reg;
-                                    match.period        =   'OVERTIME';
+                                if (match.period === 'OVERTIME') {
+                                    match.isActive      = false;
+                                    match.scores        = JSON.parse(JSON.stringify(match.scoresAtReg));
+                                    match.history       = JSON.parse(JSON.stringify(match.historyAtReg));
+                                    match.otRound       = 0;
+                                    match.songNumber    = config.lengths.reg;
+                                    match.period        = 'OVERTIME';
+                                    match.pendingPause  = true;
                                     systemMessage("Overtime reset, tracker stopped and reverted to end of Regulation. Type /nfl start to restart Overtime");
                                 } else systemMessage("Error: Can only reset Overtime while in Overtime");
                             }
@@ -1175,7 +1194,7 @@
         }).bindListener();
 
         new Listener("play next song", () => {
-            if (match.isActive && match.mercyWait) sendGameCommand("pause game");
+            if (match.isActive && match.pendingPause) sendGameCommand("pause game");
         }).bindListener();
 
         new Listener("join lobby", () => {
