@@ -20,7 +20,7 @@ This is an oversimplifcation of things, but *it's basically just swapping 2v2 Er
     - Read further
 - If you're **just watching**: Grab a bowl of popcorn before spectating the lobby of your choice.
 - **Unless you have to, feel more than welcome to stop reading this guide here.** I promise you, unless you **really** have to, you **shouldn't** read the rest of this guide.
-- If you're **hosting the tour**, **hosting a lobby** for your team, or the **Captain** (you have the highest **Combined Elo**) of your team, see [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do).
+- If you're **hosting the tour**, **hosting a lobby** for your team, or the **Captain** (you have the highest **Watched Elo**) of your team, see [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do).
 
 ## Links: Balancer, Flowchart, Script
 - [Link to the Balancer](https://github.com/Frittutisna/NFL-Mode/blob/main/Balancer/Balancer.py)
@@ -174,10 +174,7 @@ This is an oversimplifcation of things, but *it's basically just swapping 2v2 Er
 </table>
 
 ## Changelog: What Changed From v3.beta.3
-### Balancer Change
-- Accomodated Combined Elo for NFL Mode
 ### Format Changes
-- Changed Captain allocation from Watched Elo to Combined Elo
 - Changed Overtime to strictly 1-4 songs long
 - Added Tiebreakers for Knockout Overtime ties
 ### Guide Change
@@ -187,7 +184,7 @@ This is an oversimplifcation of things, but *it's basically just swapping 2v2 Er
 - Fixed pause/resume logic on relevant Songs
 
 ## Lineup: Away And Home, Captains, OPs, DPs
-**Captains** (player with the highest Combined Elo in each team; 80% Watched Elo, 20% Random Elo) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
+**Captains** (player with the highest Watched Elo) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
 Captains must be OP1 or DP1, and their correct guesses count **double** (2 points) for the (T)DIFF calculations. 
 The team listed first (above) on Challonge is the **Away** team. 
 Line up as follows: **Away** (1-4: OP1, OP2, DP1, DP2), then **Home** (5-8: OP1, OP2, DP1, DP2).
@@ -321,7 +318,7 @@ Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host 
 - After everyone is ready, type `/nfl howTo` and follow the instructions there.
 - Type `/nfl start` and start playing. If you started the game by mistake, type `/nfl resetGame`, return to lobby, then type `/nfl start` to restart.
 - If it's tied after Regulation, apply the **Overtime** setting code (see [Overview](#overview-those-long-setting-codes)), then start playing after everyone is ready. If you started Overtime by mistake, type `/nfl resetOvertime`, return to lobby, then type `/nfl start` to restart Overtime.
-- Open the Scoresheet and copy the top row.
+- Type `/nfl export` to download the Scoresheet, open it on your browser, and copy the top row.
 - Paste it in `#game-reporting` with the Scoresheet and JSON(s) (Regulation and Overtime if necessary).
 - Repeat from Step 1 for the next game.
 

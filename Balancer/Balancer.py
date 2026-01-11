@@ -1,8 +1,8 @@
 '''
-1. List players and their Watched Elos in players.txt
-2. List pairs of players that want to team up in requests.txt.
+1. List players and their relevant Elos in players.txt with the format [players, Elo] (e.g., HakoHoka, 5.897).
+2. List pairs of players that want to team up in requests.txt (e.g., HakoHoka, florenz).
 Make sure this only lists players from players.txt.
-3. List pairs of players that don't want to team up in blacklists.txt.
+3. List pairs of players that don't want to team up in blacklists.txt (e.g., chommy, FeyFey).
 Make sure this also only lists players from players.txt, 
 and ensure that no request/blacklist pairs are the same. 
 4. Gather all the TXT files in the same folder as this script
