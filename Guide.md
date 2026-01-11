@@ -318,7 +318,7 @@ Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host 
 - After everyone is ready, type `/nfl howTo` and follow the instructions there.
 - Type `/nfl start` and start playing. If you started the game by mistake, type `/nfl resetGame`, return to lobby, then type `/nfl start` to restart.
 - If it's tied after Regulation, apply the **Overtime** setting code (see [Overview](#overview-those-long-setting-codes)), then start playing after everyone is ready. If you started Overtime by mistake, type `/nfl resetOvertime`, return to lobby, then type `/nfl start` to restart Overtime.
-- Type `/nfl export` to download the Scoresheet, open it on your browser, and copy the top row.
+- Type `/nfl export` to download the **Scoresheet**, open it on your browser, and copy the top row.
 - Paste it in `#game-reporting` with the Scoresheet and JSON(s) (Regulation and Overtime if necessary).
 - Repeat from Step 1 for the next game.
 
