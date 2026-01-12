@@ -66,7 +66,7 @@
     };
 
     const CODES = {
-        REGULATION  : "e0g0g21111100130g000031110000000g11111111111100f051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1k903-11111--",
+        REGULATION  : "e0g0g21111100130g000011110000000g11111111111100f051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1ka03-11111--",
         OVERTIME    : "e0g05211111001100000531110000000511111111111100f051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--"
     };
 
@@ -93,7 +93,7 @@
         "safety"            : "DIFF = -2. Defending Team gets 2 points",
         "pick six"          : "DIFF = -3. Defending Team gets 6 points",
         "mercy rule"        : "Triggers when the trailing team cannot mathematically catch up with the songs remaining",
-        "regulation"        : `The first ${config.lengths.reg} songs (0-40 Watched Equal)`,
+        "regulation"        : `The first ${config.lengths.reg} songs (0-40 Watched Random)`,
         "overtime"          : `Played if tied after Regulation (${config.lengths.ot} Random songs). Away gets first possession`,
         "sudden death"      : "In Overtime, if Song 1 results in an Onside Kick or a House Call, the game ends immediately",
         "knockout"          : "A game where a winner must be decided via Tiebreakers if tied after Overtime",
@@ -962,7 +962,7 @@
                         <th>${awayNameClean}</th>
                         <th>${homeNameClean}</th>
                     </tr>
-                    <tr><td colspan="14" style="font-weight: bold;">Regulation (0-40): ${config.lengths.reg / 2 + 1}-${config.lengths.reg} Watched Equal with Mercy Rule</td></tr>
+                    <tr><td colspan="14" style="font-weight: bold;">Regulation (0-40): ${config.lengths.reg / 2 + 1}-${config.lengths.reg} Watched Random with Mercy Rule</td></tr>
                 </thead>
                 <tbody>
         `;
@@ -1040,12 +1040,14 @@
     const printHelp = (topic = null) => {
         if (topic) {
             const actualKey = Object.keys(COMMAND_DESCRIPTIONS).find(key => key.toLowerCase() === topic);
-            if      (actualKey) systemMessage(`/nfl ${actualKey}: ${COMMAND_DESCRIPTIONS[actualKey]}`);
-            else                systemMessage("Unknown command, type /nfl help for a list");
-        } else {
+            if (actualKey)  chatMessage(`/nfl ${actualKey}: ${COMMAND_DESCRIPTIONS[actualKey]}`);
+            else            chatMessage("Unknown command, type /nfl help for a list");
+        }
+        
+        else {
             const cmds = Object.keys(COMMAND_DESCRIPTIONS).join(", ");
-            systemMessage("Commands: " + cmds);
-            systemMessage("Type /nfl help [command] for more details or /nfl howTo for setup steps");
+            chatMessage("Commands: " + cmds);
+            chatMessage("Type /nfl help [command] for more details or /nfl howTo for setup steps");
         }
     };
 
@@ -1094,7 +1096,7 @@
                             if (cmd === "whatis") {
                                 if (!arg || arg === "help") chatMessage("Available terms: " + Object.keys(TERMS).sort().join(", "));
                                 else {
-                                    if (TERMS[arg])         chatMessage(`${toTitleCase(arg)}: ${TERMS[arg]}`);
+                                    if (TERMS[arg])         chatMessage(`${arg}: ${TERMS[arg]}`);
                                     else                    chatMessage(`Unknown term '${arg}'. Type /nfl whatIs help for a list`);
                                 }
                             }

@@ -10,7 +10,9 @@ and ensure that no request/blacklist pairs are the same.
 6. Run this script
 7. Repeat Step 6 until the Final Spread is low enough to your liking
 8. Screenshot the results and send it to #tour-information
-9. If you're hosting NFL Mode, also ping Captains and ask them about team split
+9. If you're hosting NFL Mode, also ping Captains and ask them about team split.
+Prepare your own team splits in case Captain(s) failed to submit their team split(s) in time.
+This is purely personal opinion, but I recommend putting it T2, T3, T1 (C), T4
 '''
 
 import os
@@ -29,12 +31,12 @@ FILENAMES           = {
     'OUTPUT'        : 'teams.txt'
 }
 
-NFL_NAMES = {1: "Steelers", 2: "Texans",    3: "Patriots",  4: "Chargers",  5: "Panthers",  6: "Rams",      7: "Eagles",    8: "Niners"}
+NFL_NAMES = {1: "Patriots", 2: "Chargers",  3: "Steelers",  4: "Texans",    5: "Panthers",  6: "Rams",      7: "Eagles",    8: "Niners"}
 NBA_NAMES = {1: "Thunder",  2: "Lakers",    3: "Spurs",     4: "Warriors",  5: "Celtics",   6: "Bulls",     7: "Heat",      8: "Knicks"}
 MLB_NAMES = {1: "Yankees",  2: "Guardians", 3: "Mariners",  4: "Astros",    5: "Phillies",  6: "Brewers",   7: "Dodgers",   8: "Pirates"}
 
 class Player:
-    def __init__(self, name, elo, original_idx=0):
+    def __init__(self, name, elo, original_idx = 0):
         self.name           = name
         self.elo            = float(elo)
         self.original_idx   = original_idx

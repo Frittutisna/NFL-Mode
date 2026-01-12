@@ -1,11 +1,11 @@
-# NFL Mode v3.beta.5.0
+# NFL Mode v3.beta.4.0
 
 ## Table of Contents
 - [TLDR: What Is This And What Do I Do?](#tldr-what-is-this-and-what-do-i-do)
 - [Links: Balancer, Flowchart, Script](#links-balancer-flowchart-script)
 - [Overview: Those Long Setting Codes](#overview-those-long-setting-codes)
 - [Comparison: What's The Difference?](#comparison-whats-the-difference)
-- [Changelog: What Changed From v3.beta.4?](#changelog-what-changed-from-v3beta4)
+- [Changelog: What Changed From v3.beta.2?](#changelog-what-changed-from-v3beta3)
 - [Lineup: Away And Home, Captains, OPs, DPs](#lineup-away-and-home-captains-ops-dps)
 - [Score: Check The (T)DIFF](#score-check-the-tdiff)
 - [Ending: Mercy, Overtime, Tie(breakers)](#ending-mercy-overtime-tiebreakers)
@@ -42,11 +42,11 @@ This is an oversimplifcation of things, but *it's basically just swapping 2v2 Er
         <td style="text-align:center">9-16</td>
         <td rowspan="2" style="text-align:center">15</td>
         <td style="text-align:center">0-40</td>
-        <td style="text-align:center">Watched <strong>Random</strong></td>
+        <td style="text-align:center">Watched Equal</td>
         <td style="text-align:center">
             <details>
                 <summary>Click to view code</summary>
-                <code style="word-break: break-all">e0g0g21111100130g000011110000000g11111111111100f051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1ka03-11111--</code>
+                <code style="word-break: break-all">e0g0g21111100130g000031110000000g11111111111100f051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1k903-11111--</code>
             </details>
         </td>
     </tr>
@@ -128,7 +128,7 @@ This is an oversimplifcation of things, but *it's basically just swapping 2v2 Er
         <tr>
             <td style="text-align:center">Song Mix</td>
             <td style="text-align:center">Random</td>
-            <td colspan="2" style="text-align:center">Watched <strong>Random</strong></td>
+            <td colspan="2" style="text-align:center">Watched Equal</td>
         </tr>
         <tr>
             <td style="text-align:center">Song Difficulty</td>
@@ -150,7 +150,7 @@ This is an oversimplifcation of things, but *it's basically just swapping 2v2 Er
         <tr>
             <td style="text-align:center">Song Mix</td>
             <td style="text-align:center">Random</td>
-            <td style="text-align:center">Watched <strong>Random</strong></td>
+            <td style="text-align:center">Watched Equal</td>
             <td style="text-align:center">Random</td>
         </tr>
         <tr>
@@ -173,14 +173,15 @@ This is an oversimplifcation of things, but *it's basically just swapping 2v2 Er
     </tbody>
 </table>
 
-## Changelog: What Changed From v3.beta.4
-### Format Change
-- Changed Regulation Song Mix from Watched Equal to Watched **Random**
+## Changelog: What Changed From v3.beta.3
+### Format Changes
+- Changed Overtime to strictly 1-4 songs long
+- Added Tiebreakers for Knockout Overtime ties
 ### Guide Change
-- Clarified Overtime triggers
-- Clarified team split delegation
+- Clarified variable round lengths (Mercy Rule, Sudden Death)
+- Added Last Tiebreaker row for OT in [Comparison](#comparison-whats-the-difference)
 ### Script Change
-- Fixed `/nfl help` response not visible in public chat
+- Fixed pause/resume logic on relevant Songs
 
 ## Lineup: Away And Home, Captains, OPs, DPs
 **Captains** (player with the highest Watched Elo) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
@@ -282,10 +283,9 @@ If both teams are still tied after Regulation, continue to 4-song **Overtime**.
 The **Away** team again has first possession. 
 An `Onside Kick` from the Away team or a `House Call` from the Home team ends Overtime here. 
 Otherwise, after both teams have **≥1** possession(s) each, whoever has more points wins. 
-If Overtime doesn’t resolve the tie, 
-the game is called a **Tie** unless breaking the tie is necessary 
-(e.g., 3.0-3.0 series tie, Championship Game, Super Bowl). 
-In which case, the following Tiebreakers will determine the winner 
+If Overtime doesn’t resolve the tie, the game is called a **Tie**, 
+unless it's the **Championship Games** or the **Super Bowl**, 
+in which case the following Tiebreakers determine the winner 
 (Tiebreakers 1-4 are determined solely from Overtime results):
 1. Weighted Total Correct (counting Captains twice)
 2. Captains
@@ -326,7 +326,5 @@ Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host 
 - **Split** your team into 2 Offensive (OPs) and 2 Defensive (DPs) Players.
     - **OPs'** main role is to **score** points when your team has possession.
     - **DPs'** main role is to **prevent** the opposing OPs from scoring points when your team doesn't have possession.
-    - You **may delegate** the team split to **your teammate** or the **tour host**.
-        - Delegating team split does not also delegate the Captain role/multiplier
-        - You **relinquish** your right to reject the team split offered by the tour host. If your team failed to submit the team split in time, the tour host will split your team as they see fit.
+    - You **may delegate** the team split to the **tour host**, but you **relinquish** your right to reject the team split offered.
 - Mention the **tour host** in `#tour-general` with the format `@[Tour Host] [Team Name]: OP1, OP2, DP1, DP2` (e.g., `@HakoHoka Steelers: florenz, chommy, miiarad (C), HakoHoka`).
