@@ -23,7 +23,7 @@ This is an oversimplifcation of things, but *it's basically just swapping 2v2 Er
 - If you're **hosting the tour**, **hosting a lobby** for your team, or the **Captain** (you have the highest **Watched Elo**) of your team, see [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do).
 
 ## Links: Balancer, Flowchart, Script
-- [Link to the Balancer](https://github.com/Frittutisna/NFL-Mode/blob/main/Balancer/Balancer.py)
+- [Link to the Balancer](https://github.com/Frittutisna/Balancer)
 - [Link to the Flowchart](https://github.com/Frittutisna/NFL-Mode/blob/main/Flowchart/Flowchart.pdf)
 - [Link to the Script](https://github.com/Frittutisna/NFL-Mode/blob/main/Script.js)
 
@@ -174,9 +174,11 @@ This is an oversimplifcation of things, but *it's basically just swapping 2v2 Er
 </table>
 
 ## Changelog: What Changed From v3.beta.4
+### Balancer Change
+- Moved Balancer to separate [repository](https://github.com/Frittutisna/Balancer)
 ### Format Change
 - Changed Regulation Song Mix from Watched Equal to Watched **Random**
-### Guide Change
+### Guide Changes
 - Clarified Overtime triggers
 - Clarified team split delegation
 ### Script Change
@@ -283,9 +285,9 @@ The **Away** team again has first possession.
 An `Onside Kick` from the Away team or a `House Call` from the Home team ends Overtime here. 
 Otherwise, after both teams have **≥1** possession(s) each, whoever has more points wins. 
 If Overtime doesn’t resolve the tie, 
-the game is called a **Tie** unless breaking the tie is necessary 
+the game is called a **Tie unless** breaking the tie is necessary 
 (e.g., 3.0-3.0 series tie, Championship Game, Super Bowl). 
-In which case, the following Tiebreakers will determine the winner 
+In which case, the following **Tiebreakers** will determine the winner 
 (Tiebreakers 1-4 are determined solely from Overtime results):
 1. Weighted Total Correct (counting Captains twice)
 2. Captains
