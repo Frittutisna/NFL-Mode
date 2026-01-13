@@ -13,7 +13,7 @@
 - [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do)
 
 ## TLDR: What Is This And What Do I Do?
-This is an oversimplifcation of things, but *it's basically just swapping 2v2 Eru Modes in a 4v4 setting*.
+In very simple terms: *it's basically just swapping 2v2 Eru Modes in a 4v4 setting*.
 - If you're **just playing**: Join the right lobby, line up correctly, and click Ready. If you're confused about anything, you can (in order of priority):
     - Just play along. People often say this is a game mode best understood through playing, not reading
     - Try `/nfl help` or `/nfl whatIs` in the chat, or
@@ -119,7 +119,7 @@ This is an oversimplifcation of things, but *it's basically just swapping 2v2 Er
             <td style="text-align:center">No</td>
         </tr>
         <tr>
-            <td rowspan="4" style="text-align:center"><b>REG</b></td>
+            <td rowspan="5" style="text-align:center"><b>REG</b></td>
             <td style="text-align:center">Song Count</td>
             <td style="text-align:center">32</td>
             <td style="text-align:center">12-24</td>
@@ -139,6 +139,11 @@ This is an oversimplifcation of things, but *it's basically just swapping 2v2 Er
             <td style="text-align:center">Mercy Rule</td>
             <td colspan="2" style="text-align:center">No</td>
             <td style="text-align:center">Yes</td>
+        </tr>
+        <tr>
+            <td style="text-align:center">Base Stealing</td>
+            <td style="text-align:center">Yes</td>
+            <td colspan="2" style="text-align:center">No</td>
         </tr>
         <tr>
             <td rowspan="6" style="text-align:center"><b>OT</b></td>
@@ -181,8 +186,9 @@ This is an oversimplifcation of things, but *it's basically just swapping 2v2 Er
 ### Guide Changes
 - Clarified Overtime triggers
 - Clarified team split delegation
-### Script Change
+### Script Changes
 - Fixed `/nfl help` response not visible in public chat
+- Changed song state reports to reflect Captain multipliers (e.g., `2000 0000 7-0 Touchdown`)
 
 ## Lineup: Away And Home, Captains, OPs, DPs
 **Captains** (player with the highest Watched Elo) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 

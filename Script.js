@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3.beta.4.0
+// @version      3.beta.5.0
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -594,7 +594,7 @@
                 const isCaptain = config.captains.includes(slotId);
                 const points    = isCorrect ? (isCaptain ? gameConfig.captainMultiplier : 1) : 0;
                 patternArr.push(isCorrect ? 1 : 0);
-                patternStr += (isCorrect ? 1 : 0);
+                patternStr += (isCorrect ? (isCaptain ? 2 : 1) : 0);
                 if (isCorrect) {
                     correctCount++;
                     totalScore += points;
