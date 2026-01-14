@@ -42,7 +42,7 @@ In very simple terms: *it's basically just swapping 2v2 Eru Modes in a 4v4 setti
         <td style="text-align:center">9-16</td>
         <td rowspan="2" style="text-align:center">15</td>
         <td style="text-align:center">0-40</td>
-        <td style="text-align:center">Watched <strong>Random</strong></td>
+        <td style="text-align:center">Watched (<strong>Random</strong> Distribution)</td>
         <td style="text-align:center">
             <details>
                 <summary>Click to view code</summary>
@@ -79,7 +79,7 @@ In very simple terms: *it's basically just swapping 2v2 Eru Modes in a 4v4 setti
     </thead>
     <tbody>
         <tr>
-            <td rowspan="11" style="text-align:center"><b>BOTH</b></td>
+            <td rowspan="14" style="text-align:center"><b>BOTH</b></td>
             <td style="text-align:center">Guess Time</td>
             <td style="text-align:center">20</td>
             <td style="text-align:center">10</td>
@@ -89,16 +89,20 @@ In very simple terms: *it's basically just swapping 2v2 Eru Modes in a 4v4 setti
             <td style="text-align:center">OP/DP Split</td>
             <td style="text-align:center">No</td>
             <td rowspan="3" style="text-align:center">No</td>
-            <td rowspan="5" style="text-align:center">Yes</td>
+            <td rowspan="2" style="text-align:center">Yes</td>
         </tr>
         <tr>
             <td style="text-align:center">DIFF</td>
             <td rowspan="3" style="text-align:center">Yes</td>
         </tr>
-        <tr><td style="text-align:center">ODIFF</td></tr>
+        <tr>
+            <td style="text-align:center">ODIFF</td>
+            <td style="text-align:center">No</td>
+        </tr>
         <tr>
             <td style="text-align:center">TDIFF</td>
             <td style="text-align:center">Yes</td>
+            <td rowspan="2" style="text-align:center">Yes</td>
         </tr>
         <tr>
             <td style="text-align:center">Rouge</td>
@@ -116,19 +120,35 @@ In very simple terms: *it's basically just swapping 2v2 Eru Modes in a 4v4 setti
         <tr>
             <td style="text-align:center">Base Running</td>
             <td style="text-align:center">Yes</td>
+            <td rowspan="2" style="text-align:center">No</td>
+        </tr>
+        <tr>
+            <td style="text-align:center">Tie</td>
             <td style="text-align:center">No</td>
+            <td style="text-align:center">Yes</td>
+        </tr>
+        <tr>
+            <td style="text-align:center">Last Tiebreaker</td>
+            <td colspan="2" style="text-align:center">Home</td>
+            <td style="text-align:center">Away</td>
+        </tr>
+        <tr>
+            <td style="text-align:center">Estimated Runtime</td>
+            <td style="text-align:center">2 hours</td>
+            <td style="text-align:center">1.5 hours</td>
+            <td style="text-align:center">1 hour</td>
         </tr>
         <tr>
             <td rowspan="5" style="text-align:center"><b>REG</b></td>
             <td style="text-align:center">Song Count</td>
-            <td style="text-align:center">32</td>
-            <td style="text-align:center">12-24</td>
+            <td style="text-align:center">30</td>
+            <td style="text-align:center">15-45</td>
             <td style="text-align:center">9-16</td>
         </tr>
         <tr>
             <td style="text-align:center">Song Mix</td>
             <td style="text-align:center">Random</td>
-            <td colspan="2" style="text-align:center">Watched <strong>Random</strong></td>
+            <td colspan="2" style="text-align:center">Watched (<strong>Random</strong> Distribution)</td>
         </tr>
         <tr>
             <td style="text-align:center">Song Difficulty</td>
@@ -146,34 +166,9 @@ In very simple terms: *it's basically just swapping 2v2 Eru Modes in a 4v4 setti
             <td colspan="2" style="text-align:center">No</td>
         </tr>
         <tr>
-            <td rowspan="6" style="text-align:center"><b>OT</b></td>
-            <td style="text-align:center">Song Count</td>
-            <td style="text-align:center">8</td>
-            <td style="text-align:center">3-6</td>
-            <td style="text-align:center">1-4</td>
-        </tr>
-        <tr>
-            <td style="text-align:center">Song Mix</td>
-            <td style="text-align:center">Random</td>
-            <td style="text-align:center">Watched <strong>Random</strong></td>
-            <td style="text-align:center">Random</td>
-        </tr>
-        <tr>
-            <td style="text-align:center">Sudden Death</td>
-            <td rowspan="2" style="text-align:center">No</td>
-            <td rowspan="2" style="text-align:center">No</td>
-            <td rowspan="2" style="text-align:center">Yes</td>
-        </tr>
-        <tr><td style="text-align:center">Tie</td></tr>
-        <tr>
-            <td style="text-align:center">Last Tiebreaker</td>
-            <td colspan="2" style="text-align:center">Home</td>
-            <td style="text-align:center">Away</td>
-        </tr>
-        <tr>
-            <td style="text-align:center">Runner on 2nd, 1 Out</td>
-            <td style="text-align:center">Yes</td>
+            <td colspan="2" style="text-align:center"><b>OT</b></td>
             <td colspan="2" style="text-align:center">No</td>
+            <td style="text-align:center">Yes</td>
         </tr>
     </tbody>
 </table>
@@ -182,7 +177,7 @@ In very simple terms: *it's basically just swapping 2v2 Eru Modes in a 4v4 setti
 ### Balancer Change
 - Moved Balancer to separate [repository](https://github.com/Frittutisna/Balancer)
 ### Format Change
-- Changed Regulation Song Mix from Watched Equal to Watched **Random**
+- Changed Regulation Song Mix from Watched Equal to Watched (**Random** Distribution)
 ### Guide Changes
 - Clarified Overtime triggers
 - Clarified team split delegation
