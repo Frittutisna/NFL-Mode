@@ -962,7 +962,7 @@
                         <th>${awayNameClean}</th>
                         <th>${homeNameClean}</th>
                     </tr>
-                    <tr><td colspan="14" style="font-weight: bold;">Regulation (0-40): ${config.lengths.reg / 2 + 1}-${config.lengths.reg} Watched Random with Mercy Rule</td></tr>
+                    <tr><td colspan="14" style="font-weight: bold;">Regulation (0-40): ${config.lengths.reg / 2 + 1}-${config.lengths.reg} Watched with Random Rig Distribution and Mercy Rule</td></tr>
                 </thead>
                 <tbody>
         `;
