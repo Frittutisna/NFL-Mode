@@ -13,14 +13,14 @@
 - [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do)
 
 ## TLDR: What Is This And What Do I Do?
-In very simple terms: *it's basically just swapping 2v2 Eru Modes in a 4v4 setting*.
+In very simple terms: *it's basically just swapping 2v2s*.
 - If you're **just playing**: Join the right lobby, line up correctly, and click Ready. If you're confused about anything, you can (in order of priority):
     - Just play along. People often say this is a game mode best understood through playing, not reading
     - Try `/nfl help` or `/nfl whatIs` in the chat, or
     - Read further
 - If you're **just watching**: Grab a bowl of popcorn before spectating the lobby of your choice.
 - **Unless you have to, feel more than welcome to stop reading this guide here.** I promise you, unless you **really** have to, you **shouldn't** read the rest of this guide.
-- If you're **hosting the tour**, **hosting a lobby** for your team, or the **Captain** (you have the highest **Watched Elo**) of your team, see [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do).
+- If you're **hosting the tour**, **hosting a lobby** for your team, or the **Captain** (you have the highest **Watched** Elo) of your team, see [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do).
 
 ## Links: Balancer, Flowchart, Script
 - [Link to the Balancer](https://github.com/Frittutisna/Balancer)
@@ -30,8 +30,8 @@ In very simple terms: *it's basically just swapping 2v2 Eru Modes in a 4v4 setti
 ## Overview: Those Long Setting Codes
 <table style="text-align:center">
     <tr>
-        <th style="text-align:center"><strong>Estimated Runtime</strong></th>
         <th style="text-align:center"><strong>Phase</strong></th>
+        <th style="text-align:center"><strong>Estimated Runtime</strong></th>
         <th style="text-align:center"><strong>Song Count</strong></th>
         <th style="text-align:center"><strong>Guess Time</strong></th>
         <th style="text-align:center"><strong>Difficulty</strong></th>
@@ -39,8 +39,8 @@ In very simple terms: *it's basically just swapping 2v2 Eru Modes in a 4v4 setti
         <th style="text-align:center"><strong>Code</strong></th>
     </tr>
     <tr>
-        <td style="text-align:center" rowspan="2">1 hour</td>
         <td style="text-align:center">Regulation</td>
+        <td style="text-align:center" rowspan="2">1 hour</td>
         <td style="text-align:center">9-16</td>
         <td style="text-align:center" rowspan="2">15</td>
         <td style="text-align:center">0-40</td>
@@ -177,15 +177,16 @@ In very simple terms: *it's basically just swapping 2v2 Eru Modes in a 4v4 setti
 
 ## Lineup: Away And Home, Captains, OPs, DPs
 **Captains** (player with the highest **Watched** Elo) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
-Captains must be OP1 or DP1, and their correct guesses count **double** (2 points) for the (T)DIFF calculations. 
+Captains **must** be OP1 (Slots 1 or 5) or DP1 (Slots 3 or 7), and their correct guesses count **double** (2 points) for the (T)DIFF calculations. 
 The team listed first (above) on Challonge is the **Away** team. 
-Line up as follows: **Away** (1-4: OP1, OP2, DP1, DP2), then **Home** (5-8: OP1, OP2, DP1, DP2).
+Line up as follows: **Away** (Slots 1-4: OP1, OP2, DP1, DP2), then **Home** (Slots 5-8: OP1, OP2, DP1, DP2).
 
 ## Score: Check The (T)DIFF
 <details>
     <summary><b>Click to know more about Scoring</b></summary>
     <p>The <b>Away</b> team attacks (has <b>possession</b>) first. 
-    Possession swaps after every song except after an <code>Onside Kick</code>, 
+    Possession <b>swaps</b> after every song 
+    <b>except</b> after an <code>Onside Kick</code>, 
     and the Home team <b>must</b> have possession on Song 9. 
     To calculate points, subtract the Defending team’s score from the Attacking team’s score.
     <b>TDIFF</b> counts <b>everyone</b> and is looked at first, 
@@ -263,10 +264,13 @@ Line up as follows: **Away** (1-4: OP1, OP2, DP1, DP2), then **Home** (5-8: OP1,
     <summary><b>Click to know more about Rouge</b></summary>
     <p>A <code>Rouge</code> (DIFF 0 or -1, 1 point) is awarded if 
     a play that would have resulted in a <code>Punt</code> 
-    happened such that <b>≥1</b> player(s) from one team got the song right,
+    happened such that <b>≥1</b> player(s) 
+    from one team got the song right,
     but the other team missed it completely.
-    This applies to both <b>Attacking</b> and <b>Defending</b> teams to reward <i>erigs</i> and covers,
-    even if DIFF calculations would have stalled out with a <code>Punt</code>.</p>
+    This applies to both <b>Attacking</b> and <b>Defending</b> 
+    teams to reward solos and covers,
+    even if DIFF calculations would have 
+    stalled out with a <code>Punt</code>.</p>
 </details>
 
 ## Ending: Mercy, Overtime, Tie(breakers)
