@@ -91,7 +91,7 @@ In very simple terms: *it's basically just swapping 2v2 Eru Modes in a 4v4 setti
         </tr>
         <tr>
             <td style="text-align:center">Song Count</td>
-            <td style="text-align:center">30</td>
+            <td style="text-align:center">25</td>
             <td style="text-align:center">16-40</td>
             <td style="text-align:center">9-16</td>
             <td style="text-align:center">0-4</td>
