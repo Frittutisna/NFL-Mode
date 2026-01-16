@@ -3,7 +3,7 @@
 ## Table of Contents
 - [TLDR: What Is This And What Do I Do?](#tldr-what-is-this-and-what-do-i-do)
 - [Links: Balancer, Flowchart, Script](#links-balancer-flowchart-script)
-- [Overview: Those Long Setting Codes](#overview-those-long-setting-codes)
+- [Overview: What Do I *Really* Need To Know?](#overview-what-do-i-really-need-to-know)
 - [Comparison: What's The Difference?](#comparison-whats-the-difference)
 - [Changelog: What Changed From v3.beta.4?](#changelog-what-changed-from-v3beta4)
 - [Lineup: Away And Home, Captains, OPs, DPs](#lineup-away-and-home-captains-ops-dps)
@@ -27,7 +27,7 @@ In very simple terms: *it's basically just swapping 2v2s*
 - [Link to the Flowchart](https://github.com/Frittutisna/NFL-Mode/blob/main/Flowchart/Flowchart.pdf)
 - [Link to the Script](https://github.com/Frittutisna/NFL-Mode/blob/main/Script.js)
 
-## Overview: Those Long Setting Codes
+## Overview: What Do I *Really* Need To Know?
 <table style="text-align:center">
     <tr>
         <th style="text-align:center"><strong>Phase</strong></th>
