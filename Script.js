@@ -354,6 +354,8 @@
             chatMessage(seriesMsg);
         } else seriesFinished = true;
 
+        downloadScoresheet();
+
         match.isActive      = false;
         match.period        = 'REGULATION';
         match.pendingPause  = false;
@@ -376,7 +378,7 @@
         } else chatMessage("Series finished");
 
         setTimeout(() => {
-            if (match.songNumber < config.lengths.reg) sendGameCommand("return to lobby");
+            if (match.songNumber < config.lengths.reg + config.lengths.ot) sendGameCommand("return to lobby");
             else chatMessage("Game finished naturally, waiting for auto-return to lobby")
         }, config.delay);
     };
@@ -761,19 +763,18 @@
                 
                 else {
                     if (config.knockout) {
-                        chatMessage("Knockout Mode: Calculating Tiebreakers");
                         winnerSide      = resolveKnockoutTie(awaySlots, homeSlots);
                         const winner    = getTeamDisplayName(winnerSide);
                         chatMessage(`${winner} wins via Tiebreaker!`);
                         chatMessage("Game ended via Knockout Tiebreaker");
                         endGame(winnerSide);
-                        isGameOver = true;
+                        isGameOver      = true;
                     }
                     
                     else {
                         chatMessage("Game ended in a Tie");
                         endGame('draw');
-                        isGameOver = true;
+                        isGameOver      = true;
                     }
                 }
             }
@@ -802,11 +803,6 @@
                     }
                 } catch(e) {}
             }
-            
-            if (!isGameOver && match.otRound === 3) {
-                 match.pendingPause = true;
-                 chatMessage("End of Overtime approaching");
-            }
         }
 
         if (!isGameOver) {
@@ -815,9 +811,9 @@
         }
     };
 
-    const downloadScoresheet = (isAuto = false) => {
+    const downloadScoresheet = () => {
         if (!match.history.length) {
-            if (!isAuto) systemMessage("Error: No data to export");
+            systemMessage("Error: No data to export");
             return;
         }
 
