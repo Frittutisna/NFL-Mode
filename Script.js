@@ -726,6 +726,12 @@
                     else match.pendingPause = false;
                 } catch(e) {}
             }
+            
+            else if (match.songNumber === config.lengths.reg - 1) {
+                chatMessage(`Next up is Song ${config.lengths.reg}, the last in Regulation`);
+                chatMessage("Pausing to allow players to prepare for a potential game-ending vote");
+                match.pendingPause = true;
+            }
         }
 
         else if (match.period === 'OVERTIME') {
