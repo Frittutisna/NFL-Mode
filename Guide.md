@@ -1,4 +1,4 @@
-# NFL Mode v3.beta.5.0
+# NFL Mode v3.beta.5.1
 
 ## Table of Contents
 - [TLDR: What Is This And What Do I Do?](#tldr-what-is-this-and-what-do-i-do)
@@ -13,7 +13,7 @@
 - [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do)
 
 ## TLDR: What Is This And What Do I Do?
-In very simple terms: *it's basically just swapping 2v2s*.
+In very simple terms: *it's basically just swapping 2v2s*
 - If you're **just playing**: Join the right lobby, line up correctly, and click Ready. If you're confused about anything, you can (in order of priority):
     - Just play along. People often say this is a game mode best understood through playing, not reading
     - Try `/nfl help` or `/nfl whatIs` in the chat, or
@@ -36,7 +36,6 @@ In very simple terms: *it's basically just swapping 2v2s*.
         <th style="text-align:center"><strong>Guess Time</strong></th>
         <th style="text-align:center"><strong>Difficulty</strong></th>
         <th style="text-align:center"><strong>Song Mix</strong></th>
-        <th style="text-align:center"><strong>Code</strong></th>
     </tr>
     <tr>
         <td style="text-align:center">Regulation</td>
@@ -45,28 +44,14 @@ In very simple terms: *it's basically just swapping 2v2s*.
         <td style="text-align:center" rowspan="2">15</td>
         <td style="text-align:center">0-40</td>
         <td style="text-align:center">Watched with <strong>Random</strong> Rig Distribution</td>
-        <td style="text-align:center">
-            <details>
-                <summary>Click to view code</summary>
-                <code style="word-break: break-all">e0g0g21111100130g000011110000000g11111111111100f051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1ka03-11111--</code>
-            </details>
-        </td>
     </tr>
     <tr>
         <td style="text-align:center">Overtime</td>
         <td style="text-align:center">0-4*</td>
         <td style="text-align:center">0-100</td>
         <td style="text-align:center">Random</td>
-        <td style="text-align:center">
-            <details>
-                <summary>Click to view code</summary>
-                <code style="word-break: break-all;">e0g05211111001100000531110000000511111111111100f051o000000f11100k012r02i0a46533a11002s0111111111002s0111002s01a111111111102a11111111111hg1k903-11111--</code>
-            </details>
-        </td>
     </tr>
 </table>
-
-* Due to AMQ's minimum of 5 songs in each round, the script will automatically return to lobby after Song OT4, ignoring Song OT5
 
 ## Comparison: What's The Difference?
 <table>
@@ -168,12 +153,15 @@ In very simple terms: *it's basically just swapping 2v2s*.
 - Moved Balancer to separate [repository](https://github.com/Frittutisna/Balancer)
 ### Format Change
 - Changed Regulation Song Mix from Watched Equal to Watched with **Random** Rig Distribution
+- Unified Regulation and Overtime under one CSL for simplicity
 ### Guide Changes
 - Clarified Overtime triggers
 - Clarified team split delegation
+- Removed deprecated Setting Codes
 ### Script Changes
 - Fixed `/nfl help` response not visible in public chat
 - Changed song state reports to reflect Captain multipliers (e.g., `2000 0000 7-0 Touchdown`)
+- Automated scoresheet download
 
 ## Lineup: Away And Home, Captains, OPs, DPs
 **Captains** (player with the highest **Watched** Elo) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
@@ -275,13 +263,16 @@ Line up as follows: **Away** (Slots 1-4: OP1, OP2, DP1, DP2), then **Home** (Slo
 
 ## Ending: Mercy, Overtime, Tie(breakers)
 Mercy Rule triggers if the trailing team can't catch with the songs left. 
-If both teams are still tied after Regulation, continue to 4-song **Overtime**. 
+If both teams are still tied after Regulation, 
+the Script will automatically continue to 4-song **Overtime**. 
 The **Away** team again has first possession. 
-An `Onside Kick` from the Away team or a `House Call` from the Home team ends Overtime here. 
-Otherwise, after both teams have **≥1** possession(s) each, whoever has more points wins. 
+An `Onside Kick` from the Away team 
+or a `House Call` from the Home team ends Overtime here. 
+Otherwise, whoever scores next wins. 
 If Overtime doesn’t resolve the tie, 
-the game is called a **Tie unless** breaking the tie is necessary 
-(e.g., 3.0-3.0 series tie, Championship Game, Super Bowl). 
+the game is called a **Tie**, 
+unless breaking the tie is necessary 
+(e.g., 3.0-3.0 series tie, Championship Games, Super Bowl). 
 In which case, the following **Tiebreakers** will determine the winner 
 (Tiebreakers 1-4 are determined solely from Overtime results):
 1. Weighted Total Correct (counting Captains twice)
@@ -310,14 +301,16 @@ The script will automatically swap Away and Home teams between consecutive games
 
 ### If you're hosting a lobby for your team:
 Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host needs to install and operate the **Script**) on your browser through TamperMonkey, then do the following:
-- Apply the **Regulation** setting code (see [Overview](#overview-those-long-setting-codes)).
+- If you're hosting a new lobby, do the following:
+    - Start a Community Quiz, search for `Tour: NFL Mode` by `HakoHoka`, then click Play.
+    - Change the Room Type, Room Name, and Password to `Multiplayer`, `Tour: NFL Mode`, and `100` respectively, then click Host.
+    - Click Room Settings, then change the Number of Players and Team Size to `16` and `2` respectively.
 - Invite the right players to the lobby, and make sure they're lined up correctly (see [Lineup](#lineup-away-and-home-captains-ops-dps)).
 - After everyone is ready, type `/nfl howTo` and follow the instructions there.
 - Type `/nfl start` and start playing. If you started the game by mistake, type `/nfl resetGame`, return to lobby, then type `/nfl start` to restart.
-- If it's tied after Regulation, apply the **Overtime** setting code (see [Overview](#overview-those-long-setting-codes)), then start playing after everyone is ready. If you started Overtime by mistake, type `/nfl resetOvertime`, return to lobby, then type `/nfl start` to restart Overtime.
-- Type `/nfl export` to download the **Scoresheet**, open it on your browser, and copy the top row.
-- Paste it in `#game-reporting` with the Scoresheet and JSON(s) (Regulation and Overtime if necessary).
-- Repeat from Step 1 for the next game.
+- The Script will automatically download the **Scoresheet** after each Game. Open it on your browser, and copy the top row.
+- Paste it in `#game-reporting` with the Scoresheet and JSON.
+- Repeat from Step 1 for a new lobby, from Step 2 for the same lobby and a new opponent, or from Step 3 for the same lobby and opponent.
 
 ### If you're the Captain of your team:
 - **Split** your team into 2 Offensive (OPs) and 2 Defensive (DPs) Players.
