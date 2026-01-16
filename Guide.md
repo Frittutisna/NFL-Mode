@@ -305,11 +305,9 @@ Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host 
     - Start a Community Quiz, search for `Tour: NFL Mode` by `HakoHoka`, then click Play.
     - Change the Room Type, Room Name, and Password to `Multiplayer`, `Tour: NFL Mode`, and `100` respectively, then click Host.
     - Click Room Settings, then change the Number of Players and Team Size to `16` and `2` respectively.
-- Invite the right players to the lobby, and make sure they're lined up correctly (see [Lineup](#lineup-away-and-home-captains-ops-dps)).
-- After everyone is ready, type `/nfl howTo` and follow the instructions there.
-- Type `/nfl start` and start playing. If you started the game by mistake, type `/nfl resetGame`, return to lobby, then type `/nfl start` to restart.
-- The Script will automatically download the **Scoresheet** after each Game. Open it on your browser, and copy the top row.
-- Paste it in `#game-reporting` with the Scoresheet and JSON.
+- Invite the right players to the lobby, make sure they're lined up correctly (see [Lineup](#lineup-away-and-home-captains-ops-dps)), then type `/nfl howTo` and follow the instructions there.
+- After everyone is ready, type `/nfl start` and start playing. If you started the game by mistake, type `/nfl resetGame`, return to lobby, then type `/nfl start` to restart.
+- The Script will automatically download the **Scoresheet** after each Game. Open it on your browser, copy the top row, then paste it in `#game-reporting` with the Scoresheet and JSON.
 - Repeat from Step 1 for a new lobby, from Step 2 for the same lobby and a new opponent, or from Step 3 for the same lobby and opponent.
 
 ### If you're the Captain of your team:
