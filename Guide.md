@@ -47,7 +47,7 @@ In very simple terms: *it's basically just swapping 2v2s*
     </tr>
     <tr>
         <td style="text-align:center">Overtime</td>
-        <td style="text-align:center">0-4*</td>
+        <td style="text-align:center">0-4</td>
         <td style="text-align:center">0-100</td>
         <td style="text-align:center">Random</td>
     </tr>
