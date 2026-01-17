@@ -1,4 +1,4 @@
-# NFL Mode v3.beta.5.1
+# NFL Mode v3.beta.5.2
 
 ## Table of Contents
 - [TLDR: What Is This And What Do I Do?](#tldr-what-is-this-and-what-do-i-do)
@@ -162,6 +162,7 @@ In very simple terms: *it's basically just swapping 2v2s*
 - Fixed `/nfl help` response not visible in public chat
 - Changed song state reports to reflect Captain multipliers (e.g., `2000 0000 7-0 Touchdown`)
 - Automated scoresheet download
+- Implemented masked reporting (e.g., `20XX XX00 7-0 Touchdown`) for players that alone would not have changed Song outcome and/or for non-existent players in testing
 
 ## Lineup: Away And Home, Captains, OPs, DPs
 **Captains** (player with the highest **Watched** Elo) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 

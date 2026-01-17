@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3.beta.5.1
+// @version      3.beta.5.2
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -536,78 +536,111 @@
             return false;
         };
 
-        const calcTeamStats = (slots) => {
-            let patternArr      = [];
-            let patternStr      = "";
-            let totalScore      = 0;
-            let opScore         = 0;
-            let dpScore         = 0;
-            let correctCount    = 0;
-
-            slots.forEach((slotId, index) => {
-                const isCorrect = checkSlot(slotId);
-                const isCaptain = config.captains.includes(slotId);
-                const points    = isCorrect ? (isCaptain ? gameConfig.captainMultiplier : 1) : 0;
-                patternArr.push(isCorrect ? 1 : 0);
-                patternStr += (isCorrect ? (isCaptain ? 2 : 1) : 0);
-                if (isCorrect) {
-                    correctCount++;
-                    totalScore += points;
-                    if      (gameConfig.opsRelativeIndices.includes(index)) opScore += points;
-                    else if (gameConfig.dpsRelativeIndices.includes(index)) dpScore += points;
-                }
+        const computeStats = (arr, slots) => {
+            let totalScore = 0, opScore = 0, dpScore = 0, correctCount = 0;
+            arr.forEach((isCorrect, index) => {
+                const slotId    =   slots[index];
+                const isCaptain =   config.captains.includes(slotId);
+                const points    =   isCorrect ? (isCaptain ? gameConfig.captainMultiplier : 1) : 0;
+                if (isCorrect) correctCount++;
+                totalScore      +=  points;
+                if      (gameConfig.opsRelativeIndices.includes(index)) opScore += points;
+                else if (gameConfig.dpsRelativeIndices.includes(index)) dpScore += points;
             });
-            return {patternStr, patternArr, totalScore, opScore, dpScore, correctCount};
+            return {totalScore, opScore, dpScore, correctCount};
+        };
+
+        const calculateOutcome = (awayS, homeS) => {
+            const attSide   = match.possession;
+            const attStats  = attSide === 'away' ? awayS : homeS;
+            const defStats  = attSide === 'away' ? homeS : awayS;
+
+            const tdiff = attStats.totalScore   - defStats.totalScore;
+            const diff  = attStats.opScore      - defStats.dpScore;
+
+            if      (tdiff >= 4)                return {name: "Onside Kick",  pts: 7, swap: false,    team: "offense"};
+            else if (tdiff <= -4)               return {name: "House Call",   pts: 7, swap: true,     team: "defense"};
+            else {
+                if      (diff >=    3)          return {name: "TD + 2PC",     pts: 8, swap: true,     team: "offense"};
+                else if (diff ===   2)          return {name: "Touchdown",    pts: 7, swap: true,     team: "offense"};
+                else if (diff ===   1)          return {name: "Field Goal",   pts: 3, swap: true,     team: "offense"};
+                else if (diff ===   0 || diff === -1) {
+                    const attHit = attStats.correctCount > 0;
+                    const defHit = defStats.correctCount > 0;
+                    if      (attHit && !defHit) return {name: "Rouge",        pts: 1, swap: true,     team: "offense"};
+                    else if (defHit && !attHit) return {name: "Rouge",        pts: 1, swap: true,     team: "defense"};
+                    else                        return {name: "Punt",         pts: 0, swap: true,     team: "defense"};
+                }
+                else if (diff ===   -2)         return {name: "Safety",       pts: 2, swap: true,     team: "defense" };
+                else if (diff <=    -3)         return {name: "Pick Six",     pts: 6, swap: true,     team: "defense" };
+            }
+            return {name: "Error", pts: 0, swap: true, team: "none"};
         };
 
         const awaySlots = config.isSwapped ? gameConfig.homeSlots : gameConfig.awaySlots;
         const homeSlots = config.isSwapped ? gameConfig.awaySlots : gameConfig.homeSlots;
-        const awayStats = calcTeamStats(awaySlots);
-        const homeStats = calcTeamStats(homeSlots);
+
+        const awayArr = awaySlots.map(slotId => checkSlot(slotId) ? 1 : 0);
+        const homeArr = homeSlots.map(slotId => checkSlot(slotId) ? 1 : 0);
+
+        const awayStats = computeStats(awayArr, awaySlots);
+        const homeStats = computeStats(homeArr, homeSlots);
+        const result    = calculateOutcome(awayStats, homeStats);
 
         const currentPossessionSide = match.possession;
-        const attSide               = match.possession;
-        const defSide               = match.possession === 'away' ? 'home' : 'away';
 
-        const attStats = attSide === 'away' ? awayStats : homeStats;
-        const defStats = attSide === 'away' ? homeStats : awayStats;
-
-        const tdiff = attStats.totalScore - defStats.totalScore;
-        const diff  = attStats.opScore - defStats.dpScore;
-
-        let result = {name: "Error", pts: 0, swap: true, team: "none"};
-
-        if      (tdiff >= 4)                result = {name: "Onside Kick",  pts: 7, swap: false,    team: "offense"};
-        else if (tdiff <= -4)               result = {name: "House Call",   pts: 7, swap: true,     team: "defense"};
-        else {
-            if      (diff >=    3)          result = {name: "TD + 2PC",     pts: 8, swap: true,     team: "offense"};
-            else if (diff ===   2)          result = {name: "Touchdown",    pts: 7, swap: true,     team: "offense"};
-            else if (diff ===   1)          result = {name: "Field Goal",   pts: 3, swap: true,     team: "offense"};
-            else if (diff ===   0 || diff === -1) {
-                const attHit = attStats.correctCount > 0;
-                const defHit = defStats.correctCount > 0;
-                if      (attHit && !defHit) result = {name: "Rouge",        pts: 1, swap: true,     team: "offense"};
-                else if (defHit && !attHit) result = {name: "Rouge",        pts: 1, swap: true,     team: "defense"};
-                else                        result = {name: "Punt",         pts: 0, swap: true,     team: "defense"};
-            }
-            else if (diff ===   -2)         result = {name: "Safety",       pts: 2, swap: true,     team: "defense" };
-            else if (diff <= -3)            result = {name: "Pick Six",     pts: 6, swap: true,     team: "defense" };
-        }
-
-        if      (result.team === "offense") match.scores[attSide]   +=  result.pts;
-        else if (result.team === "defense") match.scores[defSide]   +=  result.pts;
-        if (result.swap)                    match.possession        =   defSide;
-
+        if      (result.team === "offense") match.scores[match.possession]                  += result.pts;
+        else if (result.team === "defense") match.scores[match.possession === 'away' ? 'home' : 'away'] += result.pts;
+        
+        if (result.swap)                                                                    match.possession = match.possession === 'away' ? 'home' : 'away';
         if (match.period === 'REGULATION' && match.songNumber === (config.lengths.reg / 2)) match.possession = 'home';
 
-        let displayAwayPattern = awayStats.patternStr;
-        let displayHomePattern = homeStats.patternStr;
-        let displayScoreStr    = `${match.scores.away}-${match.scores.home}`;
+        const generateMaskedPattern = (actualArr, isAway) => {
+            let maskedStr = "";
+            const mySlots = isAway ? awaySlots : homeSlots;
+            
+            actualArr.forEach((val, idx) => {
+                const slotId = mySlots[idx];
+
+                if (config.isTest) {
+                    const p = Object.values(quiz.players).find(p => p.teamNumber == slotId);
+                    if (!p) {maskedStr += "X"; return; }
+                }
+
+                const flippedVal    = val === 1 ? 0 : 1;
+                const testAwayArr   = isAway ? [...actualArr] : [...awayArr];
+                const testHomeArr   = isAway ? [...homeArr] : [...actualArr];
+                
+                if (isAway) testAwayArr[idx] = flippedVal;
+                else        testHomeArr[idx] = flippedVal;
+
+                const testAwayStats = computeStats(testAwayArr, awaySlots);
+                const testHomeStats = computeStats(testHomeArr, homeSlots);
+                
+                const storedPoss = match.possession;
+                match.possession = currentPossessionSide;
+                const testResult = calculateOutcome(testAwayStats, testHomeStats);
+                match.possession = storedPoss;
+
+                if (testResult.name === result.name && testResult.team === result.team) maskedStr += "X";
+                else {
+                    const isCaptain =   config.captains.includes(slotId);
+                    maskedStr       +=  (val === 1 ? (isCaptain ? "2" : "1") : "0");
+                }
+            });
+
+            return maskedStr;
+        };
+
+        let displayAwayPattern  = generateMaskedPattern(awayArr, true);
+        let displayHomePattern  = generateMaskedPattern(homeArr, false);
+        let displayScoreStr     = `${match.scores.away}-${match.scores.home}`;
 
         if (config.isSwapped) {
-            displayAwayPattern = homeStats.patternStr;
-            displayHomePattern = awayStats.patternStr;
-            displayScoreStr    = `${match.scores.home}-${match.scores.away}`;
+            displayScoreStr     = config.isSwapped ? `${match.scores.home}-${match.scores.away}` : `${match.scores.away}-${match.scores.home}`;
+            const temp          = displayAwayPattern;
+            displayAwayPattern  = displayHomePattern;
+            displayHomePattern  = temp;
         }
 
         const mainMsg   = `${displayAwayPattern} ${displayHomePattern} ${result.name} ${displayScoreStr}`;
@@ -616,8 +649,8 @@
         match.history.push({
             song    : match.songNumber,
             poss    : currentPossessionSide,
-            awayArr : awayStats.patternArr,
-            homeArr : homeStats.patternArr,
+            awayArr : awayArr,
+            homeArr : homeArr,
             result  : result.name,
             score   : `${match.scores.away}-${match.scores.home}`,
             period  : currentPeriod,
