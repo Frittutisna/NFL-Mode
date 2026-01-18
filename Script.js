@@ -345,7 +345,7 @@
             chatMessage(seriesMsg);
         } else seriesFinished = true;
 
-        downloadScoresheet();
+        if (!config.isTest) downloadScoresheet();
 
         match.isActive      = false;
         match.period        = 'REGULATION';
