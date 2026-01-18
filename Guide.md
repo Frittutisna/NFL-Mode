@@ -294,7 +294,7 @@ The script will automatically swap Away and Home teams between consecutive games
 ### If you're hosting a lobby for your team:
 Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host needs to install and operate the **Script**) on your browser through TamperMonkey, then do the following:
 - If you're hosting a new lobby, do the following:
-    - Start a Community Quiz, search for `Tour: NFL Mode` by `HakoHoka`, then click Play.
+    - Start a Community Quiz, search for `Tour: NFL Mode v3.beta.6.0` by `HakoHoka`, then click Play.
     - Change the Room Type, Room Name, and Password to `Multiplayer`, `Tour: NFL Mode`, and `100` respectively, then click Host.
     - Click Room Settings, then change the Number of Players and Team Size to `16` and `2` respectively.
 - Invite the right players to the lobby, make sure they're lined up correctly (see [Lineup](#lineup-away-and-home-captains-ops-dps)), then type `/nfl howTo` and follow the instructions there.
