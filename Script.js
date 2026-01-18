@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3.beta.5.2
+// @version      3.beta.6.0
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -21,7 +21,7 @@
         knockout            : false,
         isTest              : false,
         seriesLength        : 1,
-        lengths             : {reg: 16, ot: 4},
+        lengths             : {reg: 20, ot: 5},
         seriesStats         : {awayWins: 0, homeWins: 0, draws: 0, history: []},
         links               : {
             guide           : "https://github.com/Frittutisna/NFL-Mode/blob/main/Guide.md",
@@ -55,7 +55,7 @@
         homeSlots           : [5, 6, 7, 8],
         opsRelativeIndices  : [0, 1],
         dpsRelativeIndices  : [2, 3],
-        posNames            : ["OP1", "OP2", "DP1", "DP2"]
+        posNames            : ["T1", "T4", "T2", "T3"]
     };
 
     const TERMS = {
@@ -100,7 +100,6 @@
         "resetEverything"   : "Hard reset: Wipe all settings, series history, and teams to default",
         "resetGame"         : "Wipe current Game progress and stop tracker",
         "resetSeries"       : "Wipe all series history and reset to Game 1",
-        "setCaptains"       : "Set team captains (/nfl setCaptains [1-4][5-8])",
         "setGame"           : "Set the current game number /nfl setGame [1-7]",
         "setKnockout"       : "Enable/disable tiebreakers (/nfl setKnockout [true/false])",
         "setSeries"         : "Set the series length (/nfl setSeries [1/2/7]",
@@ -246,14 +245,6 @@
             if (p) return p.name;
         }
         return "N/A";
-    };
-
-    const getCaptainListString = () => {
-        const names = config.captains.map(teamId => {
-            const name = getPlayerNameAtTeamId(teamId);
-            return name !== "N/A" ? name : `Player ${teamId}`;
-        });
-        return names.join(", ");
     };
 
     const resetMatchData = () => {
@@ -513,8 +504,10 @@
             }
         }
 
-        chatMessage(`Tiebreaker: ${getTeamDisplayName('away')} wins on Advantage Tiebreaker`);
-        return 'away';
+        const lastEntry     = match.history[match.history.length - 1];
+        const winnerSide    = lastEntry.poss === 'away' ? 'home' : 'away'; 
+        chatMessage(`Tiebreaker: ${getTeamDisplayName(winnerSide)} wins on Possession Tiebreaker`);
+        return winnerSide;
     };
 
     const processRound = (payload) => {
@@ -678,7 +671,7 @@
 
             else if (match.songNumber === config.lengths.reg) {
                 if (scoreDiff === 0) {
-                    chatMessage("Tied after Regulation, continuing to Overtime (Songs 17-20)");
+                    chatMessage(`Tied after Regulation, continuing to Overtime (Songs ${config.lengths.reg + 1}-${config.lengths.reg + config.lengths.ot})`);
                     match.period        = 'OVERTIME';
                     match.otRound       = 0;
                     match.possession    = 'away';
@@ -786,7 +779,7 @@
                     isGameOver = true;
                 }
 
-                else chatMessage("Whoever scores next wins. If still tied after Song 20, the game ends in a Tie or through Tiebreakers");
+                else chatMessage(`Whoever scores next wins. If still tied after Song ${config.lengths.reg + config.lengths.ot}, the game ends in a Tie or through Tiebreakers`);
             }
 
             if (!isGameOver && match.otRound >= config.lengths.ot) {
@@ -891,13 +884,8 @@
         const awaySlots = effSwapped ? gameConfig.homeSlots : gameConfig.awaySlots;
         const homeSlots = effSwapped ? gameConfig.awaySlots : gameConfig.homeSlots;
 
-        const getCaptainPos = (slots) => {
-            const index = slots.findIndex(slot => config.captains.includes(slot));
-            return index !== -1 ? gameConfig.posNames[index] : "?";
-        };
-
-        const awayHeaderTitle = `${awayNameClean} (${getCaptainPos(awaySlots)})`;
-        const homeHeaderTitle = `${homeNameClean} (${getCaptainPos(homeSlots)})`;
+        const awayHeaderTitle = `${awayNameClean}`;
+        const homeHeaderTitle = `${homeNameClean}`;
         const subHeaders      = gameConfig.posNames;
 
         const date      = new Date();
@@ -1029,11 +1017,10 @@
 
     const printHowTo = () => {
         systemMessage("1. Use /nfl setTeams to set the Away and Home team names");
-        systemMessage("2. Use /nfl setCaptains to set the right Captains for each team");
-        systemMessage("3. Use /nfl setSeries to set the series length");
-        systemMessage("4. Use /nfl setGame to set the game number");
-        systemMessage("5. Use /nfl setKnockout to enable/disable Overtime tiebreakers for Knockout Games");
-        systemMessage("6. Use /nfl start when you're ready to start a new Game");
+        systemMessage("2. Use /nfl setSeries to set the series length");
+        systemMessage("3. Use /nfl setGame to set the game number");
+        systemMessage("4. Use /nfl setKnockout to enable/disable Overtime tiebreakers for Knockout Games");
+        systemMessage("5. Use /nfl start when you're ready to start a new Game");
     };
 
     const setup = () => {
@@ -1097,13 +1084,6 @@
                                     systemMessage(`Teams set: ${awayArr} @ ${homeArr}`);
                                     updateLobbyName(config.teamNames.away, config.teamNames.home);
                                 } else systemMessage("Error: Use /nfl setTeams [Away] [Home]");
-                            }
-                            else if (cmd === "setcaptains") {
-                                if (typeof lobby !== 'undefined' && lobby.inLobby) playersCache = Object.values(lobby.players);
-                                if (parts[2] && /^[13][57]$/.test(parts[2])) {
-                                    config.captains = parts[2].split('').map(Number);
-                                    systemMessage(`Captains: ${getCaptainListString()}`);
-                                } else systemMessage("Error: Use /nfl setCaptains [1/3][5/7]");
                             }
                             else if (cmd === "setgame") {
                                 const num = parseInt(parts[2]);

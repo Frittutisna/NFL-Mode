@@ -1,11 +1,11 @@
-# NFL Mode v3.beta.6.0
+# NFL Mode v3.beta.5.2
 
 ## Table of Contents
 - [TLDR: What Is This And What Do I Do?](#tldr-what-is-this-and-what-do-i-do)
 - [Links: Balancer, Flowchart, Script](#links-balancer-flowchart-script)
 - [Overview: What Do I *Really* Need To Know?](#overview-what-do-i-really-need-to-know)
 - [Comparison: What's The Difference?](#comparison-whats-the-difference)
-- [Changelog: What Changed From v3.beta.5?](#changelog-what-changed-from-v3beta5)
+- [Changelog: What Changed From v3.beta.4?](#changelog-what-changed-from-v3beta4)
 - [Lineup: Away And Home, Captains, OPs, DPs](#lineup-away-and-home-captains-ops-dps)
 - [Score: Check The (T)DIFF](#score-check-the-tdiff)
 - [Ending: Mercy, Overtime, Tie(breakers)](#ending-mercy-overtime-tiebreakers)
@@ -13,14 +13,14 @@
 - [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do)
 
 ## TLDR: What Is This And What Do I Do?
-In very simple terms: *it's basically just T1-T4 vs T2-T3*
+In very simple terms: *it's basically just swapping 2v2s*
 - If you're **just playing**: Join the right lobby, line up correctly, and click Ready. If you're confused about anything, you can (in order of priority):
     - Just play along. People often say this is a game mode best understood through playing, not reading
     - Try `/nfl help` or `/nfl whatIs` in the chat, or
     - Read further
 - If you're **just watching**: Grab a bowl of popcorn before spectating the lobby of your choice.
 - **Unless you have to, feel more than welcome to stop reading this guide here.** I promise you, unless you **really** have to, you **shouldn't** read the rest of this guide.
-- If you're **hosting the tour** or **hosting a lobby** for your team, see [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do).
+- If you're **hosting the tour**, **hosting a lobby** for your team, or the **Captain** (you have the highest **Watched** Elo) of your team, see [Manual: What Do I *Really* Do?](#manual-what-do-i-really-do).
 
 ## Links: Balancer, Flowchart, Script
 - [Link to the Balancer](https://github.com/Frittutisna/Balancer)
@@ -40,14 +40,14 @@ In very simple terms: *it's basically just T1-T4 vs T2-T3*
     <tr>
         <td style="text-align:center">Regulation</td>
         <td style="text-align:center" rowspan="2">1 hour</td>
-        <td style="text-align:center"><strong>11-20</strong></td>
+        <td style="text-align:center">9-16</td>
         <td style="text-align:center" rowspan="2">15</td>
         <td style="text-align:center">0-40</td>
         <td style="text-align:center">Watched with <strong>Random</strong> Rig Distribution</td>
     </tr>
     <tr>
         <td style="text-align:center">Overtime</td>
-        <td style="text-align:center"><strong>0-5</strong></td>
+        <td style="text-align:center">0-4</td>
         <td style="text-align:center">0-100</td>
         <td style="text-align:center">Random</td>
     </tr>
@@ -76,10 +76,10 @@ In very simple terms: *it's basically just T1-T4 vs T2-T3*
         </tr>
         <tr>
             <td style="text-align:center">Song Count</td>
-            <td style="text-align:center">30</td>
+            <td style="text-align:center">25</td>
             <td style="text-align:center">16-40</td>
-            <td style="text-align:center">11-20</td>
-            <td style="text-align:center">0-5</td>
+            <td style="text-align:center">9-16</td>
+            <td style="text-align:center">0-4</td>
         </tr>
         <tr>
             <td style="text-align:center">Guess Time</td>
@@ -132,34 +132,43 @@ In very simple terms: *it's basically just T1-T4 vs T2-T3*
         </tr>
         <tr>
             <td style="text-align:center">Sudden Death</td>
-            <td style="text-align:center" rowspan="2">No</td>
+            <td style="text-align:center">No</td>
             <td style="text-align:center" rowspan="2">Yes</td>
         </tr>
-        <tr><td style="text-align:center">Tie</td></tr>
+        <tr>
+            <td style="text-align:center">Tie</td>
+            <td style="text-align:center" rowspan="2">N/A</td>
+        </tr>
+        <tr>
+            <td style="text-align:center">Last Tiebreaker</td>
+            <td style="text-align:center">Home</td>
+            <td style="text-align:center">Away</td>
+            <td style="text-align:center">Away</td>
+        </tr>
     </tbody>
 </table>
 
-## Changelog: What Changed From v3.beta.5
+## Changelog: What Changed From v3.beta.4
 ### Balancer Change
-- Clarified slot allocation for 8-player tours
-- Implemented NFL-specific slot allocation
+- Moved Balancer to separate [repository](https://github.com/Frittutisna/Balancer)
 ### Format Change
-- Reverted Song Count back to 20+5
-- Removed pre-tour Captain team split
-- Changed Last Tiebreaker to Possession Advantage
+- Changed Regulation Song Mix from Watched Equal to Watched with **Random** Rig Distribution
+- Unified Regulation and Overtime under one CSL for simplicity
 ### Guide Changes
-- Removed deprecated Captain section
+- Clarified Overtime triggers
+- Clarified team split delegation
+- Removed deprecated Setting Codes
 ### Script Changes
-- Removed deprecated `/nfl setCaptains`
-- Removed redundant Captain bracket in HTML output
-- Changed OP/DP-1/2 terminologies in HTML output to T1-4
+- Fixed `/nfl help` response not visible in public chat
+- Changed song state reports to reflect Captain multipliers (e.g., `2000 0000 7-0 Touchdown`)
+- Automated scoresheet download
+- Implemented masked reporting (e.g., `20XX XX00 7-0 Touchdown`) for players that alone would not have changed Song outcome and/or for non-existent players in testing
 
 ## Lineup: Away And Home, Captains, OPs, DPs
-The player with the highest (T1) and lowest (T4) **Watched** Elos of each team make up the **Offensive Players** (OPs). Their main role is to **score points** when their team has **possession**. To help with this, the T1 of each team is also designated as their **Captain**, which carries a **double multiplier** for their correct guesses.
-
-The other two players (T2 and T3) make up the **Defensive Players** (DPs). Their main role is to **prevent** the opposing OPs from scoring points when their team **doesn't have possession**.
-
-The team listed first (above) on Challonge is the **Away** team for each series. Line up as follows before each series: **Away** (Slots 1-4: T1, T4, T2, T3), then **Home** (Slots 5-8: T1, T4, T2, T3). There is **no need to swap** Slots between consecutive games; the Script does that **automatically**. 
+**Captains** (player with the highest **Watched** Elo) split their teams into 2 Offensive (OP) and 2 Defensive (DP) players. 
+Captains **must** be OP1 (Slots 1 or 5) or DP1 (Slots 3 or 7), and their correct guesses count **double** (2 points) for the (T)DIFF calculations. 
+The team listed first (above) on Challonge is the **Away** team. 
+Line up as follows: **Away** (Slots 1-4: OP1, OP2, DP1, DP2), then **Home** (Slots 5-8: OP1, OP2, DP1, DP2).
 
 ## Score: Check The (T)DIFF
 <details>
@@ -167,7 +176,7 @@ The team listed first (above) on Challonge is the **Away** team for each series.
     <p>The <b>Away</b> team attacks (has <b>possession</b>) first. 
     Possession <b>swaps</b> after every song 
     <b>except</b> after an <code>Onside Kick</code>, 
-    and the Home team <b>must</b> have possession on Song 11. 
+    and the Home team <b>must</b> have possession on Song 9. 
     To calculate points, subtract the Defending team’s score from the Attacking team’s score.
     <b>TDIFF</b> counts <b>everyone</b> and is looked at first, 
     while <b>DIFF</b> <b>only</b> counts Attacking team’s OPs and Defending team’s DPs.</p>
@@ -256,7 +265,7 @@ The team listed first (above) on Challonge is the **Away** team for each series.
 ## Ending: Mercy, Overtime, Tie(breakers)
 Mercy Rule triggers if the trailing team can't catch with the songs left. 
 If both teams are still tied after Regulation, 
-the Script will automatically continue to 5-song **Overtime**. 
+the Script will automatically continue to 4-song **Overtime**. 
 The **Away** team again has first possession. 
 An `Onside Kick` from the Away team 
 or a `House Call` from the Home team ends Overtime here. 
@@ -267,11 +276,11 @@ unless breaking the tie is necessary
 (e.g., 3.0-3.0 series tie, Championship Games, Super Bowl). 
 In which case, the following **Tiebreakers** will determine the winner 
 (Tiebreakers 1-4 are determined solely from Overtime results):
-1. Weighted Total (counting Captains twice)
-2. Captains (Slots 1 vs 5)
-3. T2s (Slots 3 vs 7)
-4. T3s (Slots 4 vs 8)
-5. Possession (the team **without** possession for Song 25)
+1. Weighted Total Correct (counting Captains twice)
+2. Captains
+3. Non-Captain OP/DP-1s (if the Captains were 17, look for 35)
+4. Cross OP/DP-2s (if 17 then 46)
+5. Away Team (to account for the Home team's knowledge advantage in Songs 2 and 4)
 
 ## Format: Best-Of-7, Round Robin, Knockouts
 The script will automatically swap Away and Home teams between consecutive games.
@@ -286,7 +295,7 @@ The script will automatically swap Away and Home teams between consecutive games
 - After the player list has been settled, find the [Balancer](#links-balancer-flowchart-script) and follow the instructions there.
 - If the tour has ≥4 teams, ask for 1 lobby host volunteer from each team.
 - Read the [Format](#format-best-of-7-round-robin-knockouts) section and prepare the Challonge.
-- Announce team compositions, as well as Challonge and lobby links.
+- After the team split has been settled, announce team compositions and the Challonge link.
 - Note the results of each game in Challonge.
 - If necessary, ping teams that advance to the **Championship Games** and/or **Super Bowl**.
 - Announce the final results.
@@ -301,3 +310,12 @@ Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host 
 - After everyone is ready, type `/nfl start` and start playing. If you started the game by mistake, type `/nfl resetGame`, return to lobby, then type `/nfl start` to restart.
 - The Script will automatically download the **Scoresheet** after each Game. Open it on your browser, copy the top row, then paste it in `#game-reporting` with the Scoresheet and JSON.
 - Repeat from Step 1 for a new lobby, from Step 2 for the same lobby and a new opponent, or from Step 3 for the same lobby and opponent.
+
+### If you're the Captain of your team:
+- **Split** your team into 2 Offensive (OPs) and 2 Defensive (DPs) Players.
+    - **OPs'** main role is to **score** points when your team has possession.
+    - **DPs'** main role is to **prevent** the opposing OPs from scoring points when your team doesn't have possession.
+    - You **may delegate** the team split to **your teammate** or the **tour host**.
+        - Delegating team split does not also delegate the Captain role/multiplier
+        - You **relinquish** your right to reject the team split offered by the tour host. If your team failed to submit the team split in time, the tour host will split your team as they see fit.
+- Mention the **tour host** in `#tour-general` with the format `@[Tour Host] [Team Name]: OP1, OP2, DP1, DP2` (e.g., `@HakoHoka Steelers: florenz, chommy, miiarad (C), HakoHoka`).
