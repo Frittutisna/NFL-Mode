@@ -140,19 +140,20 @@ In very simple terms: *it's basically just T1-T4 vs T2-T3*
 </table>
 
 ## Changelog: What Changed From v3.beta.5
-### Balancer Change
+### Balancer Changes
 - Clarified slot allocation for 8-player tours
 - Implemented NFL-specific slot allocation
-### Format Change
+### Format Changes
 - Reverted Song Count back to 20+5
 - Removed pre-tour Captain team split
 - Changed Last Tiebreaker to Possession Advantage
-### Guide Changes
+### Guide Change
 - Removed deprecated Captain section
 ### Script Changes
 - Removed deprecated `/nfl setCaptains`
 - Removed redundant Captain bracket in HTML output
 - Changed OP/DP-1/2 terminologies in HTML output to T1-4
+- Added `/nfl chance` for developing win probability
 
 ## Lineup: Away And Home, Captains, OPs, DPs
 The player with the highest (T1) and lowest (T4) **Watched** Elos of each team make up the **Offensive Players** (OPs). Their main role is to **score points** when their team has **possession**. To help with this, the T1 of each team is also designated as their **Captain**, which carries a **double multiplier** for their correct guesses.

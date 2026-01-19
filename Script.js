@@ -92,6 +92,7 @@
     };
 
     const COMMAND_DESCRIPTIONS = {
+        "chance"            : "Calculate win probability based on current state",
         "end"               : "Stop the game tracker",
         "export"            : "Download the scoresheet as HTML",
         "flowchart"         : "Show link to the NFL Mode flowchart",
@@ -410,6 +411,53 @@
         {name: "Pick Six",      swing: -6},
         {name: "House Call",    swing: -7}
     ];
+
+    const WIN_PROBS = [
+        {name: "Punt",              prob: 0.31, pts: 0,     keep: false},
+        {name: "Field Goal",        prob: 0.19, pts: 3,     keep: false},
+        {name: "Touchdown",         prob: 0.17, pts: 7,     keep: false},
+        {name: "Offensive Rouge",   prob: 0.07, pts: 1,     keep: false},
+        {name: "Defensive Rouge",   prob: 0.07, pts: -1,    keep: false},
+        {name: "Safety",            prob: 0.07, pts: -2,    keep: false},
+        {name: "House Call",        prob: 0.04, pts: -7,    keep: false},
+        {name: "Onside Kick",       prob: 0.03, pts: 7,     keep: true},
+        {name: "TD + 2PC",          prob: 0.03, pts: 8,     keep: false},
+        {name: "Pick Six",          prob: 0.02, pts: -6,    keep: false}
+    ];
+
+    const memoProb = new Map();
+
+    const calculateWinProbability = (margin, nextSongNum, isAwayPoss) => {
+        const key = `${margin}_${nextSongNum}_${isAwayPoss}`;
+        if (memoProb.has(key)) return memoProb.get(key);
+
+        if (nextSongNum > config.lengths.reg) {
+            if (margin > 0) return 1.0;
+            if (margin < 0) return 0.0;
+            return 0.5;
+        }
+
+        const songsLeft = config.lengths.reg - nextSongNum + 1;
+        if (margin > (songsLeft * 8 + 7))       return 1.0;
+        if (margin < (songsLeft * 8 + 7) * -1)  return 0.0;
+
+        let totalProb = 0;
+
+        for (const outcome of WIN_PROBS) {
+            let nextMargin = margin;
+            if (isAwayPoss) nextMargin += outcome.pts;
+            else            nextMargin -= outcome.pts;
+
+            let                                                     nextPoss = isAwayPoss;
+            if (!outcome.keep)                                      nextPoss = !nextPoss;
+            if (nextSongNum + 1 === (config.lengths.reg / 2) + 1)   nextPoss = false;
+
+            totalProb += outcome.prob * calculateWinProbability(nextMargin, nextSongNum + 1, nextPoss);
+        }
+
+        memoProb.set(key, totalProb);
+        return totalProb;
+    };
 
     const getArticle = (word) => {
         if (!word) return "";
@@ -1052,7 +1100,7 @@
                     const arg               = parts.slice(2).join(" ").toLowerCase();
                     const cmdKey            = Object.keys(COMMAND_DESCRIPTIONS).find(k => k.toLowerCase() === cmd);
                     const isHost            = (msg.sender === selfName);
-                    const publicCommands    = ["export", "flowchart", "guide", "help", "whatis"];
+                    const publicCommands    = ["chance", "export", "flowchart", "guide", "help", "whatis"];
 
                     if (publicCommands.includes(cmd)) {
                         setTimeout(() => {
@@ -1063,6 +1111,49 @@
                                     else                    chatMessage(`Unknown term '${arg}'. Type /nfl whatIs help for a list`);
                                 }
                             }
+
+                            else if (cmd === "chance") {
+                                if (!match.isActive && match.scores.away === 0 && match.scores.home === 0) {
+                                    chatMessage("Game not active or fresh start");
+                                    return;
+                                }
+
+                                memoProb.clear();
+                                
+                                const margin        = match.scores.away - match.scores.home;
+                                const nextSong      = match.songNumber + 1;
+                                const isAwayPoss    = match.possession === 'away';
+                                let awayWinProb     = calculateWinProbability(margin, nextSong, isAwayPoss);
+
+                                if (match.period === 'REGULATION') {
+                                    const songsLeft         = config.lengths.reg - match.songNumber;
+                                    const diff              = Math.abs(margin);
+                                    const isAwayLeading     = match.scores.away > match.scores.home;
+                                    const trailerPossessing = (isAwayLeading && match.possession === 'home') || (!isAwayLeading && match.possession === 'away');
+                                    const maxPoints         = getMaxPossiblePoints(songsLeft, trailerPossessing);
+                                    const isMathOver        = diff > maxPoints;
+
+                                    if (!isMathOver) {
+                                        if (awayWinProb > 0.99) awayWinProb = 0.99;
+                                        if (awayWinProb < 0.01) awayWinProb = 0.01;
+                                    }
+                                }
+                                
+                                let favoredTeam, probPercent;
+
+                                if (awayWinProb >= 0.5) {
+                                    favoredTeam = getTeamDisplayName('away');
+                                    probPercent = (awayWinProb * 100).          toFixed(2);
+                                }
+
+                                else {
+                                    favoredTeam = getTeamDisplayName('home');
+                                    probPercent = ((1.0 - awayWinProb) * 100)   .toFixed(2);
+                                }
+
+                                chatMessage(`Win Probability: ${favoredTeam} ${probPercent}%`);
+                            }
+
                             else if (cmd === "help")        printHelp(cmdKey ? null : arg);
                             else if (cmd === "flowchart")   chatMessage(`Flowchart: ${config.links.flowchart}`);
                             else if (cmd === "guide")       chatMessage(`Guide: ${config.links.guide}`);
