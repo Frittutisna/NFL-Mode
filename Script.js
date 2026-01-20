@@ -15,6 +15,7 @@
     let config = {
         delay               : 500,
         gameNumber          : 1,
+        hostId              : 0,
         teamNames           : {away: "Away", home: "Home"},
         captains            : [1, 5],
         isSwapped           : false,
@@ -101,6 +102,7 @@
         "resetGame"         : "Wipe current Game progress and stop tracker",
         "resetSeries"       : "Wipe all series history and reset to Game 1",
         "setGame"           : "Set the current game number /nfl setGame [1-7]",
+        "setHost"           : "Set the script host (/nfl setHost [1-8])",
         "setKnockout"       : "Enable/disable tiebreakers (/nfl setKnockout [true/false])",
         "setSeries"         : "Set the series length (/nfl setSeries [1/2/7]",
         "setTeams"          : "Set team names (/nfl setTeams [Away] [Home])",
@@ -247,6 +249,24 @@
         return "N/A";
     };
 
+    const getSelfSlot = () => {
+        if (playersCache.length > 0) {
+            const p = playersCache.find(p => p.name === selfName);
+            if (p) return p.teamNumber;
+        }
+
+        if (typeof quiz !== 'undefined' && quiz.inQuiz) {
+             const p = Object.values(quiz.players).find(p => p.name === selfName);
+             if (p) return p.teamNumber;
+        }
+
+        if (typeof lobby !== 'undefined' && lobby.inLobby) {
+             const p = Object.values(lobby.players).find(p => p.name === selfName);
+             if (p) return getTeamNumber(p);
+        }
+        return 0;
+    };
+
     const resetMatchData = () => {
         match.isActive      = false;
         match.songNumber    = 0;
@@ -262,6 +282,7 @@
         match.isActive      = false;
         resetMatchData();
         config.gameNumber   = 1;
+        config.hostId       = 0;
         config.teamNames    = {away: "Away", home: "Home"};
         config.captains     = [1, 5];
         config.isSwapped    = false;
@@ -375,6 +396,7 @@
     };
 
     const validateLobby = () => {
+        if (config.hostId === 0) return {valid: false, msg: "Error: Host not set, use /nfl setHost [1-8]"};
         if (typeof lobby === 'undefined' || !lobby.inLobby) return {valid: false, msg: "Error: Not in Lobby"};
         const players = Object.values(lobby.players);
         const notReady = players.filter(p => !p.ready);
@@ -1103,11 +1125,12 @@
     };
 
     const printHowTo = () => {
-        systemMessage("1. Use /nfl setTeams to set the Away and Home team names");
-        systemMessage("2. Use /nfl setSeries to set the series length");
-        systemMessage("3. Use /nfl setGame to set the game number");
-        systemMessage("4. Use /nfl setKnockout to enable/disable Overtime tiebreakers for Knockout Games");
-        systemMessage("5. Use /nfl start when you're ready to start a new Game");
+        systemMessage("1. Use /nfl setHost [1-8] to set the lobby host");
+        systemMessage("2. Use /nfl setTeams to set the Away and Home team names");
+        systemMessage("3. Use /nfl setSeries to set the series length");
+        systemMessage("4. Use /nfl setGame to set the game number");
+        systemMessage("5. Use /nfl setKnockout to enable/disable Overtime tiebreakers for Knockout Games");
+        systemMessage("6. Use /nfl start when you're ready to start a new Game");
     };
 
     const setup = () => {
@@ -1143,18 +1166,21 @@
 
                     if (publicCommands.includes(cmd)) {
                         setTimeout(() => {
-                            if (cmd === "whatis") {
-                                if (!arg || arg === "help") chatMessage("Available terms: " + Object.keys(TERMS).sort().join(", "));
-                                else {
-                                    if (TERMS[arg])         chatMessage(`${arg}: ${TERMS[arg]}`);
-                                    else                    chatMessage(`Unknown term '${arg}'. Type /nfl whatIs help for a list`);
+                            const mySlot = getSelfSlot();
+                            if (config.hostId !== 0 && config.hostId === mySlot) {
+                                if (cmd === "whatis") {
+                                    if (!arg || arg === "help") chatMessage("Available terms: " + Object.keys(TERMS).sort().join(", "));
+                                    else {
+                                        if (TERMS[arg])         chatMessage(`${arg}: ${TERMS[arg]}`);
+                                        else                    chatMessage(`Unknown term '${arg}'. Type /nfl whatIs help for a list`);
+                                    }
                                 }
-                            }
 
-                            else if (cmd === "help")        printHelp(cmdKey ? null : arg);
-                            else if (cmd === "flowchart")   chatMessage(`Flowchart: ${config.links.flowchart}`);
-                            else if (cmd === "guide")       chatMessage(`Guide: ${config.links.guide}`);
-                            else if (cmd === "export")      downloadScoresheet();
+                                else if (cmd === "help")        printHelp(cmdKey ? null : arg);
+                                else if (cmd === "flowchart")   chatMessage(`Flowchart: ${config.links.flowchart}`);
+                                else if (cmd === "guide")       chatMessage(`Guide: ${config.links.guide}`);
+                                else if (cmd === "export")      downloadScoresheet();
+                            }
                         }, config.delay);
                         return;
                     }
@@ -1177,6 +1203,14 @@
                                 const num = parseInt(parts[2]);
                                 if (num >= 1 && num <= 7) {config.gameNumber = num; systemMessage(`Game Number: ${num}`)}
                                 else systemMessage("Error: Use /nfl setGame [1-7]");
+                            }
+                            else if (cmd === "sethost") {
+                                const num = parseInt(parts[2]);
+                                if (num >= 1 && num <= 8) {
+                                    config.hostId   = num;
+                                    const hostName  = getPlayerNameAtTeamId(num);
+                                    systemMessage(`Host: ${hostName}`);
+                                } else systemMessage("Error: Use /nfl setHost [1-8]");
                             }
                             else if (cmd === "setseries") {
                                 const num = parseInt(parts[2]);
