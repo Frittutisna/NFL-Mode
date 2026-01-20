@@ -92,7 +92,6 @@
     };
 
     const COMMAND_DESCRIPTIONS = {
-        "chance"            : "Calculate win probability based on current state",
         "end"               : "Stop the game tracker",
         "export"            : "Download the scoresheet as HTML",
         "flowchart"         : "Show link to the NFL Mode flowchart",
@@ -558,6 +557,45 @@
         return winnerSide;
     };
 
+    const displayWinProbability = () => {
+        if (match.period !== 'REGULATION') return;
+        memoProb.clear();
+        
+        const margin        = match.scores.away - match.scores.home;
+        const nextSong      = match.songNumber + 1;
+        const isAwayPoss    = match.possession === 'away';
+        let awayWinProb     = calculateWinProbability(margin, nextSong, isAwayPoss);
+
+        if (awayWinProb > 0.99) awayWinProb = 0.99;
+        if (awayWinProb < 0.01) awayWinProb = 0.01;
+
+        const fudge = Math.random() * 0.01;
+
+        if (awayWinProb > 0.5) {
+            awayWinProb -= fudge;
+            if (awayWinProb <= 0.5) awayWinProb = 0.5001;
+        }
+        
+        else if (awayWinProb < 0.5) {
+            awayWinProb += fudge;
+            if (awayWinProb >= 0.5) awayWinProb = 0.4999;
+        }
+
+        let favoredTeam, probPercent;
+
+        if (awayWinProb >= 0.5) {
+            favoredTeam = getTeamDisplayName('away');
+            probPercent = (awayWinProb * 100).toFixed(2);
+        }
+        
+        else {
+            favoredTeam = getTeamDisplayName('home');
+            probPercent = ((1.0 - awayWinProb) * 100).toFixed(2);
+        }
+
+        chatMessage(`Win Probability: ${favoredTeam} ${probPercent}%`);
+    };
+
     const processRound = (payload) => {
         if (!match.isActive) return;
         const wasPendingPause   = match.pendingPause;
@@ -886,8 +924,9 @@
         }
 
         if (!isGameOver) {
-             chatMessage(`Next Possession: ${getTeamDisplayName(match.possession)}`);
-             if (wasPendingPause) sendGameCommand("resume game");
+            chatMessage(`Next Possession: ${getTeamDisplayName(match.possession)}`);
+            displayWinProbability();
+            if (wasPendingPause) sendGameCommand("resume game");
         }
     };
 
@@ -1100,7 +1139,7 @@
                     const arg               = parts.slice(2).join(" ").toLowerCase();
                     const cmdKey            = Object.keys(COMMAND_DESCRIPTIONS).find(k => k.toLowerCase() === cmd);
                     const isHost            = (msg.sender === selfName);
-                    const publicCommands    = ["chance", "export", "flowchart", "guide", "help", "whatis"];
+                    const publicCommands    = ["export", "flowchart", "guide", "help", "whatis"];
 
                     if (publicCommands.includes(cmd)) {
                         setTimeout(() => {
@@ -1110,48 +1149,6 @@
                                     if (TERMS[arg])         chatMessage(`${arg}: ${TERMS[arg]}`);
                                     else                    chatMessage(`Unknown term '${arg}'. Type /nfl whatIs help for a list`);
                                 }
-                            }
-
-                            else if (cmd === "chance") {
-                                if (!match.isActive && match.scores.away === 0 && match.scores.home === 0) {
-                                    chatMessage("Game not active or fresh start");
-                                    return;
-                                }
-
-                                memoProb.clear();
-                                
-                                const margin        = match.scores.away - match.scores.home;
-                                const nextSong      = match.songNumber + 1;
-                                const isAwayPoss    = match.possession === 'away';
-                                let awayWinProb     = calculateWinProbability(margin, nextSong, isAwayPoss);
-
-                                if (match.period === 'REGULATION') {
-                                    const songsLeft         = config.lengths.reg - match.songNumber;
-                                    const diff              = Math.abs(margin);
-                                    const isAwayLeading     = match.scores.away > match.scores.home;
-                                    const trailerPossessing = (isAwayLeading && match.possession === 'home') || (!isAwayLeading && match.possession === 'away');
-                                    const maxPoints         = getMaxPossiblePoints(songsLeft, trailerPossessing);
-                                    const isMathOver        = diff > maxPoints;
-
-                                    if (!isMathOver) {
-                                        if (awayWinProb > 0.99) awayWinProb = 0.99;
-                                        if (awayWinProb < 0.01) awayWinProb = 0.01;
-                                    }
-                                }
-                                
-                                let favoredTeam, probPercent;
-
-                                if (awayWinProb >= 0.5) {
-                                    favoredTeam = getTeamDisplayName('away');
-                                    probPercent = (awayWinProb * 100).          toFixed(2);
-                                }
-
-                                else {
-                                    favoredTeam = getTeamDisplayName('home');
-                                    probPercent = ((1.0 - awayWinProb) * 100)   .toFixed(2);
-                                }
-
-                                chatMessage(`Win Probability: ${favoredTeam} ${probPercent}%`);
                             }
 
                             else if (cmd === "help")        printHelp(cmdKey ? null : arg);
