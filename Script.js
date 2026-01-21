@@ -149,15 +149,50 @@
             else {
                 let remaining = msg;
                 while (remaining.length > 0) {
-                    if (remaining.length <= LIMIT) {this.queue.push({msg: remaining, isSystem}); break;}
-                    let splitIndex = remaining.lastIndexOf(' ', LIMIT);
-                    if (splitIndex === -1) splitIndex = LIMIT;
-                    this.queue.push({msg: remaining.substring(0, splitIndex), isSystem});
-                    remaining = remaining.substring(splitIndex + 1);
+                    if (remaining.length <= LIMIT) {this.queue.push({msg: remaining, isSystem}); break}
+                    let splitIndex  = -1;
+                    let idx         = remaining.lastIndexOf('.', LIMIT);
+                    if (idx !== -1) splitIndex = idx;
+                    else {
+                        idx = remaining.lastIndexOf(',', LIMIT);
+                        if (idx !== -1) splitIndex = idx;
+                        else {
+                            idx = remaining.lastIndexOf(' ', LIMIT);
+                            if (idx !== -1) splitIndex = idx;
+                            else splitIndex = LIMIT;
+                        }
+                    }
+
+                    let cutEnd      = 0;
+                    let nextStart   = 0;
+
+                    if (splitIndex === LIMIT) {
+                        cutEnd     = LIMIT;
+                        nextStart  = LIMIT;
+                    }
+                    
+                    else {
+                        const char = remaining[splitIndex];
+
+                        if (char === ' ') {
+                            cutEnd      = splitIndex;
+                            nextStart   = splitIndex + 1;
+                        }
+                        else {
+                            cutEnd = splitIndex + 1;
+                            nextStart = splitIndex + 1;
+                            if (nextStart < remaining.length && remaining[nextStart] === ' ') nextStart++;
+                        }
+                    }
+                    
+                    this.queue.push({msg: remaining.substring(0, cutEnd), isSystem});
+                    remaining = remaining.substring(nextStart);
                 }
             }
+
             this.process();
         },
+
         process: function() {
             if (this.isProcessing || this.queue.length === 0) return;
             this.isProcessing   = true;
@@ -512,61 +547,32 @@
             return total;
         };
 
-        const getCapIndex   = (slots) => slots.findIndex(s => config.captains.includes(s));
-        const awayCapIndex  = getCapIndex(awaySlots);
-        const homeCapIndex  = getCapIndex(homeSlots);
-
-        const awayTotal = getStat('away', [0, 1, 2, 3]);
-        const homeTotal = getStat('home', [0, 1, 2, 3]);
-
+        const awayTotal     = getStat('away', [0, 1, 2, 3]);
+        const homeTotal     = getStat('home', [0, 1, 2, 3]);
         if (awayTotal !== homeTotal) {
             chatMessage(`Tiebreaker: ${getTeamDisplayName(awayTotal > homeTotal ? 'away' : 'home')} wins on Weighted Total Tiebreaker (${awayTotal}-${homeTotal})`);
-            return awayTotal > homeTotal ? 'away' : 'home';
+            return awayTotal    > homeTotal     ? 'away' : 'home';
         }
 
-        if (awayCapIndex !== -1 && homeCapIndex !== -1) {
-            const awayCapStat = getStat('away', [awayCapIndex]);
-            const homeCapStat = getStat('home', [homeCapIndex]);
-            if (awayCapStat !== homeCapStat) {
-                chatMessage(`Tiebreaker: ${getTeamDisplayName(awayCapStat > homeCapStat ? 'away' : 'home')} wins on Captain Tiebreaker (${awayCapStat}-${homeCapStat})`);
-                return awayCapStat > homeCapStat ? 'away' : 'home';
-            }
+        const awayCapStat   = getStat('away', [0]);
+        const homeCapStat   = getStat('home', [0]);
+        if (awayCapStat !== homeCapStat) {
+            chatMessage(`Tiebreaker: ${getTeamDisplayName(awayCapStat > homeCapStat ? 'away' : 'home')} wins on Captain Tiebreaker (${awayCapStat}-${homeCapStat})`);
+            return awayCapStat  > homeCapStat   ? 'away' : 'home';
         }
 
-        const getSecondaryIndex = (capIndex) => {
-            if (capIndex === 0) return 2;
-            if (capIndex === 2) return 0;
-            return -1;
-        };
-
-        const awaySecIndex = getSecondaryIndex(awayCapIndex);
-        const homeSecIndex = getSecondaryIndex(homeCapIndex);
-
-        if (awaySecIndex !== -1 && homeSecIndex !== -1) {
-            const awaySecStat = getStat('away', [awaySecIndex]);
-            const homeSecStat = getStat('home', [homeSecIndex]);
-            if (awaySecStat !== homeSecStat) {
-                chatMessage(`Tiebreaker: ${getTeamDisplayName(awaySecStat > homeSecStat ? 'away' : 'home')} wins on Non-Captain Tiebreaker (${awaySecStat}-${homeSecStat})`);
-                return awaySecStat > homeSecStat ? 'away' : 'home';
-            }
+        const awayT2Stat    = getStat('away', [2]);
+        const homeT2Stat    = getStat('home', [2]);
+        if (awayT2Stat !== homeT2Stat) {
+            chatMessage(`Tiebreaker: ${getTeamDisplayName(awayT2Stat > homeT2Stat ? 'away' : 'home')} wins on T2 Tiebreaker (${awayT2Stat}-${homeT2Stat})`);
+            return awayT2Stat   > homeT2Stat    ? 'away' : 'home';
         }
 
-        const getTertiaryIndex = (capIndex) => {
-            if (capIndex === 0) return 3;
-            if (capIndex === 2) return 1;
-            return -1;
-        }
-
-        const awayTerIndex = getTertiaryIndex(awayCapIndex);
-        const homeTerIndex = getTertiaryIndex(homeCapIndex);
-
-        if (awayTerIndex !== -1 && homeTerIndex !== -1) {
-            const awayTerStat = getStat('away', [awayTerIndex]);
-            const homeTerStat = getStat('home', [homeTerIndex]);
-            if (awayTerStat !== homeTerStat) {
-                chatMessage(`Tiebreaker: ${getTeamDisplayName(awayTerStat > homeTerStat ? 'away' : 'home')} wins on Cross Tiebreaker (${awayTerStat}-${homeTerStat})`);
-                return awayTerStat > homeTerStat ? 'away' : 'home';
-            }
+        const awayT3Stat    = getStat('away', [3]);
+        const homeT3Stat    = getStat('home', [3]);
+        if (awayT3Stat !== homeT3Stat) {
+            chatMessage(`Tiebreaker: ${getTeamDisplayName(awayT3Stat > homeT3Stat ? 'away' : 'home')} wins on T3s Tiebreaker (${awayT3Stat}-${homeT3Stat})`);
+            return awayT3Stat   > homeT3Stat    ? 'away' : 'home';
         }
 
         const lastEntry     = match.history[match.history.length - 1];

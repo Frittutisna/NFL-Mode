@@ -36,20 +36,25 @@ In very simple terms: *it's basically just T1-T4 vs T2-T3*
         <th style="text-align:center"><strong>Guess Time</strong></th>
         <th style="text-align:center"><strong>Difficulty</strong></th>
         <th style="text-align:center"><strong>Song Mix</strong></th>
+        <th style="text-align:center"><strong>Code</strong></th>
     </tr>
     <tr>
         <td style="text-align:center">Regulation</td>
         <td style="text-align:center" rowspan="2">1 hour</td>
-        <td style="text-align:center"><strong>11-20</strong></td>
+        <td style="text-align:center">11-20</td>
         <td style="text-align:center" rowspan="2">15</td>
-        <td style="text-align:center">0-40</td>
-        <td style="text-align:center">Watched with <strong>Random</strong> Rig Distribution</td>
+        <td style="text-align:center" rowspan="2">0-40</td>
+        <td style="text-align:center" rowspan="2">Watched with Random Rig Distribution</td>
+        <td style="text-align:center" rowspan="2">
+            <details>
+                <summary>Click to view code</summary>
+                <code style="word-break: break-all">e0g0p21111100130p000011110000000p11111111111100a051o000000f11100k012r02i0a46533a11002s011111111100140111002s01a111111111102a11111111111hg1ka03-11111--</code>
+            </details>
+        </td>
     </tr>
     <tr>
         <td style="text-align:center">Overtime</td>
-        <td style="text-align:center"><strong>0-5</strong></td>
-        <td style="text-align:center">0-100</td>
-        <td style="text-align:center">Random</td>
+        <td style="text-align:center">0-5</td>
     </tr>
 </table>
 
@@ -90,14 +95,12 @@ In very simple terms: *it's basically just T1-T4 vs T2-T3*
         <tr>
             <td style="text-align:center">Song Difficulty</td>
             <td style="text-align:center">0-100</td>
-            <td style="text-align:center" colspan="2">0-40</td>
-            <td style="text-align:center">0-100</td>
+            <td style="text-align:center" colspan="3">0-40</td>
         </tr>
         <tr>
             <td style="text-align:center">Song Mix</td>
             <td style="text-align:center">Random</td>
-            <td style="text-align:center" colspan="2" >Watched with <strong>Random</strong> Rig Distribution</td>
-            <td style="text-align:center">Random</td>
+            <td style="text-align:center" colspan="3" >Watched with Random Rig Distribution</td>
         </tr>
         <tr>
             <td style="text-align:center">DIFF</td>
@@ -147,8 +150,9 @@ In very simple terms: *it's basically just T1-T4 vs T2-T3*
 - Reverted Song Count back to 20+5
 - Removed pre-tour Captain team split
 - Changed Last Tiebreaker to Possession Advantage
-### Guide Change
+### Guide Changes
 - Removed deprecated Captain section
+- Reverted Code column from Overview
 ### Script Changes
 - Removed deprecated `/nfl setCaptains`
 - Removed redundant Captain bracket in HTML output
@@ -156,6 +160,7 @@ In very simple terms: *it's basically just T1-T4 vs T2-T3*
 - Added Win Probability message
 - Added `/nfl setHost`
 - Removed redundant responses from multiple script owners
+- Fixed message trimming logic
 
 ## Lineup: Away And Home, Captains, OPs, DPs
 The player with the highest (T1) and lowest (T4) **Watched** Elos of each team make up the **Offensive Players** (OPs). Their main role is to **score points** when their team has **possession**. To help with this, the T1 of each team is also designated as their **Captain**, which carries a **double multiplier** for their correct guesses.
@@ -296,10 +301,7 @@ The script will automatically swap Away and Home teams between consecutive games
 
 ### If you're hosting a lobby for your team:
 Install the [Script](#links-balancer-flowchart-script) (**only** the lobby host needs to install and operate the **Script**) on your browser through TamperMonkey, then do the following:
-- If you're hosting a new lobby, do the following:
-    - Start a Community Quiz, search for `Tour: NFL Mode v3.beta.6.0` by `HakoHoka`, then click Play.
-    - Change the Room Type, Room Name, and Password to `Multiplayer`, `Tour: NFL Mode`, and `100` respectively, then click Host.
-    - Click Room Settings, then change the Number of Players and Team Size to `16` and `2` respectively.
+- Apply the **Regulation** setting code (see [Overview](#overview-those-long-setting-codes)).
 - Invite the right players to the lobby, make sure they're lined up correctly (see [Lineup](#lineup-away-and-home-captains-ops-dps)), then type `/nfl howTo` and follow the instructions there.
 - After everyone is ready, type `/nfl start` and start playing. If you started the game by mistake, type `/nfl resetGame`, return to lobby, then type `/nfl start` to restart.
 - The Script will automatically download the **Scoresheet** after each Game. Open it on your browser, copy the top row, then paste it in `#game-reporting` with the Scoresheet and JSON.
