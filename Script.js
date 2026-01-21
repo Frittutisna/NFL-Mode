@@ -571,7 +571,7 @@
 
         const lastEntry     = match.history[match.history.length - 1];
         const winnerSide    = lastEntry.poss === 'away' ? 'home' : 'away'; 
-        chatMessage(`Tiebreaker: ${getTeamDisplayName(winnerSide)} wins on Possession Tiebreaker`);
+        chatMessage(`Tiebreaker: ${getTeamDisplayName(winnerSide)} wins on Defending Tiebreaker`);
         return winnerSide;
     };
 
