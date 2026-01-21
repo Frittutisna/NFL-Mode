@@ -21,7 +21,7 @@
         isSwapped           : false,
         knockout            : false,
         isTest              : false,
-        seriesLength        : 1,
+        seriesLength        : 7,
         lengths             : {reg: 20, ot: 5},
         seriesStats         : {awayWins: 0, homeWins: 0, draws: 0, history: []},
         links               : {
@@ -319,7 +319,7 @@
         config.isSwapped    = false;
         config.knockout     = false;
         config.isTest       = false;
-        config.seriesLength = 1;
+        config.seriesLength = 7;
         config.seriesStats  = {awayWins: 0, homeWins: 0, draws: 0, history: []};
         systemMessage("Full reset complete: settings, teams, and series history wiped");
     };
