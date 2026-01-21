@@ -274,7 +274,7 @@ In which case, the following **Tiebreakers** will determine the winner
 2. Captains (Slots 1 vs 5)
 3. T2s (Slots 3 vs 7)
 4. T3s (Slots 4 vs 8)
-5. Possession (the **Defending** Team for Song 25)
+5. Defending Team for Song 25
 
 ## Format: Best-Of-7, Round Robin, Knockouts
 The script will automatically swap Away and Home teams between consecutive games.
