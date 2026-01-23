@@ -125,7 +125,7 @@
     const getCleanTeamName = (side) => {
         const isAway    = config.isSwapped ? side === 'home' : side === 'away';
         const name      = config.teamNames[isAway ? 'away' : 'home'];
-        return isAway ? `← ${name}` : `${name} →`;
+        return isAway ? `${name}` : `${name}`;
     };
 
     const updateLobbyName = (awayClean, homeClean) => {
@@ -325,21 +325,71 @@
         systemMessage("Full reset complete: settings, teams, and series history wiped");
     };
 
+    const getSeriesReport = (winnerSide) => {
+        if (config.seriesLength <= 1) return "";
+
+        const finalScoreStr = config.isSwapped ? `${match.scores.home}-${match.scores.away}` : `${match.scores.away}-${match.scores.home}`;
+        const tempHistory   = [...config.seriesStats.history, finalScoreStr];
+
+        let tAwayWins   = config.seriesStats.awayWins;
+        let tHomeWins   = config.seriesStats.homeWins;
+        let tDraws      = config.seriesStats.draws;
+
+        let actualWinnerSide = winnerSide;
+        if (config.isSwapped) {
+            if      (winnerSide === 'away') actualWinnerSide = 'home';
+            else if (winnerSide === 'home') actualWinnerSide = 'away';
+        }
+
+        if      (actualWinnerSide === 'away')   tAwayWins++;
+        else if (actualWinnerSide === 'home')   tHomeWins++;
+        else                                    tDraws++;
+
+        const awayPoints    = tAwayWins + (tDraws * 0.5);
+        const homePoints    = tHomeWins + (tDraws * 0.5);
+        const winThreshold  = config.seriesLength / 2;
+
+        const aName = config.teamNames.away;
+        const hName = config.teamNames.home;
+
+        let                             seriesWinner = null;
+        if (awayPoints > winThreshold)  seriesWinner = aName;
+        if (homePoints > winThreshold)  seriesWinner = hName;
+
+        let wins, losses, draws, historyStr;
+        const isHomeLeader = homePoints > awayPoints;
+
+        if (isHomeLeader) {
+            wins = tHomeWins; losses = tAwayWins; draws = tDraws;
+            const flippedHistory = tempHistory.map(sc => {
+                const [a, h] = sc.split('-');
+                return `${h}-${a}`;
+            });
+            historyStr = `(${flippedHistory.join(", ")})`;
+        } else {
+            wins = tAwayWins; losses = tHomeWins; draws = tDraws;
+            historyStr = `(${tempHistory.join(", ")})`;
+        }
+
+        const recordStr     = `${wins}-${losses}-${draws}`;
+        const leaderName    = isHomeLeader ? hName : aName;
+
+        if      (seriesWinner)              return `Series Winner: ${seriesWinner} ${recordStr} ${historyStr}`;
+        else if (awayPoints === homePoints) return `Series Tied ${recordStr} ${historyStr}`;
+        else                                return `Series Leader: ${leaderName} ${recordStr} ${historyStr}`;
+    };
+
     const endGame = (winnerSide) => {
-        let seriesWinner    = null;
         let seriesFinished  = false;
 
         if (config.seriesLength > 1) {
-            const finalScoreStr = config.isSwapped ?
-                                  `${match.scores.home}-${match.scores.away}` :
-                                  `${match.scores.away}-${match.scores.home}`;
-
+            const finalScoreStr = config.isSwapped ? `${match.scores.home}-${match.scores.away}` : `${match.scores.away}-${match.scores.home}`;
             config.seriesStats.history.push(finalScoreStr);
 
             let actualWinnerSide = winnerSide;
             if (config.isSwapped) {
-                 if (winnerSide === 'away')      actualWinnerSide = 'home';
-                 else if (winnerSide === 'home') actualWinnerSide = 'away';
+                if      (winnerSide === 'away') actualWinnerSide = 'home';
+                else if (winnerSide === 'home') actualWinnerSide = 'away';
             }
 
             if      (actualWinnerSide === 'away') config.seriesStats.awayWins++;
@@ -350,52 +400,13 @@
             const homePoints    = config.seriesStats.homeWins + (config.seriesStats.draws * 0.5);
             const winThreshold  = config.seriesLength / 2;
 
-            const aName = config.teamNames.away;
-            const hName = config.teamNames.home;
+            const aName         = config.teamNames.away;
+            const hName         = config.teamNames.home;
+            let seriesWinner    = null;
 
-            if (awayPoints > winThreshold)  seriesWinner    = aName;
-            if (homePoints > winThreshold)  seriesWinner    = hName;
-
-            if (seriesWinner || config.seriesStats.history.length >= config.seriesLength) {
-                seriesFinished = true;
-            }
-
-            let seriesMsg = "";
-            let wins, losses, draws, historyStr;
-            const sStats = config.seriesStats;
-
-            if (homePoints > awayPoints) {
-                wins    = sStats.homeWins;
-                losses  = sStats.awayWins;
-                draws   = sStats.draws;
-
-                const flippedHistory = sStats.history.map(sc => {
-                    const [a, h] = sc.split('-');
-                    return `${h}-${a}`;
-                });
-                historyStr = `(${flippedHistory.join(", ")})`;
-            } else {
-                wins        = sStats.awayWins;
-                losses      = sStats.homeWins;
-                draws       = sStats.draws;
-                historyStr  = `(${sStats.history.join(", ")})`;
-            }
-
-            const recordStr = `${wins}-${losses}-${draws}`;
-
-            if (seriesWinner) {
-                const verb  = (losses === 0 && draws === 0) ? "swept" : "won";
-                seriesMsg   = `The ${seriesWinner} ${verb} the series ${recordStr} ${historyStr}`;
-            } else {
-                if (awayPoints === homePoints) {
-                    seriesMsg = `Series tied at ${recordStr} ${historyStr}`;
-                } else {
-                    const leader = awayPoints > homePoints ? aName : hName;
-                    seriesMsg = `The ${leader} leads the series ${recordStr} ${historyStr}`;
-                }
-            }
-
-            chatMessage(seriesMsg);
+            if (awayPoints > winThreshold)                                                  seriesWinner    = aName;
+            if (homePoints > winThreshold)                                                  seriesWinner    = hName;
+            if (seriesWinner || config.seriesStats.history.length >= config.seriesLength)   seriesFinished  = true;
         } else seriesFinished = true;
 
         if (!config.isTest) downloadScoresheet();
@@ -412,19 +423,11 @@
                 const sStats    = config.seriesStats;
                 const aPts      = sStats.awayWins + (sStats.draws * 0.5);
                 const hPts      = sStats.homeWins + (sStats.draws * 0.5);
-
-                if (aPts === hPts) {
-                    config.knockout = true;
-                    chatMessage("Game 7 decider detected, Knockout Mode forced to True");
-                }
+                if (aPts === hPts) config.knockout = true;
             }
-            chatMessage(`Ready for Game ${config.gameNumber}, auto-swapped teams for the return leg`);
-        } else chatMessage("Series finished");
+        }
 
-        setTimeout(() => {
-            if (match.songNumber < config.lengths.reg + config.lengths.ot) sendGameCommand("return to lobby");
-            else chatMessage("Game finished naturally, waiting for auto-return to lobby")
-        }, config.delay);
+        setTimeout(() => {if (match.songNumber < config.lengths.reg + config.lengths.ot) sendGameCommand("return to lobby")}, config.delay);
     };
 
     const validateLobby = () => {
@@ -580,8 +583,8 @@
         return winnerSide;
     };
 
-    const displayWinProbability = () => {
-        if (match.period !== 'REGULATION') return;
+    const getWinProbabilityText = () => {
+        if (match.period !== 'REGULATION') return "";
         memoProb.clear();
         
         const margin        = match.scores.away - match.scores.home;
@@ -612,7 +615,7 @@
             probPercent = ((1.0 - awayWinProb) * 100).toFixed(2);
         }
 
-        chatMessage(`Win Probability: ${favoredTeam} ${probPercent}%`);
+        return `Win Probability: ${favoredTeam} ${probPercent}%`;
     };
 
     const processRound = (payload) => {
@@ -741,8 +744,8 @@
             displayHomePattern  = temp;
         }
 
-        const mainMsg   = `${displayAwayPattern} ${displayHomePattern} ${result.name} ${displayScoreStr}`;
-        chatMessage(mainMsg);
+        const mainPatternMsg    = `${displayAwayPattern} ${displayHomePattern} ${result.name} ${displayScoreStr}`;
+        let outputParts         = [mainPatternMsg];
 
         match.history.push({
             song    : match.songNumber,
@@ -757,6 +760,7 @@
 
         let isGameOver = false;
         let winnerSide = null;
+        let warningMsg = null;
 
         if (match.period === 'REGULATION') {
             const songsRemaining        = config.lengths.reg - match.songNumber;
@@ -766,102 +770,36 @@
             const scoreDiff             = Math.abs(match.scores.away - match.scores.home);
 
             if (scoreDiff > maxPointsRemaining && match.songNumber < config.lengths.reg && !isGameOver) {
-                const winner    = match.scores.away > match.scores.home ? getCleanTeamName('away')    : getCleanTeamName('home');
-                winnerSide      = match.scores.away > match.scores.home ? 'away'                        : 'home';
-                chatMessage(`Mercy Rule triggered, ${winner} wins`);
-                chatMessage("Game ended due to Mercy Rule");
-                endGame(winnerSide);
+                winnerSide = match.scores.away > match.scores.home ? 'away' : 'home';
                 isGameOver = true;
             }
 
             else if (match.songNumber === config.lengths.reg) {
                 if (scoreDiff === 0) {
-                    chatMessage(`Tied after Regulation, continuing to Overtime (Songs ${config.lengths.reg + 1}-${config.lengths.reg + config.lengths.ot})`);
+                    warningMsg          = "Continuing to Overtime";
                     match.period        = 'OVERTIME';
                     match.otRound       = 0;
                     match.possession    = 'away';
                 }
                 
                 else {
-                    const winner        = match.scores.away > match.scores.home ? getCleanTeamName('away')    : getCleanTeamName('home');
-                    winnerSide          = match.scores.away > match.scores.home ? 'away'                        : 'home';
-                    const winnerScore   = match.scores.away > match.scores.home ? match.scores.away             : match.scores.home;
-                    const loserScore    = match.scores.away > match.scores.home ? match.scores.home             : match.scores.away;
-                    
-                    chatMessage(`The ${winner} won Game ${config.gameNumber} ${winnerScore}-${loserScore}`);
-                    endGame(winnerSide);
-                    
+                    winnerSide = match.scores.away > match.scores.home ? 'away' : 'home';
                     isGameOver = true;
                 }
             }
 
             else if (match.songNumber >= (config.lengths.reg / 2) && match.songNumber <= (config.lengths.reg - 2) && !isGameOver) {
-                 try {
-                    const nextRoundSong     = match.songNumber + 1;
-                    const songsAfterNext    = config.lengths.reg - nextRoundSong;
-                    const leaderName        = isAwayLeading ? getCleanTeamName('away') : getCleanTeamName('home');
-                    const trailerName       = isAwayLeading ? getCleanTeamName('home') : getCleanTeamName('away');
-                    const gap               = scoreDiff;
-                    const isAwayPoss        = match.possession === 'away';
-                    const leaderIsPoss      = (isAwayLeading === isAwayPoss);
-
-                    const scenarios = outcomesList.map(o => {
-                        let     actorName           = (o.swing > 0) ? (isAwayPoss ? getCleanTeamName('away') : getCleanTeamName('home')) : (isAwayPoss ? getCleanTeamName('home') : getCleanTeamName('away'));
-                        let     leaderGapChange     = leaderIsPoss ? o.swing : -o.swing;
-                        const   outcomeSwap         = o.name !== "Onside Kick";
-                        const   leaderHasBallNext   = leaderIsPoss ? !outcomeSwap : outcomeSwap;
-                        const   trailerHasBallNext  = !leaderHasBallNext;
-                        const   maxChaseNext        = getMaxPossiblePoints(songsAfterNext, trailerHasBallNext);
-                        return {name: o.name, change: leaderGapChange, actor: actorName, maxChase: maxChaseNext, leaderIsActor: (actorName === leaderName)};
-                    });
-
-                    scenarios.sort((a, b) => {
-                         if (a.change !== b.change) return a.change - b.change;
-                         const priority = ["Touchdown", "Field Goal", "Punt", "Rouge", "Safety", "Pick Six", "House Call", "TD + 2PC", "Onside Kick"];
-                         return priority.indexOf(a.name) - priority.indexOf(b.name);
-                    });
-
-                    let safeOutcome = null, killOutcome = null;
-                    for (let i = scenarios.length - 1; i >= 0; i--) if (gap + scenarios[i].change <=    scenarios[i].maxChase) {safeOutcome = scenarios[i]; break;}
-                    for (let i = 0; i < scenarios.length; i++)      if (gap + scenarios[i].change >     scenarios[i].maxChase) {killOutcome = scenarios[i]; break;}
-
-                    if (killOutcome && safeOutcome) {
-                        chatMessage(`Mercy Rule trigger warning next Song!`);
-                        match.pendingPause = true;
-
-                        const artSafe = getArticle(safeOutcome.name);
-
-                        if (safeOutcome.leaderIsActor) {
-                            chatMessage(`The ${trailerName} needs to hold the ${leaderName} to ${artSafe} ${safeOutcome.name} next Song to avoid Mercy Rule`);
-                        }
-                        
-                        else {
-                            let txtSafe = `at least ${artSafe} ${safeOutcome.name}`;
-                            if (safeOutcome.name === scenarios[0].name) txtSafe = `${artSafe} ${safeOutcome.name}`;
-                            chatMessage(`The ${trailerName} needs ${txtSafe} next Song to avoid Mercy Rule`);
-                        }
-
-                        const artKill = getArticle(killOutcome.name);
-
-                        if (killOutcome.change < 0) {
-                            chatMessage(`The ${leaderName} can afford the ${killOutcome.actor} getting ${artKill} ${killOutcome.name} next Song and still trigger Mercy Rule`);
-                        }
-                        
-                        else {
-                            let txtKill = `only needs ${artKill} ${killOutcome.name}`;
-                            if (Math.abs(killOutcome.change) >= 7) txtKill = `needs ${artKill} ${killOutcome.name}`;
-                            chatMessage(`The ${leaderName} ${txtKill} next Song to trigger Mercy Rule`);
-                        }
-                    }
-                    
-                    else match.pendingPause = false;
-                } catch(e) {}
+                const nextSongsRemaining    = songsRemaining - 1;
+                const nextMaxPoints         = getMaxPossiblePoints(nextSongsRemaining, true);
+                if (scoreDiff + 7 > nextMaxPoints) {
+                    warningMsg          = "Mercy Rule Warning";
+                    match.pendingPause  = true;
+                }
             }
             
             else if (match.songNumber === config.lengths.reg - 1) {
-                chatMessage(`Next up is Song ${config.lengths.reg}, the last in Regulation`);
-                chatMessage("Pausing to allow players to prepare for a potential game-ending vote");
-                match.pendingPause = true;
+                warningMsg          = "Last Regulation Song Next";
+                match.pendingPause  = true;
             }
         }
 
@@ -871,80 +809,49 @@
                 const suddenDeathDefense = ["House Call"];
 
                 if (suddenDeathOffense      .includes(result.name) && result.team === "offense") {
-                    chatMessage(`${getCleanTeamName('away')} wins via ${result.name}!`);
-                    chatMessage("Game ended in Sudden Death Overtime");
-                    endGame('away');
+                    winnerSide = 'away';
                     isGameOver = true;
                 }
 
                 else if (suddenDeathDefense .includes(result.name) && result.team === "defense") {
-                    chatMessage(`${getCleanTeamName('home')} wins via ${result.name}!`);
-                    chatMessage("Game ended in Sudden Death Overtime");
-                    endGame('home');
+                    winnerSide = 'home';
                     isGameOver = true;
                 }
 
-                else chatMessage(`Whoever scores next wins. If still tied after Song ${config.lengths.reg + config.lengths.ot}, the game ends in a Tie or through Tiebreakers`);
+                else warningMsg = "Entering Sudden Death";
             }
 
             if (!isGameOver && match.otRound >= config.lengths.ot) {
                 if (match.scores.away !== match.scores.home) {
-                    const winner    = match.scores.away > match.scores.home ? getCleanTeamName('away')    : getCleanTeamName('home');
-                    winnerSide      = match.scores.away > match.scores.home ? 'away'                        : 'home';
-
-                    chatMessage(`${winner} wins in Overtime!`);
-                    chatMessage("Game ended in Overtime");
-                    endGame(winnerSide);
+                    winnerSide = match.scores.away > match.scores.home ? 'away' : 'home';
                     isGameOver = true;
                 }
                 
                 else {
                     if (config.knockout) {
-                        winnerSide      = resolveKnockoutTie(awaySlots, homeSlots);
-                        const winner    = getCleanTeamName(winnerSide);
-                        chatMessage(`${winner} wins via Tiebreaker!`);
-                        chatMessage("Game ended via Knockout Tiebreaker");
-                        endGame(winnerSide);
-                        isGameOver      = true;
+                        winnerSide = resolveKnockoutTie(awaySlots, homeSlots);
+                        isGameOver = true;
                     }
                     
                     else {
-                        chatMessage("Game ended in a Tie");
-                        endGame('draw');
-                        isGameOver      = true;
+                        winnerSide = 'draw';
+                        isGameOver = true;
                     }
                 }
             }
-
-            if (!isGameOver && match.otRound === 2) {
-                try {
-                    const otScoreDiff = match.scores.away - match.scores.home;
-                    if (otScoreDiff !== 0) {
-                        const isAwayLeading = otScoreDiff > 0;
-                        const trailerName   = isAwayLeading ? getCleanTeamName('home') : getCleanTeamName('away');
-                        const gap           = Math.abs(otScoreDiff);
-                        const tieOutcomes   = outcomesList.filter(o => o.swing === gap && ["Touchdown", "Field Goal", "Rouge", "TD + 2PC"].includes(o.name));
-                        const tieOutcome    = tieOutcomes.find(o => o.name === "Touchdown") || tieOutcomes[0];
-                        const winOutcomes   = outcomesList.filter(o => o.swing > gap && ["Touchdown", "Field Goal", "Rouge", "TD + 2PC"].includes(o.name));
-                        winOutcomes.sort((a,b) => a.swing - b.swing);
-                        const winOutcome = winOutcomes.find(o => o.name === "Touchdown") || winOutcomes[0];
-                        if (tieOutcome) {
-                            const artTie    = getArticle(tieOutcome.name);
-                            let trailerMsg  = `The ${trailerName} needs ${artTie} ${tieOutcome.name} to tie`;
-                            if (winOutcome) {
-                                const artWin    =   getArticle(winOutcome.name);
-                                trailerMsg      +=  `, or ${artWin} ${winOutcome.name} to win outright`;
-                            }
-                            chatMessage(trailerMsg);
-                        }
-                    }
-                } catch(e) {}
-            }
         }
 
-        if (!isGameOver) {
-            chatMessage(`Next Possession: ${getArrowedTeamName(match.possession)}`);
-            displayWinProbability();
+        if (isGameOver) {
+            const wName = winnerSide === 'draw' ? "None" : getCleanTeamName(winnerSide);
+            outputParts.push(`Game Winner: ${wName}`);
+            outputParts.push(getSeriesReport(winnerSide));
+            chatMessage(outputParts.filter(Boolean).join(" | "));
+            endGame(winnerSide);
+        } else {
+            outputParts.push(`Next Possession: ${getArrowedTeamName(match.possession)}`);
+            outputParts.push(getWinProbabilityText());
+            if (warningMsg) outputParts.push(warningMsg);
+            chatMessage(outputParts.filter(Boolean).join(" | "));
             if (wasPendingPause) sendGameCommand("resume game");
         }
     };
