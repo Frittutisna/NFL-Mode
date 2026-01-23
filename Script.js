@@ -425,6 +425,8 @@
                 const hPts      = sStats.homeWins + (sStats.draws * 0.5);
                 if (aPts === hPts) config.knockout = true;
             }
+            
+            chatMessage(`Type "/nfl start" to start Game ${config.gameNumber}`);
         }
 
         setTimeout(() => {if (match.songNumber < config.lengths.reg + config.lengths.ot) sendGameCommand("return to lobby")}, config.delay);
@@ -923,7 +925,7 @@
         <body>
             <table>
                 <thead>
-                    <tr><th colspan="14" style="font-size: 1.5em; font-weight: bold;">${titleStr}</th></tr>
+                    <tr><th colspan="13" style="font-size: 1.5em; font-weight: bold;">${titleStr}</th></tr>
                     <tr>
                         <th rowspan="2">Song</th>
                         <th rowspan="2">Possession</th>
@@ -931,7 +933,6 @@
                         <th colspan="4">${homeHeaderTitle}</th>
                         <th rowspan="2">Result</th>
                         <th colspan="2">Score</th>
-                        <th rowspan="2">Winner</th>
                     </tr>
                     <tr>
                         ${subHeaders.map(h => `<th>${h}</th>`).join('')}
@@ -939,7 +940,7 @@
                         <th>${awayNameClean}</th>
                         <th>${homeNameClean}</th>
                     </tr>
-                    <tr><td colspan="14" style="font-weight: bold;">Regulation: Watched with Random Rig Distribution and Mercy Rule</td></tr>
+                    <tr><td colspan="13" style="font-weight: bold;">Regulation: Up to 20 Songs with Mercy Rule</td></tr>
                 </thead>
                 <tbody>
         `;
@@ -948,38 +949,13 @@
 
         match.history.forEach(row => {
             if (row.period === 'OVERTIME' && !otBannerAdded) {
-                html += `<tr><td colspan="14" style="font-weight: bold;">Overtime: Random with Sudden Death</td></tr>`;
+                html += `<tr><td colspan="13" style="font-weight: bold;">Overtime: Up to 5 Songs with Sudden Death</td></tr>`;
                 otBannerAdded = true;
             }
 
             const possName                  = row.poss === 'away' ? awayNameClean : homeNameClean;
             const [scoreAway, scoreHome]    = row.score.split('-').map(Number);
-            let winnerName                  = "TBD";
-
-            if (row.period === 'REGULATION') {
-                 const songsRemaining       = config.lengths.reg - row.song;
-                 const diff                 = Math.abs(scoreAway - scoreHome);
-                 let nextPossessionIsAway   = (row.poss === 'away');
-                 const swapResults          = ["TD + 2PC", "Touchdown", "Field Goal", "Rouge", "Punt", "Safety", "Pick Six", "House Call"];
-                 if (swapResults.includes(row.result)) nextPossessionIsAway = !nextPossessionIsAway;
-                 const isAwayLeading        = scoreAway > scoreHome;
-                 const trailerIsPossessing  = (isAwayLeading && !nextPossessionIsAway) || (!isAwayLeading && nextPossessionIsAway);
-                 const maxPoints            = getMaxPossiblePoints(songsRemaining, trailerIsPossessing);
-                 if (diff > maxPoints || (row.song >= config.lengths.reg && diff !== 0)) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
-            }
-
-            else {
-                const suddenDeathOffense = ["Onside Kick"];
-                const suddenDeathDefense = ["House Call"];
-
-                if (row.otRound === 1 && (suddenDeathOffense.includes(row.result) || suddenDeathDefense.includes(row.result))) {
-                    if (scoreAway !== scoreHome) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
-                }
-
-                else if (row.otRound >= config.lengths.ot && scoreAway !== scoreHome) winnerName = scoreAway > scoreHome ? awayNameClean : homeNameClean;
-            }
-
-            const displaySong = row.period === 'OVERTIME' ? row.otRound : row.song;
+            const displaySong               = row.period === 'OVERTIME' ? row.otRound : row.song;
 
             const generateCells = (patternArr, slots) => {
                 return patternArr.map((isCorrect, index) => {
@@ -1001,7 +977,6 @@
                     <td>${row.result}</td>
                     <td>${scoreAway}</td>
                     <td>${scoreHome}</td>
-                    <td>${winnerName}</td>
                 </tr>`;
         });
 
