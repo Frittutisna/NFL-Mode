@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3.beta.6.0
+// @version      3-beta.6.1
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -116,9 +116,16 @@
         return null;
     };
 
-    const getArrowedName = (side) => {
-        const name = config.teamNames[side];
-        return side === 'away' ? `← ${name}` : `${name} →`;
+    const getArrowedTeamName = (side) => {
+        const isAway    = config.isSwapped ? side === 'home' : side === 'away';
+        const name      = config.teamNames[isAway ? 'away' : 'home'];
+        return isAway ? `← ${name}` : `${name} →`;
+    };
+
+    const getCleanTeamName = (side) => {
+        const isAway    = config.isSwapped ? side === 'home' : side === 'away';
+        const name      = config.teamNames[isAway ? 'away' : 'home'];
+        return isAway ? `← ${name}` : `${name} →`;
     };
 
     const updateLobbyName = (awayClean, homeClean) => {
@@ -247,13 +254,7 @@
         else if (typeof socket !== 'undefined') socket.sendCommand({ type: "quiz", command: cmd });
     };
 
-    const toTitleCase = (str)   => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-
-    const getTeamDisplayName = (side)  => {
-        let actualSide = side;
-        if (config.isSwapped) actualSide = (side === 'away' ? 'home' : 'away');
-        return getArrowedName(actualSide);
-    };
+    const toTitleCase = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
     const getTeamNumber = (player) => {
         try {
@@ -446,9 +447,7 @@
         if (!check.valid) {systemMessage(check.msg); return}
         resetMatchData();
         match.isActive = true;
-        chatMessage(`Game ${config.gameNumber}: ${getTeamDisplayName('away')} @ ${getTeamDisplayName('home')} is about to start, get ready`);
-        chatMessage(`Guide: ${config.links.guide}`);
-        chatMessage(`Flowchart: ${config.links.flowchart}`);
+        chatMessage(`Game ${config.gameNumber}: ${getCleanTeamName('away')} @ ${getCleanTeamName('home')} is close to kick-off!`);
     };
 
     const outcomesList = [
@@ -550,34 +549,34 @@
         const awayTotal     = getStat('away', [0, 1, 2, 3]);
         const homeTotal     = getStat('home', [0, 1, 2, 3]);
         if (awayTotal !== homeTotal) {
-            chatMessage(`Tiebreaker: ${getTeamDisplayName(awayTotal > homeTotal ? 'away' : 'home')} wins on Weighted Total Tiebreaker (${awayTotal}-${homeTotal})`);
+            chatMessage(`Tiebreaker: ${getCleanTeamName(awayTotal > homeTotal ? 'away' : 'home')} wins on Weighted Total Tiebreaker (${awayTotal}-${homeTotal})`);
             return awayTotal    > homeTotal     ? 'away' : 'home';
         }
 
         const awayCapStat   = getStat('away', [0]);
         const homeCapStat   = getStat('home', [0]);
         if (awayCapStat !== homeCapStat) {
-            chatMessage(`Tiebreaker: ${getTeamDisplayName(awayCapStat > homeCapStat ? 'away' : 'home')} wins on Captain Tiebreaker (${awayCapStat}-${homeCapStat})`);
+            chatMessage(`Tiebreaker: ${getCleanTeamName(awayCapStat > homeCapStat ? 'away' : 'home')} wins on Captain Tiebreaker (${awayCapStat}-${homeCapStat})`);
             return awayCapStat  > homeCapStat   ? 'away' : 'home';
         }
 
         const awayT2Stat    = getStat('away', [2]);
         const homeT2Stat    = getStat('home', [2]);
         if (awayT2Stat !== homeT2Stat) {
-            chatMessage(`Tiebreaker: ${getTeamDisplayName(awayT2Stat > homeT2Stat ? 'away' : 'home')} wins on T2 Tiebreaker (${awayT2Stat}-${homeT2Stat})`);
+            chatMessage(`Tiebreaker: ${getCleanTeamName(awayT2Stat > homeT2Stat ? 'away' : 'home')} wins on T2 Tiebreaker (${awayT2Stat}-${homeT2Stat})`);
             return awayT2Stat   > homeT2Stat    ? 'away' : 'home';
         }
 
         const awayT3Stat    = getStat('away', [3]);
         const homeT3Stat    = getStat('home', [3]);
         if (awayT3Stat !== homeT3Stat) {
-            chatMessage(`Tiebreaker: ${getTeamDisplayName(awayT3Stat > homeT3Stat ? 'away' : 'home')} wins on T3s Tiebreaker (${awayT3Stat}-${homeT3Stat})`);
+            chatMessage(`Tiebreaker: ${getCleanTeamName(awayT3Stat > homeT3Stat ? 'away' : 'home')} wins on T3s Tiebreaker (${awayT3Stat}-${homeT3Stat})`);
             return awayT3Stat   > homeT3Stat    ? 'away' : 'home';
         }
 
         const lastEntry     = match.history[match.history.length - 1];
         const winnerSide    = lastEntry.poss === 'away' ? 'home' : 'away'; 
-        chatMessage(`Tiebreaker: ${getTeamDisplayName(winnerSide)} wins on Defending Tiebreaker`);
+        chatMessage(`Tiebreaker: ${getCleanTeamName(winnerSide)} wins on Defending Tiebreaker`);
         return winnerSide;
     };
 
@@ -589,11 +588,7 @@
         const nextSong      = match.songNumber + 1;
         const isAwayPoss    = match.possession === 'away';
         let awayWinProb     = calculateWinProbability(margin, nextSong, isAwayPoss);
-
-        if (awayWinProb > 0.99) awayWinProb = 0.99;
-        if (awayWinProb < 0.01) awayWinProb = 0.01;
-
-        const fudge = Math.random() * 0.01;
+        const fudge         = Math.random() * 0.01;
 
         if (awayWinProb > 0.5) {
             awayWinProb -= fudge;
@@ -608,12 +603,12 @@
         let favoredTeam, probPercent;
 
         if (awayWinProb >= 0.5) {
-            favoredTeam = getTeamDisplayName('away');
+            favoredTeam = getCleanTeamName('away');
             probPercent = (awayWinProb * 100).toFixed(2);
         }
         
         else {
-            favoredTeam = getTeamDisplayName('home');
+            favoredTeam = getCleanTeamName('home');
             probPercent = ((1.0 - awayWinProb) * 100).toFixed(2);
         }
 
@@ -771,7 +766,7 @@
             const scoreDiff             = Math.abs(match.scores.away - match.scores.home);
 
             if (scoreDiff > maxPointsRemaining && match.songNumber < config.lengths.reg && !isGameOver) {
-                const winner    = match.scores.away > match.scores.home ? getTeamDisplayName('away')    : getTeamDisplayName('home');
+                const winner    = match.scores.away > match.scores.home ? getCleanTeamName('away')    : getCleanTeamName('home');
                 winnerSide      = match.scores.away > match.scores.home ? 'away'                        : 'home';
                 chatMessage(`Mercy Rule triggered, ${winner} wins`);
                 chatMessage("Game ended due to Mercy Rule");
@@ -788,7 +783,7 @@
                 }
                 
                 else {
-                    const winner        = match.scores.away > match.scores.home ? getTeamDisplayName('away')    : getTeamDisplayName('home');
+                    const winner        = match.scores.away > match.scores.home ? getCleanTeamName('away')    : getCleanTeamName('home');
                     winnerSide          = match.scores.away > match.scores.home ? 'away'                        : 'home';
                     const winnerScore   = match.scores.away > match.scores.home ? match.scores.away             : match.scores.home;
                     const loserScore    = match.scores.away > match.scores.home ? match.scores.home             : match.scores.away;
@@ -804,14 +799,14 @@
                  try {
                     const nextRoundSong     = match.songNumber + 1;
                     const songsAfterNext    = config.lengths.reg - nextRoundSong;
-                    const leaderName        = isAwayLeading ? getTeamDisplayName('away') : getTeamDisplayName('home');
-                    const trailerName       = isAwayLeading ? getTeamDisplayName('home') : getTeamDisplayName('away');
+                    const leaderName        = isAwayLeading ? getCleanTeamName('away') : getCleanTeamName('home');
+                    const trailerName       = isAwayLeading ? getCleanTeamName('home') : getCleanTeamName('away');
                     const gap               = scoreDiff;
                     const isAwayPoss        = match.possession === 'away';
                     const leaderIsPoss      = (isAwayLeading === isAwayPoss);
 
                     const scenarios = outcomesList.map(o => {
-                        let     actorName           = (o.swing > 0) ? (isAwayPoss ? getTeamDisplayName('away') : getTeamDisplayName('home')) : (isAwayPoss ? getTeamDisplayName('home') : getTeamDisplayName('away'));
+                        let     actorName           = (o.swing > 0) ? (isAwayPoss ? getCleanTeamName('away') : getCleanTeamName('home')) : (isAwayPoss ? getCleanTeamName('home') : getCleanTeamName('away'));
                         let     leaderGapChange     = leaderIsPoss ? o.swing : -o.swing;
                         const   outcomeSwap         = o.name !== "Onside Kick";
                         const   leaderHasBallNext   = leaderIsPoss ? !outcomeSwap : outcomeSwap;
@@ -876,14 +871,14 @@
                 const suddenDeathDefense = ["House Call"];
 
                 if (suddenDeathOffense      .includes(result.name) && result.team === "offense") {
-                    chatMessage(`${getTeamDisplayName('away')} wins via ${result.name}!`);
+                    chatMessage(`${getCleanTeamName('away')} wins via ${result.name}!`);
                     chatMessage("Game ended in Sudden Death Overtime");
                     endGame('away');
                     isGameOver = true;
                 }
 
                 else if (suddenDeathDefense .includes(result.name) && result.team === "defense") {
-                    chatMessage(`${getTeamDisplayName('home')} wins via ${result.name}!`);
+                    chatMessage(`${getCleanTeamName('home')} wins via ${result.name}!`);
                     chatMessage("Game ended in Sudden Death Overtime");
                     endGame('home');
                     isGameOver = true;
@@ -894,7 +889,7 @@
 
             if (!isGameOver && match.otRound >= config.lengths.ot) {
                 if (match.scores.away !== match.scores.home) {
-                    const winner    = match.scores.away > match.scores.home ? getTeamDisplayName('away')    : getTeamDisplayName('home');
+                    const winner    = match.scores.away > match.scores.home ? getCleanTeamName('away')    : getCleanTeamName('home');
                     winnerSide      = match.scores.away > match.scores.home ? 'away'                        : 'home';
 
                     chatMessage(`${winner} wins in Overtime!`);
@@ -906,7 +901,7 @@
                 else {
                     if (config.knockout) {
                         winnerSide      = resolveKnockoutTie(awaySlots, homeSlots);
-                        const winner    = getTeamDisplayName(winnerSide);
+                        const winner    = getCleanTeamName(winnerSide);
                         chatMessage(`${winner} wins via Tiebreaker!`);
                         chatMessage("Game ended via Knockout Tiebreaker");
                         endGame(winnerSide);
@@ -926,7 +921,7 @@
                     const otScoreDiff = match.scores.away - match.scores.home;
                     if (otScoreDiff !== 0) {
                         const isAwayLeading = otScoreDiff > 0;
-                        const trailerName   = isAwayLeading ? getTeamDisplayName('home') : getTeamDisplayName('away');
+                        const trailerName   = isAwayLeading ? getCleanTeamName('home') : getCleanTeamName('away');
                         const gap           = Math.abs(otScoreDiff);
                         const tieOutcomes   = outcomesList.filter(o => o.swing === gap && ["Touchdown", "Field Goal", "Rouge", "TD + 2PC"].includes(o.name));
                         const tieOutcome    = tieOutcomes.find(o => o.name === "Touchdown") || tieOutcomes[0];
@@ -948,7 +943,7 @@
         }
 
         if (!isGameOver) {
-            chatMessage(`Next Possession: ${getTeamDisplayName(match.possession)}`);
+            chatMessage(`Next Possession: ${getArrowedTeamName(match.possession)}`);
             displayWinProbability();
             if (wasPendingPause) sendGameCommand("resume game");
         }
@@ -1127,12 +1122,12 @@
     };
 
     const printHowTo = () => {
-        systemMessage("1. Use /nfl setHost [1-8] to set the lobby host");
-        systemMessage("2. Use /nfl setTeams to set the Away and Home team names");
-        systemMessage("3. Use /nfl setSeries to set the series length");
-        systemMessage("4. Use /nfl setGame to set the game number");
-        systemMessage("5. Use /nfl setKnockout to enable/disable Overtime tiebreakers for Knockout Games");
-        systemMessage("6. Use /nfl start when you're ready to start a new Game");
+        systemMessage("1. /nfl setHost [1-8]: Set the slot of the lobby host, defaults to 0 and cannot start unless changed");
+        systemMessage("2. /nfl setTeams [Away] [Home]: Set the team names, defaults to Away and Home");
+        systemMessage("3. /nfl setSeries [1/2/7]: Set the series length, defaults to 7");
+        systemMessage("4. /nfl setGame [1-7]: Set the game number, defaults to 1");
+        systemMessage("5. /nfl setKnockout [True/False]: Set tiebreaker for Overtime tie, defaults to False");
+        systemMessage("6. /nfl start: Start the game");
     };
 
     const setup = () => {
@@ -1193,11 +1188,8 @@
                             else if (cmd === "end") {match.isActive = false; systemMessage("Manually stopped")}
                             else if (cmd === "setteams") {
                                 if (parts.length === 4 && parts[2].toLowerCase() !== parts[3].toLowerCase()) {
-                                    config.teamNames.away   = toTitleCase(parts[2]);
-                                    config.teamNames.home   = toTitleCase(parts[3]);
-                                    const awayArr           = getArrowedName('away');
-                                    const homeArr           = getArrowedName('home');
-                                    systemMessage(`Teams set: ${awayArr} @ ${homeArr}`);
+                                    config.teamNames.away = toTitleCase(parts[2]);
+                                    config.teamNames.home = toTitleCase(parts[3]);
                                     updateLobbyName(config.teamNames.away, config.teamNames.home);
                                 } else systemMessage("Error: Use /nfl setTeams [Away] [Home]");
                             }
@@ -1231,7 +1223,7 @@
                             }
                             else if (cmd === "swap") {
                                 config.isSwapped = !config.isSwapped;
-                                systemMessage(`Swapped: ${getTeamDisplayName('away')} is now the Away team`);
+                                systemMessage(`Swapped: ${getCleanTeamName('away')} is now the Away team`);
                             }
                             else if (cmd === "resetgame") {
                                 if (match.isActive || match.history.length > 0) {
