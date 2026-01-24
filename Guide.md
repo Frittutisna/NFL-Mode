@@ -161,6 +161,7 @@ In very simple terms: *it's basically just T1-T4 vs T2-T3*
 - Added `/nfl setHost`
 - Removed redundant responses from multiple script owners
 - Fixed message trimming logic
+- Added Win Probability graph to HTML output
 
 ## Lineup: Away And Home, Captains, OPs, DPs
 The player with the highest (T1) and lowest (T4) **Watched** Elos of each team make up the **Offensive Players** (OPs). Their main role is to **score points** when their team has **possession**. To help with this, the T1 of each team is also designated as their **Captain**, which carries a **double multiplier** for their correct guesses.

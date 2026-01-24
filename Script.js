@@ -623,11 +623,11 @@
         return `Win Probability: ${favoredTeam} ${probPercent}%`;
     };
 
-    const generateSVG = (history) => {
+    const generateSVG = (history, awayName, homeName) => {
         if (!history || history.length === 0) return "";
         const width         = 800;
         const height        = 200;
-        const padding       = 20;
+        const padding       = 10;
         const data          = [0.5, ...history];
         const pointsCount   = data.length;
         const stepX = (width - 2 * padding) / (pointsCount - 1 || 1);
@@ -654,11 +654,12 @@
         const midY = height / 2;
 
         return `
-            <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg" style="display:block; margin: 10px auto; background: white; border: 1px solid #ccc;">
+            <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg" style="display:block; margin: 10px auto; background: white;">
                 <line x1="${padding}" y1="${midY}" x2="${width - padding}" y2="${midY}" stroke="lightgrey" stroke-width="2" />
+                <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="lightgrey" stroke-width="2" />
                 <path d="${d}" stroke="black" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="${getCoord(data[0], 0)[0]}" cy="${getCoord(data[0], 0)[1]}" r="3" fill="black" />
-                <circle cx="${getCoord(data[data.length-1], data.length-1)[0]}" cy="${getCoord(data[data.length-1], data.length-1)[1]}" r="3" fill="black" />
+                <text x="${padding + 5}" y="${padding + 12}" font-family="sans-serif" font-size="12">${awayName}</text>
+                <text x="${padding + 5}" y="${height - padding - 5}" font-family="sans-serif" font-size="12">${homeName}</text>
             </svg>
         `;
     };
@@ -960,7 +961,7 @@
         const safeAway  = awayNameClean.replace(/[^a-z0-9]/gi, '_');
         const safeHome  = homeNameClean.replace(/[^a-z0-9]/gi, '_');
         const fileName  = `${y}${m}${d}-${effGameNum}-${safeAway}-${safeHome}.html`;
-        const graphSVG  = generateSVG(match.winProbHistory);
+        const graphSVG  = generateSVG(match.winProbHistory, awayNameClean, homeNameClean);
 
         let html = `
         <html>
