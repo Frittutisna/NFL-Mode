@@ -47,7 +47,8 @@
         history         : [],
         period          : 'REGULATION',
         otRound         : 0,
-        pendingPause    : false
+        pendingPause    : false,
+        winProbHistory  : []
     };
 
     const gameConfig = {
@@ -300,14 +301,15 @@
     };
 
     const resetMatchData = () => {
-        match.isActive      = false;
-        match.songNumber    = 0;
-        match.scores        = {away: 0, home: 0};
-        match.possession    = 'away';
-        match.history       = [];
-        match.period        = 'REGULATION';
-        match.otRound       = 0;
-        match.pendingPause  = false;
+        match.isActive          = false;
+        match.songNumber        = 0;
+        match.scores            = {away: 0, home: 0};
+        match.possession        = 'away';
+        match.history           = [];
+        match.period            = 'REGULATION';
+        match.otRound           = 0;
+        match.pendingPause      = false;
+        match.winProbHistory    = [];
     };
 
     const resetEverything = () => {
@@ -585,39 +587,80 @@
         return winnerSide;
     };
 
-    const getWinProbabilityText = () => {
-        if (match.period !== 'REGULATION') return "";
+    const calculateCurrentWinProbRaw = () => {
         memoProb.clear();
-        
+
         const margin        = match.scores.away - match.scores.home;
         const nextSong      = match.songNumber + 1;
         const isAwayPoss    = match.possession === 'away';
-        let awayWinProb     = calculateWinProbability(margin, nextSong, isAwayPoss);
-        const fudge         = Math.random() * 0.01;
 
-        if (awayWinProb > 0.5) {
-            awayWinProb -= fudge;
-            if (awayWinProb <= 0.5) awayWinProb = 0.5001;
+        let prob    = calculateWinProbability(margin, nextSong, isAwayPoss);
+        const fudge = Math.random() * 0.01;
+        if (prob > 0.5) {
+            prob -= fudge;
+            if (prob <= 0.5) prob = 0.5001;
+        } else if (prob < 0.5) {
+            prob += fudge;
+            if (prob >= 0.5) prob = 0.4999;
         }
-        
-        else if (awayWinProb < 0.5) {
-            awayWinProb += fudge;
-            if (awayWinProb >= 0.5) awayWinProb = 0.4999;
-        }
+        return prob;
+    };
+
+    const getWinProbabilityText = () => {
+        if (match.period !== 'REGULATION') return "";
+        const awayWinProb = calculateCurrentWinProbRaw();
+        match.winProbHistory.push(awayWinProb);
 
         let favoredTeam, probPercent;
-
         if (awayWinProb >= 0.5) {
             favoredTeam = getCleanTeamName('away');
             probPercent = (awayWinProb * 100).toFixed(2);
         }
-        
         else {
             favoredTeam = getCleanTeamName('home');
             probPercent = ((1.0 - awayWinProb) * 100).toFixed(2);
         }
-
         return `Win Probability: ${favoredTeam} ${probPercent}%`;
+    };
+
+    const generateSVG = (history) => {
+        if (!history || history.length === 0) return "";
+        const width         = 800;
+        const height        = 200;
+        const padding       = 20;
+        const data          = [0.5, ...history];
+        const pointsCount   = data.length;
+        const stepX = (width - 2 * padding) / (pointsCount - 1 || 1);
+
+        const getCoord = (val, index) => {
+            const x = padding + index * stepX;
+            const y = (height - padding) - val * (height - 2 * padding);
+            return [x, y];
+        };
+
+        let d = `M ${getCoord(data[0], 0)[0]} ${getCoord(data[0], 0)[1]}`;
+        for (let i = 0; i < data.length - 1; i++) {
+            const [x0, y0] = getCoord(data[i], i);
+            const [x1, y1] = getCoord(data[i+1], i+1);
+
+            const cX1 = x0 + (x1 - x0) * 0.5;
+            const cY1 = y0;
+            const cX2 = x1 - (x1 - x0) * 0.5;
+            const cY2 = y1;
+
+            d += ` C ${cX1} ${cY1}, ${cX2} ${cY2}, ${x1} ${y1}`;
+        }
+
+        const midY = height / 2;
+
+        return `
+            <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg" style="display:block; margin: 10px auto; background: white; border: 1px solid #ccc;">
+                <line x1="${padding}" y1="${midY}" x2="${width - padding}" y2="${midY}" stroke="lightgrey" stroke-width="2" />
+                <path d="${d}" stroke="black" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="${getCoord(data[0], 0)[0]}" cy="${getCoord(data[0], 0)[1]}" r="3" fill="black" />
+                <circle cx="${getCoord(data[data.length-1], data.length-1)[0]}" cy="${getCoord(data[data.length-1], data.length-1)[1]}" r="3" fill="black" />
+            </svg>
+        `;
     };
 
     const processRound = (payload) => {
@@ -823,6 +866,13 @@
                 else warningMsg = "Entering Sudden Death";
             }
 
+            else if (match.otRound > 1) {
+                 if (match.scores.away !== match.scores.home) {
+                    winnerSide = match.scores.away > match.scores.home ? 'away' : 'home';
+                    isGameOver = true;
+                 }
+            }
+
             if (!isGameOver && match.otRound >= config.lengths.ot) {
                 if (match.scores.away !== match.scores.home) {
                     winnerSide = match.scores.away > match.scores.home ? 'away' : 'home';
@@ -910,6 +960,7 @@
         const safeAway  = awayNameClean.replace(/[^a-z0-9]/gi, '_');
         const safeHome  = homeNameClean.replace(/[^a-z0-9]/gi, '_');
         const fileName  = `${y}${m}${d}-${effGameNum}-${safeAway}-${safeHome}.html`;
+        const graphSVG  = generateSVG(match.winProbHistory);
 
         let html = `
         <html>
@@ -920,12 +971,14 @@
                 body    {font-family: sans-serif; padding: 20px;}
                 table   {border-collapse: collapse; text-align: center; margin: 0 auto;}
                 th, td  {border: 1px solid black; padding: 8px;}
+                .graph-container { text-align: center; margin: 10px 0; }
             </style>
         </head>
         <body>
             <table>
                 <thead>
                     <tr><th colspan="13" style="font-size: 1.5em; font-weight: bold;">${titleStr}</th></tr>
+                    <tr><td colspan="13" class="graph-container">${graphSVG}</td></tr>
                     <tr>
                         <th rowspan="2">Song</th>
                         <th rowspan="2">Possession</th>
