@@ -81,8 +81,8 @@ In very simple terms: *it's basically just T1-T4 vs T2-T3*
         </tr>
         <tr>
             <td style="text-align:center">Song Count</td>
-            <td style="text-align:center">30</td>
-            <td style="text-align:center">16-40</td>
+            <td style="text-align:center">16-30</td>
+            <td style="text-align:center">12-40</td>
             <td style="text-align:center">11-20</td>
             <td style="text-align:center">0-5</td>
         </tr>
@@ -116,7 +116,7 @@ In very simple terms: *it's basically just T1-T4 vs T2-T3*
         <tr><td style="text-align:center">Base Stealing</td></tr>
         <tr>
             <td style="text-align:center">Hot Streak</td>
-            <td style="text-align:center" rowspan="4">No</td>
+            <td style="text-align:center" rowspan="6">No</td>
             <td style="text-align:center" rowspan="4">Yes</td>
         </tr>
         <tr><td style="text-align:center">Fast Break</td></tr>
@@ -124,17 +124,19 @@ In very simple terms: *it's basically just T1-T4 vs T2-T3*
         <tr><td style="text-align:center">Buzzer Beater</td></tr>
         <tr>
             <td style="text-align:center">OP/DP Split</td>
-            <td style="text-align:center" colspan="2" rowspan="5">No</td>
+            <td style="text-align:center" rowspan="5">No</td>
             <td style="text-align:center" colspan="2" rowspan="2">Yes</td>
         </tr>
         <tr><td style="text-align:center">Rouge</td></tr>
         <tr>
             <td style="text-align:center">Mercy Rule</td>
             <td style="text-align:center">Yes</td>
+            <td style="text-align:center">Yes</td>
             <td style="text-align:center">No</td>
         </tr>
         <tr>
             <td style="text-align:center">Sudden Death</td>
+            <td style="text-align:center" rowspan="2">No</td>
             <td style="text-align:center" rowspan="2">No</td>
             <td style="text-align:center" rowspan="2">Yes</td>
         </tr>
@@ -164,22 +166,12 @@ In very simple terms: *it's basically just T1-T4 vs T2-T3*
 - Added Win Probability graph to HTML output
 
 ## Lineup: Away And Home, Captains, OPs, DPs
-The player with the highest (T1) and lowest (T4) **Watched** Elos of each team make up the **Offensive Players** (OPs). Their main role is to **score points** when their team has **possession**. To help with this, the T1 of each team is also designated as their **Captain**, which carries a **double multiplier** for their correct guesses.
-
-The other two players (T2 and T3) make up the **Defensive Players** (DPs). Their main role is to **prevent** the opposing OPs from scoring points when their team **doesn't have possession**.
-
-The team listed first (above) on Challonge is the **Away** team for each series. Line up as follows before each series: **Away** (Slots 1-4: T1, T4, T2, T3), then **Home** (Slots 5-8: T1, T4, T2, T3). There is **no need to swap** Slots between consecutive games; the Script does that **automatically**. 
+The player with the highest (T1) and lowest (T4) **Watched** Elos of each team make up the **Offensive Players** (OPs). Their main role is to **score points** when their team has **possession**. To help with this, the T1 of each team is also designated as their **Captain**, which carries a **double multiplier** for their correct guesses. The other two players (T2 and T3) make up the **Defensive Players** (DPs). Their main role is to **prevent** the opposing OPs from scoring points when their team **doesn't have possession**. The team listed first (above) on Challonge is the **Away** team for each series. Line up as follows before each series: **Away** (Slots 1-4: T1, T4, T2, T3), then **Home** (Slots 5-8: T1, T4, T2, T3). There is **no need to swap** Slots between consecutive games; the Script does that **automatically**. 
 
 ## Score: Check The (T)DIFF
 <details>
     <summary><b>Click to know more about Scoring</b></summary>
-    <p>The <b>Away</b> team attacks (has <b>possession</b>) first. 
-    Possession <b>swaps</b> after every song 
-    <b>except</b> after an <code>Onside Kick</code>, 
-    and the Home team <b>must</b> have possession on Song 11. 
-    To calculate points, subtract the Defending team’s score from the Attacking team’s score.
-    <b>TDIFF</b> counts <b>everyone</b> and is looked at first, 
-    while <b>DIFF</b> <b>only</b> counts Attacking team’s OPs and Defending team’s DPs.</p>
+    <p>The <b>Away</b> team attacks (has <b>possession</b>) first. Possession <b>swaps</b> after every song <b>except</b> after an <code>Onside Kick</code>, and the Home team <b>must</b> have possession on Song 11. To calculate points, subtract the Defending team’s score from the Attacking team’s score. <b>TDIFF</b> counts <b>everyone</b> and is looked at first, while <b>DIFF</b> <b>only</b> counts Attacking team’s OPs and Defending team’s DPs.</p>
 </details>
 
 <table style="text-align:center">
@@ -251,31 +243,11 @@ The team listed first (above) on Challonge is the **Away** team for each series.
 ### Rouge: The Canadian Single
 <details>
     <summary><b>Click to know more about Rouge</b></summary>
-    <p>A <code>Rouge</code> (DIFF 0 or -1, 1 point) is awarded if 
-    a play that would have resulted in a <code>Punt</code> 
-    happened such that <b>≥1</b> player(s) 
-    from one team got the song right,
-    but the other team missed it completely.
-    This applies to both <b>Attacking</b> and <b>Defending</b> 
-    teams to reward solos and covers,
-    even if DIFF calculations would have 
-    stalled out with a <code>Punt</code>.</p>
+    <p>A <code>Rouge</code> (DIFF 0 or -1, 1 point) is awarded if a play that would have resulted in a <code>Punt</code> happened such that <b>≥1</b> player(s) from one team got the song right, but the other team missed it completely. This applies to both <b>Attacking</b> and <b>Defending</b> teams to reward solos (1/8s) and covers (2/8s), even if DIFF calculations would have stalled out with a <code>Punt</code>.</p>
 </details>
 
 ## Ending: Mercy, Overtime, Tie(breakers)
-Mercy Rule triggers if the trailing team can't catch with the songs left. 
-If both teams are still tied after Regulation, 
-the Script will automatically continue to 5-song **Overtime**. 
-The **Away** team again has first possession. 
-An `Onside Kick` from the Away team 
-or a `House Call` from the Home team ends Overtime here. 
-Otherwise, whoever scores next wins. 
-If Overtime doesn’t resolve the tie, 
-the game is called a **Tie**, 
-unless breaking the tie is necessary 
-(e.g., 3.0-3.0 series tie, Championship Games, Super Bowl). 
-In which case, the following **Tiebreakers** will determine the winner 
-(Tiebreakers 1-4 are determined solely from Overtime results):
+Mercy Rule triggers if the trailing team can't catch with the songs left. If both teams are still tied after Regulation, the Script will automatically continue to 5-song **Overtime**. The **Away** team again has first possession. An `Onside Kick` from the Away team or a `House Call` from the Home team ends Overtime here. Otherwise, whoever scores next wins. If Overtime doesn’t resolve the tie, the game is called a **Tie**, unless breaking the tie is necessary (e.g., 3.0-3.0 series tie, Championship Games, Super Bowl). In which case, the following **Tiebreakers** will determine the winner (Tiebreakers 1-4 are determined solely from Overtime results):
 1. Weighted Total (counting Captains twice)
 2. Captains (Slots 1 vs 5)
 3. T2s (Slots 3 vs 7)
