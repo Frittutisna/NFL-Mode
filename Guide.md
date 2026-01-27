@@ -1,4 +1,4 @@
-# NFL Mode v3-beta.6.1
+# NFL Mode v3-beta.6.2
 
 ## Table of Contents
 - [TLDR: What Is This And What Do I Do?](#tldr-what-is-this-and-what-do-i-do)

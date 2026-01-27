@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3-beta.6.1
+// @version      3-beta.6.2
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -15,7 +15,7 @@
     let config = {
         delay               : 500,
         gameNumber          : 1,
-        hostId              : 0,
+        hostId              : -1,
         teamNames           : {away: "Away", home: "Home"},
         captains            : [1, 5],
         isSwapped           : false,
@@ -99,7 +99,7 @@
         "resetGame"         : "Wipe current Game progress and stop tracker",
         "resetSeries"       : "Wipe all series history and reset to Game 1",
         "setGame"           : "Set the current game number (/nfl setGame [1-7])",
-        "setHost"           : "Set the script host (/nfl setHost [1-8])",
+        "setHost"           : "Set the script host (/nfl setHost [0-8])",
         "setKnockout"       : "Enable/disable tiebreakers (/nfl setKnockout [true/false])",
         "setSeries"         : "Set the series length (/nfl setSeries [1/2/7]",
         "setTeams"          : "Set team names (/nfl setTeams [Away] [Home])",
@@ -316,7 +316,7 @@
         match.isActive      = false;
         resetMatchData();
         config.gameNumber   = 1;
-        config.hostId       = 0;
+        config.hostId       = -1;
         config.teamNames    = {away: "Away", home: "Home"};
         config.captains     = [1, 5];
         config.isSwapped    = false;
@@ -435,16 +435,16 @@
     };
 
     const validateLobby = () => {
-        if (config.hostId === 0) return {valid: false, msg: "Error: Host not set, use /nfl setHost [1-8]"};
+        if (config.hostId === -1)                           return {valid: false, msg: "Error: Host not set, use /nfl setHost [0-8]"};
         if (typeof lobby === 'undefined' || !lobby.inLobby) return {valid: false, msg: "Error: Not in Lobby"};
         const players = Object.values(lobby.players);
         const notReady = players.filter(p => !p.ready);
-        if (notReady.length > 0) return {valid: false, msg: "Error: All players must be Ready"};
+        if (notReady.length > 0)                            return {valid: false, msg: "Error: All players must be Ready"};
         if (!config.isTest) {
             const occupiedSlots = players.map(p => getTeamNumber(p));
             const validSlots    = [1, 2, 3, 4, 5, 6, 7, 8];
             const allInSlots    = occupiedSlots.every(slot => validSlots.includes(slot));
-            if (players.length !== 8 || !allInSlots) return {valid: false, msg: "Error: Additional lobby checks not met. If you know what you're doing, type /nfl setTest True"};
+            if (players.length !== 8 || !allInSlots)        return {valid: false, msg: "Error: Additional lobby checks not met. If you know what you're doing, type /nfl setTest True"};
         }
         return {valid: true};
     };
@@ -1058,7 +1058,7 @@
     };
 
     const printHowTo = () => {
-        systemMessage("1. /nfl setHost [1-8]: Set the slot of the lobby host, defaults to 0 and cannot start unless changed");
+        systemMessage("1. /nfl setHost [0-8]: Set the slot of the lobby host, defaults to -1 and can't start unless changed");
         systemMessage("2. /nfl setTeams [Away] [Home]: Set the team names, defaults to Away and Home");
         systemMessage("3. /nfl setSeries [1/2/7]: Set the series length, defaults to 7");
         systemMessage("4. /nfl setGame [1-7]: Set the game number, defaults to 1");
@@ -1100,7 +1100,7 @@
                     if (publicCommands.includes(cmd)) {
                         setTimeout(() => {
                             const mySlot = getSelfSlot();
-                            if (config.hostId !== 0 && config.hostId === mySlot) {
+                            if (config.hostId !== -1 && config.hostId === mySlot) {
                                 if (cmd === "whatis") {
                                     if (!arg || arg === "help") chatMessage("Available terms: " + Object.keys(TERMS).sort().join(", "));
                                     else {
@@ -1136,11 +1136,11 @@
                             }
                             else if (cmd === "sethost") {
                                 const num = parseInt(parts[2]);
-                                if (num >= 1 && num <= 8) {
+                                if (!isNaN(num) && num >= 0 && num <= 8) {
                                     config.hostId   = num;
-                                    const hostName  = getPlayerNameAtTeamId(num);
+                                    const hostName  = num === 0 ? "Spectator" : getPlayerNameAtTeamId(num);
                                     systemMessage(`Host: ${hostName}`);
-                                } else systemMessage("Error: Use /nfl setHost [1-8]");
+                                } else systemMessage("Error: Use /nfl setHost [0-8]");
                             }
                             else if (cmd === "setseries") {
                                 const num = parseInt(parts[2]);
