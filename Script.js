@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3-beta.6.2
+// @version      3-beta.6.3
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -26,7 +26,8 @@
         seriesStats         : {awayWins: 0, homeWins: 0, draws: 0, history: []},
         links               : {
             guide           : "https://github.com/Frittutisna/NFL-Mode/blob/main/Guide.md",
-            flowchart       : "https://github.com/Frittutisna/NFL-Mode/blob/main/Flowchart/Flowchart.pdf"
+            flowchart       : "https://github.com/Frittutisna/NFL-Mode/blob/main/Flowchart/Flowchart.pdf",
+            powerpoint      : "https://github.com/Frittutisna/NFL-Mode/blob/main/PowerPoint/PowerPoint.pdf"
         },
         selectors           : {
             playIcon        : "fa-play-circle",
@@ -48,7 +49,8 @@
         period          : 'REGULATION',
         otRound         : 0,
         pendingPause    : false,
-        winProbHistory  : []
+        winProbHistory  : [],
+        lastRealProb    : 0.5
     };
 
     const gameConfig = {
@@ -94,6 +96,7 @@
         "export"            : "Download the HTML scoresheet",
         "flowchart"         : "Show link to the NFL Mode flowchart",
         "guide"             : "Show link to the NFL Mode guide",
+        "powerpoint"        : "Show link to the NFL Mode PowerPoint",
         "howTo"             : "Show the step-by-step setup tutorial",
         "resetEverything"   : "Hard reset: Wipe all settings, series history, and teams to default",
         "resetGame"         : "Wipe current Game progress and stop tracker",
@@ -310,6 +313,7 @@
         match.otRound           = 0;
         match.pendingPause      = false;
         match.winProbHistory    = [];
+        match.lastRealProb      = 0.5;
     };
 
     const resetEverything = () => {
@@ -593,16 +597,22 @@
         const margin        = match.scores.away - match.scores.home;
         const nextSong      = match.songNumber + 1;
         const isAwayPoss    = match.possession === 'away';
+        let realProb        = calculateWinProbability(margin, nextSong, isAwayPoss);
+        let prob            = realProb;
 
-        let prob    = calculateWinProbability(margin, nextSong, isAwayPoss);
         const fudge = Math.random() * 0.01;
-        if (prob > 0.5) {
-            prob -= fudge;
-            if (prob <= 0.5) prob = 0.5001;
-        } else if (prob < 0.5) {
-            prob += fudge;
-            if (prob >= 0.5) prob = 0.4999;
+        if      (prob > 0.5) {prob -= fudge; if (prob <= 0.5) prob = 0.5001} 
+        else if (prob < 0.5) {prob += fudge; if (prob >= 0.5) prob = 0.4999}
+
+        if (match.winProbHistory.length > 0) {
+            const lastFudged = match.winProbHistory[match.winProbHistory.length - 1];
+            const lastReal   = match.lastRealProb;
+
+            if      (realProb > lastReal) {if (prob <= lastFudged) prob = Math.min(1.0, lastFudged + 0.0001)}
+            else if (realProb < lastReal) {if (prob >= lastFudged) prob = Math.max(0.0, lastFudged - 0.0001)}
         }
+
+        match.lastRealProb = realProb;
         return prob;
     };
 
@@ -769,7 +779,7 @@
                 const testResult = calculateOutcome(testAwayStats, testHomeStats);
                 match.possession = storedPoss;
 
-                if (testResult.name === result.name && testResult.team === result.team) maskedStr += "X";
+                if (testResult.name === result.name && testResult.team === result.team) maskedStr += (val === 0 ? "X" : "Y");
                 else {
                     const isCaptain =   config.captains.includes(slotId);
                     maskedStr       +=  (val === 1 ? (isCaptain ? "2" : "1") : "0");
@@ -790,7 +800,11 @@
             displayHomePattern  = temp;
         }
 
-        const mainPatternMsg    = `${displayAwayPattern} ${displayHomePattern} ${result.name} ${displayScoreStr}`;
+        let subjectSide = currentPossessionSide;
+        if (result.name !== "Punt" && result.team === 'defense') subjectSide = currentPossessionSide === 'away' ? 'home' : 'away';
+        
+        const subjectTeamName   = getCleanTeamName(subjectSide);
+        const mainPatternMsg    = `${displayAwayPattern} ${displayHomePattern} ${subjectTeamName} ${result.name} ${displayScoreStr}`;
         let outputParts         = [mainPatternMsg];
 
         match.history.push({
@@ -1095,7 +1109,7 @@
                     const arg               = parts.slice(2).join(" ").toLowerCase();
                     const cmdKey            = Object.keys(COMMAND_DESCRIPTIONS).find(k => k.toLowerCase() === cmd);
                     const isHost            = (msg.sender === selfName);
-                    const publicCommands    = ["export", "flowchart", "guide", "help", "whatis"];
+                    const publicCommands    = ["export", "flowchart", "guide", "powerpoint", "help", "whatis"];
 
                     if (publicCommands.includes(cmd)) {
                         setTimeout(() => {
@@ -1112,6 +1126,7 @@
                                 else if (cmd === "help")        printHelp(cmdKey ? null : arg);
                                 else if (cmd === "flowchart")   chatMessage(`Flowchart: ${config.links.flowchart}`);
                                 else if (cmd === "guide")       chatMessage(`Guide: ${config.links.guide}`);
+                                else if (cmd === "powerpoint")  chatMessage(`PowerPoint: ${config.links.powerpoint}`);
                                 else if (cmd === "export")      downloadScoresheet();
                             }
                         }, config.delay);
