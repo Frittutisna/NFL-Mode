@@ -5,7 +5,7 @@
 - [Links: Balancer, Flowchart, PowerPoint, Script](#links-balancer-flowchart-powerpoint-script)
 - [Overview: What Do I *Really* Need To Know?](#overview-what-do-i-really-need-to-know)
 - [Comparison: What's The Difference?](#comparison-whats-the-difference)
-- [Changelog: What Changed From v3.beta.5?](#changelog-what-changed-from-v3beta5)
+- [Changelog: What Changed From v3-beta.5?](#changelog-what-changed-from-v3-beta5)
 - [Lineup: Away And Home, Captains, OPs, DPs](#lineup-away-and-home-captains-ops-dps)
 - [Score: Check The (T)DIFF](#score-check-the-tdiff)
 - [Ending: Mercy, Overtime, Tie(breakers)](#ending-mercy-overtime-tiebreakers)
@@ -145,7 +145,7 @@ In very simple terms: *it's basically just T1-T4 vs T2-T3*
     </tbody>
 </table>
 
-## Changelog: What Changed From v3.beta.5
+## Changelog: What Changed From v3-beta.5
 ### Balancer Changes
 - Clarified slot allocation for 8-player tours
 - Implemented NFL-specific slot allocation
