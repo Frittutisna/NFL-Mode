@@ -1,4 +1,4 @@
-# NFL Mode v3-beta.6.3
+# NFL Mode v3-rc.0.0
 
 ## Table of Contents
 - [TLDR: What Is This And What Do I Do?](#tldr-what-is-this-and-what-do-i-do)
@@ -41,7 +41,7 @@ In very simple terms: *it's basically just T1-T4 vs T2-T3*
     </tr>
     <tr>
         <td style="text-align:center">Regulation</td>
-        <td style="text-align:center" rowspan="2">1 hour</td>
+        <td style="text-align:center" rowspan="2">60 minutes</td>
         <td style="text-align:center">11-20</td>
         <td style="text-align:center" rowspan="2">15</td>
         <td style="text-align:center" rowspan="2">0-40</td>
@@ -76,9 +76,9 @@ In very simple terms: *it's basically just T1-T4 vs T2-T3*
     <tbody>
         <tr>
             <td style="text-align:center">Estimated Runtime</td>
-            <td style="text-align:center">2 hours</td>
-            <td style="text-align:center">1.5 hours</td>
-            <td style="text-align:center" colspan="2">1 hour</td>
+            <td style="text-align:center">90 minutes</td>
+            <td style="text-align:center">75 minutes</td>
+            <td style="text-align:center" colspan="2">60 minutes</td>
         </tr>
         <tr>
             <td style="text-align:center">Song Count</td>
