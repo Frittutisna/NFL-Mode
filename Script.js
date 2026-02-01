@@ -27,7 +27,8 @@
         links               : {
             guide           : "https://github.com/Frittutisna/NFL-Mode/blob/main/Guide.md",
             flowchart       : "https://github.com/Frittutisna/NFL-Mode/blob/main/Flowchart/Flowchart.pdf",
-            powerpoint      : "https://github.com/Frittutisna/NFL-Mode/blob/main/PowerPoint/PowerPoint.pdf"
+            powerpoint      : "https://github.com/Frittutisna/NFL-Mode/blob/main/PowerPoint/PowerPoint.pdf",
+            playerCard      : "https://github.com/Frittutisna/NFL-Mode/blob/main/PowerPoint/Player.png"
         },
         selectors           : {
             playIcon        : "fa-play-circle",
@@ -94,9 +95,10 @@
     const COMMAND_DESCRIPTIONS = {
         "end"               : "Stop the game tracker",
         "export"            : "Download the HTML scoresheet",
-        "flowchart"         : "Show link to the NFL Mode flowchart",
-        "guide"             : "Show link to the NFL Mode guide",
-        "powerpoint"        : "Show link to the NFL Mode PowerPoint",
+        "flowchart"         : "Show link to the flowchart",
+        "guide"             : "Show link to the guide",
+        "powerpoint"        : "Show link to the PowerPoint",
+        "playercard"        : "Show link to the Player Card",
         "howTo"             : "Show the step-by-step setup tutorial",
         "resetEverything"   : "Hard reset: Wipe all settings, series history, and teams to default",
         "resetGame"         : "Wipe current Game progress and stop tracker",
@@ -1109,7 +1111,7 @@
                     const arg               = parts.slice(2).join(" ").toLowerCase();
                     const cmdKey            = Object.keys(COMMAND_DESCRIPTIONS).find(k => k.toLowerCase() === cmd);
                     const isHost            = (msg.sender === selfName);
-                    const publicCommands    = ["export", "flowchart", "guide", "powerpoint", "help", "whatis"];
+                    const publicCommands    = ["export", "flowchart", "guide", "powerpoint", "playercard", "help", "whatis"];
 
                     if (publicCommands.includes(cmd)) {
                         setTimeout(() => {
@@ -1127,6 +1129,7 @@
                                 else if (cmd === "flowchart")   chatMessage(`Flowchart: ${config.links.flowchart}`);
                                 else if (cmd === "guide")       chatMessage(`Guide: ${config.links.guide}`);
                                 else if (cmd === "powerpoint")  chatMessage(`PowerPoint: ${config.links.powerpoint}`);
+                                else if (cmd === "playercard")  chatMessage(`Player Card: ${config.links.playerCard}`);
                                 else if (cmd === "export")      downloadScoresheet();
                             }
                         }, config.delay);
