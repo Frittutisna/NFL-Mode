@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3-rc.0.1
+// @version      3-rc.0.2
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -10,7 +10,7 @@
 (function() {
     'use strict';
 
-    let playersCache = [];
+    let playersMap = {};
 
     let config = {
         delay               : 500,
@@ -183,9 +183,23 @@
             const drawPlayerBox = (name, isT1, x, y, color) => {
                 ctx.fillStyle = color;
                 ctx.fillRect(x, y, pBoxW, playerRowH);
+
                 let display = name;
                 if (isT1) display = "★ " + display;
-                drawText(display, x + pBoxW / 2, y + playerRowH / 2, 24, cWhite, 'center', 'normal');
+                drawText(display, x + pBoxW/2, y + playerRowH/2, 24, cWhite, 'center', 'normal');
+
+                ctx.lineWidth   = 2;
+                ctx.strokeStyle = cWhite;
+                
+                ctx.beginPath();
+                ctx.moveTo(x,           y);
+                ctx.lineTo(x + pBoxW,   y);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(x,           y + playerRowH);
+                ctx.lineTo(x + pBoxW,   y + playerRowH);
+                ctx.stroke();
             };
 
             drawPlayerBox(data.topPlayers[0].name, data.topPlayers[0].isT1, 0,              playerY1, cBlue);
@@ -211,7 +225,7 @@
             const centerX   = sideX + sideBarW/2;
             const arrowSize = 25;
             
-            const arrow1Y = 50;
+            const arrow1Y   = 50;
             ctx.beginPath();
             ctx.moveTo(centerX,             arrow1Y - arrowSize);
             ctx.lineTo(centerX - arrowSize, arrow1Y + arrowSize);
@@ -219,10 +233,10 @@
             ctx.fillStyle = (data.nextPoss === 'away') ? cGold : cWhite;
             ctx.fill();
 
-            drawText(data.periodText,   centerX, 120, 50, cWhite);
-            drawText(data.songNum,      centerX, 200, 50, cWhite);
+            drawText(data.periodText,   centerX, 130, 50, cWhite);
+            drawText(data.songNum,      centerX, 175, 50, cWhite);
 
-            const arrow2Y = 270;
+            const arrow2Y   = 270;
             ctx.beginPath();
             ctx.moveTo(centerX,             arrow2Y + arrowSize);
             ctx.lineTo(centerX - arrowSize, arrow2Y - arrowSize);
@@ -394,41 +408,49 @@
             if (player.lobbySlot && player.lobbySlot.$TEAM_DISPLAY_TEXT) {
                 return parseInt(player.lobbySlot.$TEAM_DISPLAY_TEXT.text().trim(), 10);
             }
+            if (player.teamNumber) return player.teamNumber;
         } catch (e) {return null}
-        return player.teamNumber;
+        return null;
     };
 
     const getPlayerNameAtTeamId = (teamId) => {
-        if (typeof quiz !== 'undefined' && quiz.inQuiz) {
-            const p = Object.values(quiz.players).find(player => player.teamNumber == teamId);
-            if (p) return p.name;
-        }
-        else if (typeof lobby !== 'undefined' && lobby.inLobby) {
-            const p = Object.values(lobby.players).find(player => getTeamNumber(player) == teamId);
-            if (p) return p.name;
-        }
-        if (playersCache.length > 0) {
-            const p = playersCache.find(player => player.teamNumber == teamId);
-            if (p) return p.name;
-        }
-        return "N/A";
-    };
+        if (!teamId) return "N/A";
 
-    const getSelfSlot = () => {
-        if (playersCache.length > 0) {
-            const p = playersCache.find(p => p.name === selfName);
-            if (p) return p.teamNumber;
-        }
+        const cachedPlayer = Object.values(playersMap).find(p => p.teamNumber == teamId);
+        if (cachedPlayer) return cachedPlayer.name;
 
         if (typeof quiz !== 'undefined' && quiz.inQuiz) {
-             const p = Object.values(quiz.players).find(p => p.name === selfName);
-             if (p) return p.teamNumber;
+            const p = Object.values(quiz.players).find(p => p.teamNumber == teamId);
+            if (p) return p.name;
         }
 
         if (typeof lobby !== 'undefined' && lobby.inLobby) {
-             const p = Object.values(lobby.players).find(p => p.name === selfName);
-             if (p) return getTeamNumber(p);
+            const p = Object.values(lobby.players).find(p => getTeamNumber(p) == teamId);
+            if (p) return p.name;
         }
+        
+        return "N/A";
+    };
+    
+    const updatePlayerCache = (playerData) => {
+        if (!playerData || !playerData.gamePlayerId)    return;
+        if (playersMap[playerData.gamePlayerId])        playersMap[playerData.gamePlayerId] = {...playersMap[playerData.gamePlayerId], ...playerData};
+        else                                            playersMap[playerData.gamePlayerId] = playerData;
+    };
+
+    const getSelfSlot = () => {
+        if (typeof quiz !== 'undefined' && quiz.inQuiz) {
+            const p = Object.values(quiz.players).find(p => p.name === selfName);
+            if (p) return p.teamNumber;
+        }
+
+        if (typeof lobby !== 'undefined' && lobby.inLobby) {
+            const p = Object.values(lobby.players).find(p => p.name === selfName);
+            if (p) return getTeamNumber(p);
+        }
+
+        const p = Object.values(playersMap).find(p => p.name === selfName);
+        if (p) return p.teamNumber;
         return 0;
     };
 
@@ -457,6 +479,7 @@
         config.isTest       = false;
         config.seriesLength = 7;
         config.seriesStats  = {awayWins: 0, homeWins: 0, draws: 0, history: []};
+        playersMap          = {};
         systemMessage("Full reset complete: settings, teams, and series history wiped");
     };
 
@@ -1255,23 +1278,38 @@
     };
 
     const setup = () => {
-        if (typeof lobby !== 'undefined' && lobby.inLobby) playersCache = Object.values(lobby.players);
-        new Listener("Host Game",                   (payload) => {playersCache = payload.players})                                                                                      .bindListener();
-        new Listener("Join Game",                   (payload) => {playersCache = payload.quizState.players})                                                                            .bindListener();
-        new Listener("Game Starting",               (payload) => {playersCache = payload.players})                                                                                      .bindListener();
-        new Listener("New Player",                  (payload) => {playersCache.push(payload)})                                                                                          .bindListener();
-        new Listener("Player Left",                 (payload) => {playersCache = playersCache.filter(p => p.gamePlayerId !== payload.gamePlayerId)})                                    .bindListener();
-        new Listener("Player Changed Team",         (payload) => {const p = playersCache.find(p => p.gamePlayerId === payload.gamePlayerId); if (p) p.teamNumber = payload.newTeam;})   .bindListener();
-        new Listener("Spectator Change To Player",  (payload) => {playersCache.push(payload)})                                                                                          .bindListener();
+        if (typeof lobby !== 'undefined' && lobby.inLobby) Object.values(lobby.players).forEach(p => updatePlayerCache(p));
+
+        new Listener("Host Game", (payload) => {
+            playersMap = {}; 
+            payload.players.forEach(p => updatePlayerCache(p)); 
+        }).bindListener();
+        
+        new Listener("Join Game", (payload) => {
+            playersMap = {}; 
+            payload.quizState.players.forEach(p => updatePlayerCache(p));
+        }).bindListener();
+
+        new Listener("Game Starting",               (payload) => {payload.players.forEach(p => updatePlayerCache(p))})  .bindListener();
+        new Listener("New Player",                  (payload) => {updatePlayerCache(payload)})                          .bindListener();
+        new Listener("Player Left",                 (payload) => {updatePlayerCache(payload)})                          .bindListener();
+        new Listener("Spectator Change To Player",  (payload) => {updatePlayerCache(payload)})                          .bindListener();
+
+        new Listener("Player Changed Team", (payload) => {
+            if (playersMap[payload.gamePlayerId]) {
+                playersMap[payload.gamePlayerId].teamNumber = payload.newTeam;
+            }
+        }).bindListener();
 
         new Listener("Rejoin Ability", (payload) => {
-             if (match.isActive && !payload.isAble) {
-                 sendGameCommand("pause game");
-                 chatMessage(`Player disconnected, game paused automatically`);
-             }
+            if (match.isActive && !payload.isAble) {
+                sendGameCommand("pause game");
+                chatMessage(`Player disconnected, game paused automatically`);
+            }
         }).bindListener();
 
         new Listener("Player Rejoined", (payload) => {
+            updatePlayerCache(payload);
             if (match.isActive) chatMessage(`${payload.name} has rejoined, resume when ready`)
         }).bindListener();
 
@@ -1367,6 +1405,7 @@
                                     config.gameNumber   = 1;
                                     config.isSwapped    = false;
                                     config.seriesStats  = {awayWins: 0, homeWins: 0, draws: 0, history: []};
+                                    playersMap          = {};
                                     systemMessage("Series reset, all history wiped");
                                 }
                             }
