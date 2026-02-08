@@ -1,11 +1,11 @@
-# NFL Mode v3-rc.0.0
+# NFL Mode v3-rc.1.0
 
 ## Table of Contents
 - [TLDR: What Is This And What Do I Do?](#tldr-what-is-this-and-what-do-i-do)
 - [Links: Balancer, Flowchart, Many Others](#links-balancer-flowchart-many-others)
 - [Overview: What Do I *Really* Need To Know?](#overview-what-do-i-really-need-to-know)
 - [Comparison: What's The Difference?](#comparison-whats-the-difference)
-- [Changelog: What Changed From v3-beta.5?](#changelog-what-changed-from-v3-beta5)
+- [Changelog: What Changed From v3-rc.0?](#changelog-what-changed-from-v3-rc0)
 - [Lineup: Away And Home, Captains, OPs, DPs](#lineup-away-and-home-captains-ops-dps)
 - [Score: Check The (T)DIFF](#score-check-the-tdiff)
 - [Ending: Mercy, Overtime, Tie(breakers)](#ending-mercy-overtime-tiebreakers)
@@ -24,6 +24,7 @@ In very simple terms: *it's basically just T1-T4 vs T2-T3*
 
 ## Links: Balancer, Flowchart, Many Others
 - [Link to the Balancer](https://github.com/Frittutisna/Balancer)
+- [Link to the Example Card](https://github.com/Frittutisna/NFL-Mode/blob/main/PowerPoint/Example.png)
 - [Link to the Flowchart](https://github.com/Frittutisna/NFL-Mode/blob/main/Flowchart/Flowchart.pdf)
 - [Link to the Player Card](https://github.com/Frittutisna/NFL-Mode/blob/main/PowerPoint/Player.png)
 - [Link to the PowerPoint](https://github.com/Frittutisna/NFL-Mode/blob/main/PowerPoint/PowerPoint.pdf)
@@ -146,29 +147,15 @@ In very simple terms: *it's basically just T1-T4 vs T2-T3*
     </tbody>
 </table>
 
-## Changelog: What Changed From v3-beta.5
-### Balancer Changes
-- Clarified slot allocation for 8-player tours
-- Implemented NFL-specific slot allocation
-### Format Changes
-- Reverted Song Count back to 20+5
-- Removed pre-tour Captain team split
-- Changed Last Tiebreaker to Possession Advantage
-### Guide Changes
-- Removed deprecated Captain section
-- Reverted Code column from Overview
+## Changelog: What Changed From v3-rc.0
+### PowerPoint Change
+- Added Example Card
 ### Script Changes
-- Removed deprecated `/nfl setCaptains`
-- Removed redundant Captain bracket in HTML output
-- Changed OP/DP-1/2 terminologies in HTML output to T1-4
-- Added Win Probability message
-- Added `/nfl setHost`
-- Removed redundant responses from multiple script owners
-- Fixed message trimming logic
-- Added Win Probability graph to HTML output
-- Split masking to include Y-masking from correct answers
-- Added outcome subject to chat report
-- Fixed directionality of probability fudging
+- Added Scorebug
+- Changed song state report from `2100 2001` to `(3-3) 3-1`
+- Changed song state report to list song outcome in `Attacking-Defending` order instead of `Away Home`
+- Fixed pause on Overtime ending
+- Prioritized pipe separators in message splitting
 
 ## Lineup: Away And Home, Captains, OPs, DPs
 The player with the highest (T1) and lowest (T4) **Watched** Elos of each team make up the **Offensive Players** (OPs). Their main role is to **score points** when their team has **possession**. To help with this, the T1 of each team is also designated as their **Captain**, which carries a **double multiplier** for their correct guesses. The other two players (T2 and T3) make up the **Defensive Players** (DPs). Their main role is to **prevent** the opposing OPs from scoring points when their team **doesn't have possession**. The team listed first (above) on Challonge is the **Away** team for each series. Line up as follows before each series: **Away** (Slots 1-4: T1, T4, T2, T3), then **Home** (Slots 5-8: T1, T4, T2, T3). There is **no need to swap** Slots between consecutive games; the Script does that **automatically**. 

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3-rc.0.3
+// @version      3-rc.1.0
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -28,7 +28,8 @@
             guide           : "https://github.com/Frittutisna/NFL-Mode/blob/main/Guide.md",
             flowchart       : "https://github.com/Frittutisna/NFL-Mode/blob/main/Flowchart/Flowchart.pdf",
             powerpoint      : "https://github.com/Frittutisna/NFL-Mode/blob/main/PowerPoint/PowerPoint.pdf",
-            playerCard      : "https://github.com/Frittutisna/NFL-Mode/blob/main/PowerPoint/Player.png"
+            playerCard      : "https://github.com/Frittutisna/NFL-Mode/blob/main/PowerPoint/Player.png",
+            exampleCard     : "https://github.com/Frittutisna/NFL-Mode/blob/main/PowerPoint/Example.png"
         },
         selectors           : {
             playIcon        : "fa-play-circle",
@@ -99,6 +100,7 @@
         "guide"             : "Show link to the guide",
         "powerpoint"        : "Show link to the PowerPoint",
         "playercard"        : "Show link to the Player Card",
+        "examplecard"       : "Show link to the Example Card",
         "howTo"             : "Show the step-by-step setup tutorial",
         "resetEverything"   : "Hard reset: Wipe all settings, series history, and teams to default",
         "resetGame"         : "Wipe current Game progress and stop tracker",
@@ -218,7 +220,7 @@
             const centerX   = sideX + sideBarW/2;
             const arrowSize = 25;
             
-            const arrow1Y = 85; 
+            const arrow1Y = 70;
             ctx.beginPath();
             ctx.moveTo(centerX,             arrow1Y - arrowSize);
             ctx.lineTo(centerX - arrowSize, arrow1Y + arrowSize);
@@ -229,7 +231,7 @@
             drawText(data.periodText,   centerX, 135, 50, cWhite);
             drawText(data.songNum,      centerX, 185, 50, cWhite);
 
-            const arrow2Y = 235;
+            const arrow2Y = 250;
             ctx.beginPath();
             ctx.moveTo(centerX,             arrow2Y + arrowSize);
             ctx.lineTo(centerX - arrowSize, arrow2Y - arrowSize);
@@ -237,8 +239,8 @@
             ctx.fillStyle = (data.nextPoss === 'home') ? cGold : cWhite;
             ctx.fill();
 
-            const bannerY = mainH + gap;
-            const bannerColor = (data.lastPoss === 'away') ? cBlue : cOrange;
+            const bannerY       = mainH + gap;
+            const bannerColor   = (data.bannerSide === 'away') ? cBlue : cOrange;
             
             ctx.fillStyle = bannerColor;
             ctx.fillRect(0, bannerY, width, bannerH);
@@ -297,16 +299,20 @@
                 let remaining = msg;
                 while (remaining.length > 0) {
                     if (remaining.length <= LIMIT) {this.queue.push({msg: remaining, isSystem}); break}
-                    let splitIndex  = -1;
-                    let idx         = remaining.lastIndexOf('.', LIMIT);
+                    let splitIndex  = -1;                    
+                    let idx         = remaining.lastIndexOf('|', LIMIT);
                     if (idx !== -1) splitIndex = idx;
                     else {
-                        idx = remaining.lastIndexOf(',', LIMIT);
+                        idx = remaining.lastIndexOf('.', LIMIT);
                         if (idx !== -1) splitIndex = idx;
                         else {
-                            idx = remaining.lastIndexOf(' ', LIMIT);
+                            idx = remaining.lastIndexOf(',', LIMIT);
                             if (idx !== -1) splitIndex = idx;
-                            else splitIndex = LIMIT;
+                            else {
+                                idx = remaining.lastIndexOf(' ', LIMIT);
+                                if (idx !== -1) splitIndex = idx;
+                                else splitIndex = LIMIT;
+                            }
                         }
                     }
 
@@ -324,6 +330,11 @@
                         if (char === ' ') {
                             cutEnd      = splitIndex;
                             nextStart   = splitIndex + 1;
+                        }
+                        else if (char === '|') {
+                            cutEnd      = splitIndex + 1;
+                            nextStart   = splitIndex + 1;
+                            if (nextStart < remaining.length && remaining[nextStart] === ' ') nextStart++;
                         }
                         else {
                             cutEnd = splitIndex + 1;
@@ -990,11 +1001,13 @@
                 if (suddenDeathOffense      .includes(result.name) && result.team === "offense") {
                     winnerSide = 'away';
                     isGameOver = true;
+                    sendGameCommand("pause game");
                 }
 
                 else if (suddenDeathDefense .includes(result.name) && result.team === "defense") {
                     winnerSide = 'home';
                     isGameOver = true;
+                    sendGameCommand("pause game");
                 }
 
                 else warningMsg = "Entering Sudden Death";
@@ -1053,8 +1066,6 @@
             if (config.isSwapped) {
                 awayNameDisp    = config.teamNames.home;
                 homeNameDisp    = config.teamNames.away;
-                awayScoreDisp   = match.scores.home;
-                homeScoreDisp   = match.scores.away;
             }
 
             let periodText  = "H1";
@@ -1064,6 +1075,9 @@
                 periodText  = "OT";
                 songNumDisp = match.otRound + 1;
             } else if (match.songNumber >= config.lengths.reg / 2) periodText = "H2";
+
+            let bannerSide = currentPossessionSide;
+            if (result.name === "Rouge" && result.team === "defense") bannerSide = (currentPossessionSide === 'away') ? 'home' : 'away';
 
             const scorebugData = {
                 awayName    : awayNameDisp,
@@ -1076,7 +1090,8 @@
                 periodText  : periodText,
                 songNum     : songNumDisp,
                 lastPoss    : currentPossessionSide,
-                lastResult  : result.name
+                lastResult  : result.name,
+                bannerSide  : bannerSide
             };
 
             const scorebugPromise = new Promise((resolve, reject) => {
@@ -1314,7 +1329,7 @@
                     const arg               = parts.slice(2).join(" ").toLowerCase();
                     const cmdKey            = Object.keys(COMMAND_DESCRIPTIONS).find(k => k.toLowerCase() === cmd);
                     const isHost            = (msg.sender === selfName);
-                    const publicCommands    = ["export", "flowchart", "guide", "powerpoint", "playercard", "help", "whatis"];
+                    const publicCommands    = ["export", "flowchart", "guide", "powerpoint", "playercard", "examplecard", "help", "whatis"];
 
                     if (publicCommands.includes(cmd)) {
                         setTimeout(() => {
@@ -1333,6 +1348,7 @@
                                 else if (cmd === "guide")       chatMessage(`Guide: ${config.links.guide}`);
                                 else if (cmd === "powerpoint")  chatMessage(`PowerPoint: ${config.links.powerpoint}`);
                                 else if (cmd === "playercard")  chatMessage(`Player Card: ${config.links.playerCard}`);
+                                else if (cmd === "examplecard") chatMessage(`Example Card: ${config.links.exampleCard}`);
                                 else if (cmd === "export")      downloadScoresheet();
                             }
                         }, config.delay);
