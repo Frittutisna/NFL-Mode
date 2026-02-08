@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3-rc.0.2
+// @version      3-rc.0.3
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -137,22 +137,23 @@
 
     function drawScorebug(data) {
         return new Promise((resolve) => {
-            const canvas    = document.createElement('canvas');
-            canvas.width    = 800;
-            canvas.height   = 400;
-            const ctx       = canvas.getContext('2d');
-            const cBlue     = '#0D5685';
-            const cOrange   = '#E7692B';
-            const cBlack    = '#000000';
-            const cWhite    = '#FFFFFF';
-            const cGold     = '#FFCC00';
-            const width     = canvas.width;
-            const height    = canvas.height;
-            const sideBarW  = 160;
-            const scoreW    = 160;
-            const nameW     = width - sideBarW - scoreW;
-            const bannerH   = 80;
-            const mainH     = height - bannerH;
+            const canvas        = document.createElement('canvas');
+            canvas.width        = 800;
+            canvas.height       = 400;
+            const ctx           = canvas.getContext('2d');
+            const cBlue         = '#0D5685';
+            const cOrange       = '#E7692B';
+            const cBlack        = '#000000';
+            const cWhite        = '#FFFFFF';
+            const cGold         = '#FFCC00';
+            const width         = canvas.width;
+            const height        = canvas.height;
+            const sideBarW      = 160;
+            const scoreW        = 160;
+            const nameW         = width - sideBarW - scoreW;
+            const bannerH       = 80;
+            const mainH         = height - bannerH;
+            const centerLine    = mainH / 2;
 
             ctx.fillStyle = cWhite;
             ctx.fillRect(0, 0, width, height);
@@ -165,57 +166,49 @@
                 ctx.fillText(text, x, y);
             };
 
+            const gap       = 4;
+            const halfGap   = gap / 2;
             const nameBoxH  = 100;
-            ctx.fillStyle   = cBlue;
-            ctx.fillRect(0, 0, nameW, nameBoxH);
-            drawText(data.awayName, nameW / 2, nameBoxH / 2, 60, cWhite);
+            const nameDrawH = nameBoxH - halfGap;
+            
+            ctx.fillStyle = cBlue;
+            ctx.fillRect(0, 0, nameW, nameDrawH); 
+            drawText(data.awayName, nameW / 2, nameDrawH / 2, 60, cWhite);
 
+            const botNameY  = centerLine + 60 + halfGap;
             ctx.fillStyle   = cOrange;
-            ctx.fillRect(0, mainH - nameBoxH, nameW, nameBoxH);
-            drawText(data.homeName, nameW / 2, mainH - (nameBoxH / 2), 60, cWhite);
+            ctx.fillRect(0, botNameY, nameW, nameDrawH);
+            drawText(data.homeName, nameW / 2, botNameY + (nameDrawH / 2), 60, cWhite);
 
             const playerRowH    = 60;
-            const playerY1      = nameBoxH;
-            const playerY2      = nameBoxH + playerRowH;
-            const gap           = 4;
+            const playerDrawH   = playerRowH - gap;
             const pBoxW         = (nameW - gap) / 2;
+
+            const topPlayerY = nameBoxH     + halfGap;
+            const botPlayerY = centerLine   + halfGap;
 
             const drawPlayerBox = (name, isT1, x, y, color) => {
                 ctx.fillStyle = color;
-                ctx.fillRect(x, y, pBoxW, playerRowH);
-
+                ctx.fillRect(x, y, pBoxW, playerDrawH);
                 let display = name;
                 if (isT1) display = "★ " + display;
-                drawText(display, x + pBoxW/2, y + playerRowH/2, 24, cWhite, 'center', 'normal');
-
-                ctx.lineWidth   = 2;
-                ctx.strokeStyle = cWhite;
-                
-                ctx.beginPath();
-                ctx.moveTo(x,           y);
-                ctx.lineTo(x + pBoxW,   y);
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.moveTo(x,           y + playerRowH);
-                ctx.lineTo(x + pBoxW,   y + playerRowH);
-                ctx.stroke();
+                drawText(display, x + pBoxW/2, y + playerDrawH/2, 24, cWhite, 'center', 'normal');
             };
 
-            drawPlayerBox(data.topPlayers[0].name, data.topPlayers[0].isT1, 0,              playerY1, cBlue);
-            drawPlayerBox(data.topPlayers[1].name, data.topPlayers[1].isT1, pBoxW + gap,    playerY1, cBlue);
-            drawPlayerBox(data.botPlayers[0].name, data.botPlayers[0].isT1, 0,              playerY2, cOrange);
-            drawPlayerBox(data.botPlayers[1].name, data.botPlayers[1].isT1, pBoxW + gap,    playerY2, cOrange);
+            drawPlayerBox(data.topPlayers[0].name, data.topPlayers[0].isT1, 0,              topPlayerY, cBlue);
+            drawPlayerBox(data.topPlayers[1].name, data.topPlayers[1].isT1, pBoxW + gap,    topPlayerY, cBlue);
+            drawPlayerBox(data.botPlayers[0].name, data.botPlayers[0].isT1, 0,              botPlayerY, cOrange);
+            drawPlayerBox(data.botPlayers[1].name, data.botPlayers[1].isT1, pBoxW + gap,    botPlayerY, cOrange);
 
             const scoreX = nameW + gap;
-            const scoreH = mainH / 2;
+            const scoreH = centerLine;
             
             ctx.fillStyle = cBlue;
-            ctx.fillRect(scoreX, 0, scoreW, scoreH - (gap / 2));
+            ctx.fillRect(scoreX, 0, scoreW, scoreH - halfGap);
             drawText(data.awayScore, scoreX + scoreW / 2, scoreH / 2, 80, cWhite);
 
             ctx.fillStyle = cOrange;
-            ctx.fillRect(scoreX, scoreH + (gap / 2), scoreW, scoreH - (gap / 2));
+            ctx.fillRect(scoreX, scoreH + halfGap, scoreW, scoreH - halfGap);
             drawText(data.homeScore, scoreX + scoreW / 2, scoreH + scoreH / 2, 80, cWhite);
 
             const sideX     = scoreX + scoreW + gap;
@@ -225,7 +218,7 @@
             const centerX   = sideX + sideBarW/2;
             const arrowSize = 25;
             
-            const arrow1Y   = 50;
+            const arrow1Y = 85; 
             ctx.beginPath();
             ctx.moveTo(centerX,             arrow1Y - arrowSize);
             ctx.lineTo(centerX - arrowSize, arrow1Y + arrowSize);
@@ -233,10 +226,10 @@
             ctx.fillStyle = (data.nextPoss === 'away') ? cGold : cWhite;
             ctx.fill();
 
-            drawText(data.periodText,   centerX, 130, 50, cWhite);
-            drawText(data.songNum,      centerX, 175, 50, cWhite);
+            drawText(data.periodText,   centerX, 135, 50, cWhite);
+            drawText(data.songNum,      centerX, 185, 50, cWhite);
 
-            const arrow2Y   = 270;
+            const arrow2Y = 235;
             ctx.beginPath();
             ctx.moveTo(centerX,             arrow2Y + arrowSize);
             ctx.lineTo(centerX - arrowSize, arrow2Y - arrowSize);
