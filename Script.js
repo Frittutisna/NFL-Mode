@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AMQ NFL Mode
 // @namespace    https://github.com/Frittutisna
-// @version      3-rc.0.0
+// @version      3-rc.0.1
 // @description  Script to track NFL Mode on AMQ
 // @author       Frittutisna
 // @match        https://*.animemusicquiz.com/*
@@ -113,6 +113,133 @@
         "swap"              : "Swap Away and Home teams",
         "whatIs"            : "Explain a term or rule (/nfl whatIs [Term])"
     };
+
+    const litterboxUrl = "https://litterbox.catbox.moe/resources/internals/api.php";
+
+    function uploadToLitterbox(blob) {
+        return new Promise((resolve, reject) => {
+            const formData = new FormData();
+            formData.append("reqtype",      "fileupload");
+            formData.append("time",         "1h");
+            formData.append("fileToUpload", blob,           "scorebug.png");
+
+            fetch(litterboxUrl, {
+                method  : "POST",
+                body    : formData
+            })  .then(res   => res.text())
+                .then(text  => {
+                    if (text.startsWith("https"))   resolve(text);
+                    else                            reject("Upload Failed: " + text);
+                })
+                .catch(err => reject(err));
+        });
+    }
+
+    function drawScorebug(data) {
+        return new Promise((resolve) => {
+            const canvas    = document.createElement('canvas');
+            canvas.width    = 800;
+            canvas.height   = 400;
+            const ctx       = canvas.getContext('2d');
+            const cBlue     = '#0D5685';
+            const cOrange   = '#E7692B';
+            const cBlack    = '#000000';
+            const cWhite    = '#FFFFFF';
+            const cGold     = '#FFCC00';
+            const width     = canvas.width;
+            const height    = canvas.height;
+            const sideBarW  = 160;
+            const scoreW    = 160;
+            const nameW     = width - sideBarW - scoreW;
+            const bannerH   = 80;
+            const mainH     = height - bannerH;
+
+            ctx.fillStyle = cWhite;
+            ctx.fillRect(0, 0, width, height);
+
+            const drawText = (text, x, y, size, color, align = 'center', weight = 'bold') => {
+                ctx.fillStyle       = color;
+                ctx.font            = `${weight} ${size}px Arial`;
+                ctx.textAlign       = align;
+                ctx.textBaseline    = 'middle';
+                ctx.fillText(text, x, y);
+            };
+
+            const nameBoxH  = 100;
+            ctx.fillStyle   = cBlue;
+            ctx.fillRect(0, 0, nameW, nameBoxH);
+            drawText(data.awayName, nameW / 2, nameBoxH / 2, 60, cWhite);
+
+            ctx.fillStyle   = cOrange;
+            ctx.fillRect(0, mainH - nameBoxH, nameW, nameBoxH);
+            drawText(data.homeName, nameW / 2, mainH - (nameBoxH / 2), 60, cWhite);
+
+            const playerRowH    = 60;
+            const playerY1      = nameBoxH;
+            const playerY2      = nameBoxH + playerRowH;
+            const gap           = 4;
+            const pBoxW         = (nameW - gap) / 2;
+
+            const drawPlayerBox = (name, isT1, x, y, color) => {
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, pBoxW, playerRowH);
+                let display = name;
+                if (isT1) display = "★ " + display;
+                drawText(display, x + pBoxW / 2, y + playerRowH / 2, 24, cWhite, 'center', 'normal');
+            };
+
+            drawPlayerBox(data.topPlayers[0].name, data.topPlayers[0].isT1, 0,              playerY1, cBlue);
+            drawPlayerBox(data.topPlayers[1].name, data.topPlayers[1].isT1, pBoxW + gap,    playerY1, cBlue);
+            drawPlayerBox(data.botPlayers[0].name, data.botPlayers[0].isT1, 0,              playerY2, cOrange);
+            drawPlayerBox(data.botPlayers[1].name, data.botPlayers[1].isT1, pBoxW + gap,    playerY2, cOrange);
+
+            const scoreX = nameW + gap;
+            const scoreH = mainH / 2;
+            
+            ctx.fillStyle = cBlue;
+            ctx.fillRect(scoreX, 0, scoreW, scoreH - (gap / 2));
+            drawText(data.awayScore, scoreX + scoreW / 2, scoreH / 2, 80, cWhite);
+
+            ctx.fillStyle = cOrange;
+            ctx.fillRect(scoreX, scoreH + (gap / 2), scoreW, scoreH - (gap / 2));
+            drawText(data.homeScore, scoreX + scoreW / 2, scoreH + scoreH / 2, 80, cWhite);
+
+            const sideX     = scoreX + scoreW + gap;
+            ctx.fillStyle   = cBlack;
+            ctx.fillRect(sideX, 0, sideBarW, mainH);
+
+            const centerX   = sideX + sideBarW/2;
+            const arrowSize = 25;
+            
+            const arrow1Y = 50;
+            ctx.beginPath();
+            ctx.moveTo(centerX,             arrow1Y - arrowSize);
+            ctx.lineTo(centerX - arrowSize, arrow1Y + arrowSize);
+            ctx.lineTo(centerX + arrowSize, arrow1Y + arrowSize);
+            ctx.fillStyle = (data.nextPoss === 'away') ? cGold : cWhite;
+            ctx.fill();
+
+            drawText(data.periodText,   centerX, 120, 50, cWhite);
+            drawText(data.songNum,      centerX, 200, 50, cWhite);
+
+            const arrow2Y = 270;
+            ctx.beginPath();
+            ctx.moveTo(centerX,             arrow2Y + arrowSize);
+            ctx.lineTo(centerX - arrowSize, arrow2Y - arrowSize);
+            ctx.lineTo(centerX + arrowSize, arrow2Y - arrowSize);
+            ctx.fillStyle = (data.nextPoss === 'home') ? cGold : cWhite;
+            ctx.fill();
+
+            const bannerY = mainH + gap;
+            const bannerColor = (data.lastPoss === 'away') ? cBlue : cOrange;
+            
+            ctx.fillStyle = bannerColor;
+            ctx.fillRect(0, bannerY, width, bannerH);
+            drawText(`Last: ${data.lastResult}`, width/2, bannerY + (bannerH/2), 40, cWhite);
+
+            canvas.toBlob((blob) => {resolve(blob)});
+        });
+    }
 
     const parseBool = (val) => {
         if (typeof val === 'boolean') return val;
@@ -717,23 +844,23 @@
             const tdiff = attStats.totalScore   - defStats.totalScore;
             const diff  = attStats.opScore      - defStats.dpScore;
 
-            if      (tdiff >= 4)                return {name: "Onside Kick",  pts: 7, swap: false,    team: "offense"};
-            else if (tdiff <= -4)               return {name: "House Call",   pts: 7, swap: true,     team: "defense"};
+            if          (tdiff >=   4)          return {name: "Onside Kick",    pts: 7, swap: false,    team: "offense",    tdiff, diff};
+            else if     (tdiff <=   -4)         return {name: "House Call",     pts: 7, swap: true,     team: "defense",    tdiff, diff};
             else {
-                if      (diff >=    3)          return {name: "TD + 2PC",     pts: 8, swap: true,     team: "offense"};
-                else if (diff ===   2)          return {name: "Touchdown",    pts: 7, swap: true,     team: "offense"};
-                else if (diff ===   1)          return {name: "Field Goal",   pts: 3, swap: true,     team: "offense"};
+                if      (diff >=    3)          return {name: "TD + 2PC",       pts: 8, swap: true,     team: "offense",    tdiff, diff};
+                else if (diff ===   2)          return {name: "Touchdown",      pts: 7, swap: true,     team: "offense",    tdiff, diff};
+                else if (diff ===   1)          return {name: "Field Goal",     pts: 3, swap: true,     team: "offense",    tdiff, diff};
                 else if (diff ===   0 || diff === -1) {
                     const attHit = attStats.correctCount > 0;
                     const defHit = defStats.correctCount > 0;
-                    if      (attHit && !defHit) return {name: "Rouge",        pts: 1, swap: true,     team: "offense"};
-                    else if (defHit && !attHit) return {name: "Rouge",        pts: 1, swap: true,     team: "defense"};
-                    else                        return {name: "Punt",         pts: 0, swap: true,     team: "defense"};
+                    if      (attHit && !defHit) return {name: "Rouge",          pts: 1, swap: true,     team: "offense",    tdiff, diff};
+                    else if (defHit && !attHit) return {name: "Rouge",          pts: 1, swap: true,     team: "defense",    tdiff, diff};
+                    else                        return {name: "Punt",           pts: 0, swap: true,     team: "defense",    tdiff, diff};
                 }
-                else if (diff ===   -2)         return {name: "Safety",       pts: 2, swap: true,     team: "defense" };
-                else if (diff <=    -3)         return {name: "Pick Six",     pts: 6, swap: true,     team: "defense" };
+                else if (diff ===   -2)         return {name: "Safety",         pts: 2, swap: true,     team: "defense",    tdiff, diff};
+                else if (diff <=    -3)         return {name: "Pick Six",       pts: 6, swap: true,     team: "defense",    tdiff, diff};
             }
-            return {name: "Error", pts: 0, swap: true, team: "none"};
+                                                return {name: "Error",          pts: 0, swap: true,     team: "none",       tdiff, diff};
         };
 
         const awaySlots = config.isSwapped ? gameConfig.homeSlots : gameConfig.awaySlots;
@@ -751,63 +878,39 @@
         if      (result.team === "offense") match.scores[match.possession]                  += result.pts;
         else if (result.team === "defense") match.scores[match.possession === 'away' ? 'home' : 'away'] += result.pts;
         
-        if (result.swap)                                                                    match.possession = match.possession === 'away' ? 'home' : 'away';
-        if (match.period === 'REGULATION' && match.songNumber === (config.lengths.reg / 2)) match.possession = 'home';
+        let nextPossessionSide = match.possession;
+        if (result.swap)                                                                    nextPossessionSide = match.possession === 'away' ? 'home' : 'away';
+        if (match.period === 'REGULATION' && match.songNumber === (config.lengths.reg / 2)) nextPossessionSide = 'home';
+        match.possession = nextPossessionSide;
 
-        const generateMaskedPattern = (actualArr, isAway) => {
-            let maskedStr = "";
-            const mySlots = isAway ? awaySlots : homeSlots;
-            
-            actualArr.forEach((val, idx) => {
-                const slotId = mySlots[idx];
-
-                if (config.isTest) {
-                    const p = Object.values(quiz.players).find(p => p.teamNumber == slotId);
-                    if (!p) {maskedStr += "X"; return; }
-                }
-
-                const flippedVal    = val === 1 ? 0 : 1;
-                const testAwayArr   = isAway ? [...actualArr] : [...awayArr];
-                const testHomeArr   = isAway ? [...homeArr] : [...actualArr];
-                
-                if (isAway) testAwayArr[idx] = flippedVal;
-                else        testHomeArr[idx] = flippedVal;
-
-                const testAwayStats = computeStats(testAwayArr, awaySlots);
-                const testHomeStats = computeStats(testHomeArr, homeSlots);
-                
-                const storedPoss = match.possession;
-                match.possession = currentPossessionSide;
-                const testResult = calculateOutcome(testAwayStats, testHomeStats);
-                match.possession = storedPoss;
-
-                if (testResult.name === result.name && testResult.team === result.team) maskedStr += (val === 0 ? "X" : "Y");
-                else {
-                    const isCaptain =   config.captains.includes(slotId);
-                    maskedStr       +=  (val === 1 ? (isCaptain ? "2" : "1") : "0");
-                }
-            });
-
-            return maskedStr;
-        };
-
-        let displayAwayPattern  = generateMaskedPattern(awayArr, true);
-        let displayHomePattern  = generateMaskedPattern(homeArr, false);
-        let displayScoreStr     = `${match.scores.away}-${match.scores.home}`;
-
-        if (config.isSwapped) {
-            displayScoreStr     = config.isSwapped ? `${match.scores.home}-${match.scores.away}` : `${match.scores.away}-${match.scores.home}`;
-            const temp          = displayAwayPattern;
-            displayAwayPattern  = displayHomePattern;
-            displayHomePattern  = temp;
-        }
+        let displayScoreStr = `${match.scores.away}-${match.scores.home}`;
+        if (config.isSwapped) displayScoreStr = `${match.scores.home}-${match.scores.away}`;
 
         let subjectSide = currentPossessionSide;
         if (result.name !== "Punt" && result.team === 'defense') subjectSide = currentPossessionSide === 'away' ? 'home' : 'away';
+        const subjectTeamName = getCleanTeamName(subjectSide);
+
+        let statString = "";
+        let attTotal, defTotal, attOP, defDP;
         
-        const subjectTeamName   = getCleanTeamName(subjectSide);
-        const mainPatternMsg    = `${displayAwayPattern} ${displayHomePattern} ${subjectTeamName} ${result.name} ${displayScoreStr}`;
-        let outputParts         = [mainPatternMsg];
+        if (currentPossessionSide === 'away') {
+            attTotal    = awayStats.totalScore;
+            defTotal    = homeStats.totalScore;
+            attOP       = awayStats.opScore;
+            defDP       = homeStats.dpScore;
+        } else {
+            attTotal    = homeStats.totalScore;
+            defTotal    = awayStats.totalScore;
+            attOP       = homeStats.opScore;
+            defDP       = awayStats.dpScore;
+        }
+
+        const tDiffVal = attTotal - defTotal;
+        if (Math.abs(tDiffVal) >= 4)    statString = `(${attTotal}-${defTotal})`;
+        else                            statString = `(${attTotal}-${defTotal}) ${attOP}-${defDP}`;
+        
+        const mainPatternMsg = `${statString} ${subjectTeamName} ${result.name} ${displayScoreStr}`;
+        let outputParts = [mainPatternMsg];
 
         match.history.push({
             song    : match.songNumber,
@@ -842,11 +945,9 @@
                     match.period        = 'OVERTIME';
                     match.otRound       = 0;
                     match.possession    = 'away';
-                }
-                
-                else {
-                    winnerSide = match.scores.away > match.scores.home ? 'away' : 'home';
-                    isGameOver = true;
+                } else {
+                    winnerSide          = match.scores.away > match.scores.home ? 'away' : 'home';
+                    isGameOver          = true;
                 }
             }
 
@@ -900,9 +1001,7 @@
                     if (config.knockout) {
                         winnerSide = resolveKnockoutTie(awaySlots, homeSlots);
                         isGameOver = true;
-                    }
-                    
-                    else {
+                    } else {
                         winnerSide = 'draw';
                         isGameOver = true;
                     }
@@ -910,19 +1009,92 @@
             }
         }
 
-        if (isGameOver) {
+        if (!isGameOver) {
+            const isAwayNext        = match.possession === 'away';
+            const topSlotIndices    = isAwayNext ? [0, 1] : [2, 3];
+            const botSlotIndices    = isAwayNext ? [2, 3] : [0, 1];
+
+            const getPlayerInfo = (slotId, isT1) => {
+                const pName = getPlayerNameAtTeamId(slotId);
+                return {name: pName, isT1: isT1};
+            };
+
+            const topPlayers = topSlotIndices.map(idx => {
+                const slotId = awaySlots[idx];
+                return getPlayerInfo(slotId, idx === 0); 
+            });
+
+            const botPlayers = botSlotIndices.map(idx => {
+                const slotId = homeSlots[idx];
+                return getPlayerInfo(slotId, idx === 0);
+            });
+
+            let awayNameDisp    = config.teamNames.away;
+            let homeNameDisp    = config.teamNames.home;
+            let awayScoreDisp   = match.scores.away;
+            let homeScoreDisp   = match.scores.home;
+
+            if (config.isSwapped) {
+                awayNameDisp    = config.teamNames.home;
+                homeNameDisp    = config.teamNames.away;
+                awayScoreDisp   = match.scores.home;
+                homeScoreDisp   = match.scores.away;
+            }
+
+            let periodText  = "H1";
+            let songNumDisp = match.songNumber + 1;
+            
+            if (match.period === 'OVERTIME') {
+                periodText  = "OT";
+                songNumDisp = match.otRound + 1;
+            } else if (match.songNumber >= config.lengths.reg / 2) periodText = "H2";
+
+            const scorebugData = {
+                awayName    : awayNameDisp,
+                homeName    : homeNameDisp,
+                topPlayers  : topPlayers,
+                botPlayers  : botPlayers,
+                awayScore   : awayScoreDisp,
+                homeScore   : homeScoreDisp,
+                nextPoss    : match.possession,
+                periodText  : periodText,
+                songNum     : songNumDisp,
+                lastPoss    : currentPossessionSide,
+                lastResult  : result.name
+            };
+
+            const scorebugPromise = new Promise((resolve, reject) => {
+                const timer = setTimeout(() => reject("Timeout"), 5000);
+                drawScorebug(scorebugData)
+                    .then   (blob   => uploadToLitterbox(blob))
+                    .then   (link   => {clearTimeout(timer); resolve(link)})
+                    .catch  (err    => {clearTimeout(timer); reject(err)});
+            });
+
+            scorebugPromise
+                .then(link => {
+                    outputParts.push(`Next Possession: ${getArrowedTeamName(match.possession)}`);
+                    outputParts.push(getWinProbabilityText());
+                    if (warningMsg) outputParts.push(warningMsg);
+                    outputParts.push(`Scorebug: ${link}`);
+                    chatMessage(outputParts.filter(Boolean).join(" | "));
+                })
+                .catch(err => {
+                    console.error("Scorebug Error:", err);
+                    outputParts.push(`Next Possession: ${getArrowedTeamName(match.possession)}`);
+                    outputParts.push(getWinProbabilityText());
+                    if (warningMsg) outputParts.push(warningMsg);
+                    chatMessage(outputParts.filter(Boolean).join(" | "));
+                });
+        } else {
             const wName = winnerSide === 'draw' ? "None" : getCleanTeamName(winnerSide);
             outputParts.push(`Game Winner: ${wName}`);
             outputParts.push(getSeriesReport(winnerSide));
             chatMessage(outputParts.filter(Boolean).join(" | "));
             endGame(winnerSide);
-        } else {
-            outputParts.push(`Next Possession: ${getArrowedTeamName(match.possession)}`);
-            outputParts.push(getWinProbabilityText());
-            if (warningMsg) outputParts.push(warningMsg);
-            chatMessage(outputParts.filter(Boolean).join(" | "));
-            if (wasPendingPause) sendGameCommand("resume game");
         }
+
+        if (wasPendingPause) sendGameCommand("resume game");
     };
 
     const downloadScoresheet = () => {
