@@ -194,7 +194,7 @@
                 ctx.fillRect(x, y, pBoxW, playerDrawH);
                 let display = name;
                 if (isT1) display = "★ " + display;
-                drawText(display, x + pBoxW/2, y + playerDrawH/2, 24, cWhite, 'center', 'normal');
+                drawText(display, x + pBoxW / 2, y + playerDrawH / 2, 30, cWhite, 'center', 'normal');
             };
 
             drawPlayerBox(data.topPlayers[0].name, data.topPlayers[0].isT1, 0,              topPlayerY, cBlue);
@@ -1125,7 +1125,7 @@
             endGame(winnerSide);
         }
 
-        if (wasPendingPause) sendGameCommand("resume game");
+        if (wasPendingPause && match.isActive) sendGameCommand("resume game");
     };
 
     const downloadScoresheet = () => {
