@@ -1,4 +1,4 @@
-# NFL Mode v3-rc.1.1.0
+# NFL Mode v3-rc.1.1
 
 ## Table of Contents
 - [TLDR: What Is This And What Do I Do?](#tldr-what-is-this-and-what-do-i-do)
